@@ -1,1 +1,1 @@
-worker: python3 gabe/gabe.py
+worker: python3 gabe.py
