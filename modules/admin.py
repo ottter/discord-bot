@@ -140,12 +140,12 @@ class Admin(commands.Cog):
         if str(context.message.author.id) in bot_admins:
             try:
                 self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send('Reloaded')
+                await context.send(f'Reloaded: {module}')
             except Exception as err:
                 print('{}: {}'.format(type(err).__name__, err))
                 await context.send(err)
         else:
-            await context.send('Bot Admin Only')
+            await context.send('You don\'t have permission to do that')
 
     @commands.command(pass_context=True)
     async def load(self, context, module: str):
@@ -153,12 +153,12 @@ class Admin(commands.Cog):
         if str(context.message.author.id) in bot_admins:
             try:
                 self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send('Reloaded')
+                await context.send(f'Reloaded: {module}')
             except Exception as err:
                 print('{}: {}'.format(type(err).__name__, err))
                 await context.send(err)
         else:
-            await context.send('Bot Admin Only')
+            await context.send('You don\'t have permission to do that')
 
     @commands.command(pass_context=True)
     async def unload(self, context, module: str):
@@ -166,12 +166,12 @@ class Admin(commands.Cog):
         if str(context.message.author.id) in bot_admins:
             try:
                 self.bot.unload_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send('Unloaded')
+                await context.send(f'Unloaded: {module}')
             except Exception as err:
                 print('{}: {}'.format(type(err).__name__, err))
                 await context.send('Error unloading cog')
         else:
-            await context.send('Bot Admin Only')
+            await context.send('You don\'t have permission to do that')
 
     @commands.command(pass_context=True)
     async def game(self, context):
