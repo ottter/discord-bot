@@ -24,6 +24,8 @@ common_users = {
     "zin": 240046314321084417,
 }
 
+MODULE_SUBDIR = 'modules'
+FILES_SUBDIR = 'data'
 
 class Admin(commands.Cog):
     """Basic bot admin-level controls"""
@@ -65,8 +67,8 @@ class Admin(commands.Cog):
         unban_user = await self.bot.fetch_user(unban_user_id)
 
         # Users I don't want unbanned for whatever particular reason
-        if str(context.author.id) or str(unban_user_id) in banned_users:
-            await context.send(f'I can\'t do that, {context.author}')
+        if (str(context.author.id) in banned_users) or (str(unban_user_id) in banned_users):
+            await context.send(f'I can\'t do that, {context.author.mention}')
             return print(f'{config.time}: {context.author} failed to unban {unban_user}. Reason: Perm Banned')
 
         # Only users specified above are able to use this command
@@ -123,10 +125,10 @@ class Admin(commands.Cog):
         # TODO: Change prefix quantifier (right word?) to utilize RegEx for non-alphanumeric keyboard characters
         if str(context.message.author.id) in bot_admins:
             if len(prefix) == 1:
-                with open('./files/prefixes.json', 'r') as file:
+                with open(f'./{FILES_SUBDIR}/prefixes.json', 'r') as file:
                     prefixes = json.load(file)
                 prefixes[str(context.guild.id)] = prefix
-                with open('./files/prefixes.json', 'w') as file:
+                with open(f'./{FILES_SUBDIR}/prefixes.json', 'w') as file:
                     json.dump(prefixes, file, indent=4)
                 await context.send(f'Prefix changed to: {prefix}')
             else:
@@ -137,7 +139,7 @@ class Admin(commands.Cog):
         """Reload the specified cog [off then on]"""
         if str(context.message.author.id) in bot_admins:
             try:
-                self.bot.reload_extension(f'cogs.{module}')
+                self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
                 await context.send('Reloaded')
             except Exception as err:
                 print('{}: {}'.format(type(err).__name__, err))
@@ -150,7 +152,7 @@ class Admin(commands.Cog):
         """Loads the specified cog [on]"""
         if str(context.message.author.id) in bot_admins:
             try:
-                self.bot.load_extension(f'cogs.{module}')
+                self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
                 await context.send('Reloaded')
             except Exception as err:
                 print('{}: {}'.format(type(err).__name__, err))
@@ -163,7 +165,7 @@ class Admin(commands.Cog):
         """Unloads the specified cog [off]"""
         if str(context.message.author.id) in bot_admins:
             try:
-                self.bot.unload_extension(f'cogs.{module}')
+                self.bot.unload_extension(f'{MODULE_SUBDIR}.{module}')
                 await context.send('Unloaded')
             except Exception as err:
                 print('{}: {}'.format(type(err).__name__, err))
