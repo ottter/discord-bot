@@ -95,9 +95,11 @@ async def on_member_remove(member):
 
         # Logic to automatically reinvite (and unban) users who leave
         if member not in modules.admin.banned_users:
-            if await member.guild.fetch_ban(member):
+            try:
                 await member.guild.unban(member)
                 print(f'automatically unbanned {member}')
+            except:
+                pass
             invite_link = await channel.create_invite(max_age=1000)
             invite_channel = await member.create_dm()
             await invite_channel.send(f'wait come back lol {invite_link}')

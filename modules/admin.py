@@ -110,6 +110,21 @@ class Admin(commands.Cog):
             return print(f'{config.time}: {context.author} failed to change name. Reason: {err}')
 
     @commands.command()
+    async def invite(self, context):
+        if str(context.author.id) in bot_admins:
+            return
+        if context in common_users:
+            invited_user = common_users[context]
+        else:
+            invited_user = context
+        invited_user = await self.bot.fetch_user(invited_user)
+
+        invite_link = await context.guild.create_invite(max_age=1000)
+        invite_channel = await invited_user.create_dm()
+        await invite_channel.send(invite_link)
+
+
+    @commands.command()
     async def clear_role(self, context):
         if str(context.author.id) in bot_admins:
             return
