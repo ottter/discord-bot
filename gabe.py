@@ -55,9 +55,10 @@ async def on_message(context):
                                    'and thus increase in agriculture as plants grow faster, more food, etc.')
 
     # Lightscord specific on-messages
-    if context.guild.id == 563549980439347201:
-        if context.author.id == 209385907101368322:
-            await context.author.edit(nick="Ellie")
+    if context.guild:
+        if context.guild.id == 563549980439347201:
+            if context.author.id == 209385907101368322:
+                await context.author.edit(nick="Ellie")
 
     await bot.process_commands(context)
 
