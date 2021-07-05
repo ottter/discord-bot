@@ -116,15 +116,15 @@ class Admin(commands.Cog):
             print(err)
             await context.send(f'I can\'t do that, {context.author.mention}')
 
-    @commands.command()
-    async def clear_role(self, context):
-        if str(context.author.id) in bot_admins:
-            return
-        lightscord = await self.bot.fetch_guild(guild_id=563549980439347201)
-        default_role = lightscord.get_role(731911251721977897)
-        unrole_user = await self.bot.fetch_user(context.author.id)  # returns discord.Member aka James#0000
-        print(f'cleared role {unrole_user} with {default_role}')
-        await context.author.edit(roles=[default_role])
+    # @commands.command()
+    # async def clear_role(self, context):
+    #     if str(context.author.id) in bot_admins:
+    #         return
+    #     lightscord = await self.bot.fetch_guild(guild_id=563549980439347201)
+    #     default_role = lightscord.get_role(731911251721977897)
+    #     unrole_user = await self.bot.fetch_user(context.author.id)  # returns discord.Member aka James#0000
+    #     print(f'cleared role {unrole_user} with {default_role}')
+    #     await context.author.edit(roles=[default_role])
 
     @commands.command()
     async def change_prefix(self, context, prefix):

@@ -37,10 +37,10 @@ async def on_ready():
 async def ping(context):
     before = time.monotonic()
     message = await context.channel.send("Pong!")
-    server_ping = f'Ping: {int((time.monotonic() - before) * 1000)}ms'
+    server_ping = int((time.monotonic() - before) * 1000)
 
-    await message.edit(content=server_ping)
-    print(f'{context.author} pinged the server: {server_ping}')
+    await message.edit(content=f'Ping: {server_ping}ms')
+    print(f'{context.author} pinged the server: {server_ping}ms')
 
 
 @bot.event
@@ -54,8 +54,9 @@ async def on_message(context):
         await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
                                    'and thus increase in agriculture as plants grow faster, more food, etc.')
 
-    # Lightscord specific on-messages
+    # Guild specific on-messages
     if context.guild:
+        # Lightscord specific on-messages
         if context.guild.id == 563549980439347201:
             if context.author.id == 209385907101368322:
                 await context.author.edit(nick="Ellie")
@@ -87,6 +88,42 @@ async def on_guild_remove(guild):
 
 
 @bot.event
+async def on_member_update(before, after):
+    # I'll put this in a db eventually...
+    auto_roller_add = {
+        657117149612998657: ['Admin', 'Redpilled', 'STEM'],             # gabe
+        436331384240472075: ['Admin', 'Redpilled', 'STEM'],             # dodo
+        150125122408153088: ['fun, loving individual', 'STEM'],         # james
+        273532188803203072: ['fun, loving individual', 'STEM'],         # morgan
+        240046314321084417: ['Austistic', 'STEM', 'Book Club'],         # zin
+        209385907101368322: ['Injun', 'STEM', 'Book Club', 'LGBTQ+'],   # twil
+        149187078981287936: ['Doctor Of Philosophy']                    # miles
+    }
+    auto_roller_rm = {
+        657117149612998657: ['whale'],    # gabe
+    }
+    # Role fixer
+
+    role_diff = list(set(before.roles) - set(after.roles)) + list(set(after.roles) - set(before.roles))
+    if before.guild.id == 563549980439347201:
+        for role in role_diff:
+            if role.name in auto_roller_add[before.id]:
+                try:
+                    await after.add_roles(role)
+                except Exception as err:
+                    print(f'Couldn\'t fix the role situation, but this might help:{err}')
+                    continue
+            if role.name in auto_roller_rm[before.id]:
+                try:
+                    await after.remove_roles(role)
+                except Exception as err:
+                    print(f'Couldn\'t fix the role situation, but this might help:{err}')
+                    continue
+            else:
+                pass
+
+
+@bot.event
 async def on_member_remove(member):
     philoco = 563549980439347201
     welcome = 703752970894049320
@@ -104,6 +141,18 @@ async def on_member_remove(member):
             invite_link = await channel.create_invite(max_age=1000)
             invite_channel = await member.create_dm()
             await invite_channel.send(f'wait come back lol {invite_link}')
+
+
+@bot.event
+async def on_message_delete(message):
+    easter_egg_but_not_really_well_hidden = ''
+    if message.author.bot is True:
+        easter_egg_but_not_really_well_hidden = f'but it\'s a bot so who cares?\n**Message**: {message.content}'
+    await message.channel.send(f'A message from **{message.author.name}** was deleted '
+                               f'{easter_egg_but_not_really_well_hidden}')
+    # Removed this until I can tell difference between user deletion and admin abuse
+    # await message.channel.send(f'A message from **{message.author.name}** was deleted '
+    #                            f'{easter_egg_but_not_really_well_hidden}\n**Message**: {message.content}')
 
 
 def load_extensions():
