@@ -6,6 +6,7 @@ import json
 
 bot_admins = [
     '150125122408153088',   # me
+    '205144077144948737',   # liam
 ]
 accepted_servers = [
     '563549980439347201',   # lightscord
@@ -27,22 +28,12 @@ common_users = {
 MODULE_SUBDIR = 'modules'
 FILES_SUBDIR = 'data'
 
+
 class Admin(commands.Cog):
     """Basic bot admin-level controls"""
 
     def __init__(self, bot):
         self.bot = bot
-
-    # @commands.command(alias='add_alias')
-    # async def add_alias(self, context, user: discord.User, *alias):
-    #     if str(context.message.author.id) in admins or user.id == context.message.author.id:
-    #         if len(alias) > 1:
-    #             await context.send('The alias must be a single word.')
-    #             return
-    #
-    #         config.db['aliases'].update_one({'_id': user.id}, {'$addToSet': {'aliases': ' '.join(alias)}}, upsert=True)
-    #
-    #         await context.send('Successfully added alias.')
 
         # for role in context.guild.roles:
         #     if role.name in ['Philosopher', 'OG', 'Current WORST poster', 'Current BEST Pogrammer', 'Big Stonker',
@@ -53,16 +44,13 @@ class Admin(commands.Cog):
         #             continue
 
     @commands.command()
-    async def unban(self, context, unban_input):
-
-        if unban_input == 'me':
+    async def unban(self, context, member: discord.Member = None):
+        if member is None:
             unban_user_id = context.message.author.id
-
-        elif unban_input in common_users:
-            unban_user_id = common_users[unban_input]
-
+        elif member in common_users:
+            unban_user_id = common_users[context]
         else:
-            unban_user_id = unban_input
+            unban_user_id = context.message.author.id
 
         unban_user = await self.bot.fetch_user(unban_user_id)
 
@@ -81,7 +69,7 @@ class Admin(commands.Cog):
 
         try:
             # Logic for banned user to unban themself, can call via DM (only works on Lightscord)
-            if unban_input == 'me':
+            if member is None:
                 unban_server = await self.bot.fetch_guild(guild_id=436327337928294421)
 
             # "Logic" "for users to unban another user. Unbans in the channel it is activated in.
@@ -97,8 +85,8 @@ class Admin(commands.Cog):
             print(f'{config.time}: {context.author} unbanned {unban_user} from {context.guild}.')
 
         except Exception as err:
-            print(f'{config.time}: Could not unban {unban_user}. Reason: {err}')
-            pass
+            await context.send(f'Error. Try `.unban [user ID]` or just `.unban`')
+            return print(f'{config.time}: Could not unban {unban_user}. Reason: {err}')
 
     @commands.command()
     async def nick(self, context, nick):
@@ -109,20 +97,24 @@ class Admin(commands.Cog):
         except Exception as err:
             return print(f'{config.time}: {context.author} failed to change name. Reason: {err}')
 
-    @commands.command()
-    async def invite(self, context):
-        if str(context.author.id) in bot_admins:
-            return
-        if context in common_users:
+    @commands.command(pass_context=True)
+    async def invite(self, context, member: discord.Member = None):
+        """Send an invite link to self or user. Leave context blank or include user discord ID"""
+        invite_server = context.channel
+        if member is None:
+            invited_user = context.message.author.id
+        elif member in common_users:
             invited_user = common_users[context]
         else:
-            invited_user = context
-        invited_user = await self.bot.fetch_user(invited_user)
-
-        invite_link = await context.guild.create_invite(max_age=1000)
-        invite_channel = await invited_user.create_dm()
-        await invite_channel.send(invite_link)
-
+            invited_user = context.message.author.id
+        try:
+            invite_user = await self.bot.fetch_user(invited_user)
+            invite_link = await invite_server.create_invite(max_age=1000)
+            dm_channel = await invite_user.create_dm()
+            await dm_channel.send(invite_link)
+        except Exception as err:
+            print(err)
+            await context.send(f'I can\'t do that, {context.author.mention}')
 
     @commands.command()
     async def clear_role(self, context):
