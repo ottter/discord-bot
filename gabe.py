@@ -58,14 +58,18 @@ async def on_message(context):
     if context.guild:
         # Lightscord specific on-messages
         if context.guild.id == 563549980439347201:
-            if context.author.id == 209385907101368322:     # twil
+            if context.author.id == 209385907101368322:         # twil
                 await context.author.edit(nick="Ellie")
-            if context.author.id == 178563304321581056:     # jeb
-                await context.add_reaction('🌈')
-        # ban jebbers from steamies
-        # if context.channel.id == 570085619376848906:
-        #     if context.author.id == 178563304321581056:
-        #         await context.delete()
+
+            # add some flair
+            # if context.channel.id == 570085619376848906:        # steamies
+            #     if context.author.id == 178563304321581056:     # jeb
+            #         await context.add_reaction('🌈')
+
+            # ban jebbers from steamies
+            # if context.channel.id == 570085619376848906:
+            #     if context.author.id == 178563304321581056:
+            #         await context.delete()
 
     await bot.process_commands(context)
 
@@ -95,7 +99,7 @@ async def on_guild_remove(guild):
 
 @bot.event
 async def on_member_update(before, after):
-    # I'll put this in a db eventually...
+    # I'll put this in a table eventually...
     auto_roller_add = {
         657117149612998657: ['Admin', 'Redpilled', 'STEM'],             # gabe
         436331384240472075: ['Admin', 'Redpilled', 'STEM'],             # dodo
@@ -103,13 +107,14 @@ async def on_member_update(before, after):
         273532188803203072: ['fun, loving individual', 'STEM'],         # morgan
         240046314321084417: ['Austistic', 'STEM', 'Book Club'],         # zin
         209385907101368322: ['Injun', 'STEM', 'Book Club', 'LGBTQ+'],   # twil
-        149187078981287936: ['Doctor Of Philosophy']                    # miles
+        149187078981287936: ['Doctor Of Philosophy', 'STEM'],           # miles
+        328043851891605506: ['Walmart Ambassador', 'Rap Champion', 'STEM']  # saj
     }
     auto_roller_rm = {
         657117149612998657: ['whale'],    # gabe
     }
-    # Role fixer
 
+    # Role fixer
     role_diff = list(set(before.roles) - set(after.roles)) + list(set(after.roles) - set(before.roles))
     if before.guild.id == 563549980439347201:
         for role in role_diff:
