@@ -58,8 +58,14 @@ async def on_message(context):
     if context.guild:
         # Lightscord specific on-messages
         if context.guild.id == 563549980439347201:
-            if context.author.id == 209385907101368322:
+            if context.author.id == 209385907101368322:     # twil
                 await context.author.edit(nick="Ellie")
+            if context.author.id == 178563304321581056:     # jeb
+                await context.add_reaction('🌈')
+        # ban jebbers from steamies
+        # if context.channel.id == 570085619376848906:
+        #     if context.author.id == 178563304321581056:
+        #         await context.delete()
 
     await bot.process_commands(context)
 
