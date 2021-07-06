@@ -62,9 +62,9 @@ async def on_message(context):
                 await context.author.edit(nick="Ellie")
 
             # add some flair
-            # if context.channel.id == 570085619376848906:        # steamies
-            #     if context.author.id == 178563304321581056:     # jeb
-            #         await context.add_reaction('🌈')
+            if context.channel.id == 570085619376848906:        # steamies
+                if context.author.id == 178563304321581056:     # jeb
+                    await context.add_reaction('🌈')
 
             # ban jebbers from steamies
             # if context.channel.id == 570085619376848906:
@@ -116,7 +116,7 @@ async def on_member_update(before, after):
 
     # Role fixer
     role_diff = list(set(before.roles) - set(after.roles)) + list(set(after.roles) - set(before.roles))
-    if before.guild.id == 563549980439347201:
+    if before.guild.id == 563549980439347201:   # lightscord
         for role in role_diff:
             if role.name in auto_roller_add[before.id]:
                 try:
