@@ -62,9 +62,9 @@ async def on_message(context):
                 await context.author.edit(nick="Ellie")
 
             # add some flair
-            if context.channel.id == 570085619376848906:        # steamies
-                if context.author.id == 178563304321581056:     # jeb
-                    await context.add_reaction('🌈')
+            # if context.channel.id == 570085619376848906:        # steamies
+            #     if context.author.id == 178563304321581056:     # jeb
+            #         await context.add_reaction('🌈')
 
             # ban jebbers from steamies
             # if context.channel.id == 570085619376848906:
