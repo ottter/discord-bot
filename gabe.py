@@ -23,6 +23,7 @@ intents.members = True  # Subscribe to the privileged members intent.
 bot = commands.Bot(command_prefix='.', intents=intents)
 bot.remove_command('help')
 
+
 @bot.event
 async def on_ready():
 
@@ -57,19 +58,15 @@ async def on_message(context):
     # Guild specific on-messages
     if context.guild:
         # Lightscord specific on-messages
-        if context.guild.id == 563549980439347201:
+        if context.guild.id == 563549980439347201:              # lightscord
             if context.author.id == 209385907101368322:         # twil
                 await context.author.edit(nick="Ellie")
 
             # add some flair
-            # if context.channel.id == 570085619376848906:        # steamies
-            #     if context.author.id == 178563304321581056:     # jeb
-            #         await context.add_reaction('🌈')
-
-            # ban jebbers from steamies
-            # if context.channel.id == 570085619376848906:
-            #     if context.author.id == 178563304321581056:
-            #         await context.delete()
+            if context.channel.id == 570085619376848906:        # steamies
+                if context.author.id == 178563304321581056:     # jeb
+                    await context.add_reaction('🌈')
+                    # await context.delete()                    # ban jebbers from steamies
 
     await bot.process_commands(context)
 
@@ -77,11 +74,11 @@ async def on_message(context):
 @bot.event
 async def on_guild_join(guild):
     # TODO: Create server join message
-    with open('./files/prefix.json', 'r') as file:
-        prefixes = json.load(file)
-    prefixes[str(guild.id)] = "."
-    with open('./files/prefix.json', 'w') as file:
-        json.dump(prefixes, file, indent=4)
+    # with open('./files/prefix.json', 'r') as file:
+    #     prefixes = json.load(file)
+    # prefixes[str(guild.id)] = "."
+    # with open('./files/prefix.json', 'w') as file:
+    #     json.dump(prefixes, file, indent=4)
     print(f'joined new server: {guild}')
 
 
@@ -108,6 +105,7 @@ async def on_member_update(before, after):
         240046314321084417: ['Austistic', 'STEM', 'Book Club'],         # zin
         209385907101368322: ['Injun', 'STEM', 'Book Club', 'LGBTQ+'],   # twil
         149187078981287936: ['Doctor Of Philosophy', 'STEM'],           # miles
+        193427271992868864: ['Liberal'],                                # swim
         328043851891605506: ['Walmart Ambassador', 'Rap Champion', 'STEM']  # saj
     }
     auto_roller_rm = {
