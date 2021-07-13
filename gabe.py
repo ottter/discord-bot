@@ -64,9 +64,9 @@ async def on_message(context):
 
             # add some flair
             if context.author.id == 178563304321581056:  # jeb
-                if message.lower()[:-1] == "nope":
+                if message.lower() == "nope":
                     await context.channel.send('Yep')
-                if message.lower()[:-1] == "yep":
+                if message.lower() == "yep":
                     await context.channel.send('Nope')
                 if context.channel.id == 570085619376848906:        # steamies
                     await context.add_reaction('🌈')
