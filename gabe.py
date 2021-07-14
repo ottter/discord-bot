@@ -70,6 +70,8 @@ async def on_message(context):
                     await context.channel.send('Nope')
                 if message.lower() == "lol":
                     await context.channel.send('HAHAHAHAHA')
+                if message.lower().find == "prego":
+                    await context.channel.send('prego? preg-on deez nuts')
                 if message.lower() == "pasta":
                     await context.channel.send('eat your spaghettios and shut it, kid')
                 if message.find('zillow.com') != -1:
