@@ -68,6 +68,8 @@ async def on_message(context):
                     await context.channel.send('Yep')
                 if message.lower() == "yep":
                     await context.channel.send('Nope')
+                if message.lower() == "lol":
+                    await context.channel.send('HAHAHAHAHA')
                 if context.channel.id == 570085619376848906:        # steamies
                     await context.add_reaction('🌈')
                     # await context.delete()                    # ban jebbers from steamies
