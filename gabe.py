@@ -51,7 +51,7 @@ async def on_message(context):
     if context.author == bot.user:
         return
 
-    if message.startswith('!co2') != -1:
+    if message.startswith('!co2'):
         await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
                                    'and thus increase in agriculture as plants grow faster, more food, etc.')
 
@@ -60,7 +60,7 @@ async def on_message(context):
         # Lightscord specific on-messages
         if context.guild.id == 563549980439347201:              # lightscord
             if context.author.id == 209385907101368322:         # twil
-                await context.author.edit(nick="Ellie")
+                await context.author.edit(nick="Elena")
 
             # add some flair
             if context.author.id == 178563304321581056:  # jeb
