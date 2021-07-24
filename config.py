@@ -9,8 +9,8 @@ DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
 
 discord_game_played = 'Runescape'
 
-# MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
-# db = MONGO_TOKEN.get_database('discord')
+MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
+db = MONGO_TOKEN.get_database('discord')
 
 accepted_hosts = ['discord', 'imgur', 'youtube', 'gyazo']
 accepted_media_types = ['png', 'jpg', 'jpeg']
