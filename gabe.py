@@ -164,13 +164,13 @@ async def on_member_remove(member):
             await invite_channel.send(f'wait come back lol {invite_link}')
 
 
-@bot.event
-async def on_message_delete(message):
-    easter_egg_but_not_really_well_hidden = ''
-    if message.author.bot is True:
-        easter_egg_but_not_really_well_hidden = f'but it\'s a bot so who cares?\n**Message**: {message.content}'
-    await message.channel.send(f'A message from **{message.author.name}** was deleted '
-                               f'{easter_egg_but_not_really_well_hidden}')
+#@bot.event
+#async def on_message_delete(message):
+#    easter_egg_but_not_really_well_hidden = ''
+#    if message.author.bot is True:
+#        easter_egg_but_not_really_well_hidden = f'but it\'s a bot so who cares?\n**Message**: {message.content}'
+#    await message.channel.send(f'A message from **{message.author.name}** was deleted '
+#                               f'{easter_egg_but_not_really_well_hidden}')
     # Removed this until I can tell difference between user deletion and admin abuse
     # await message.channel.send(f'A message from **{message.author.name}** was deleted '
     #                            f'{easter_egg_but_not_really_well_hidden}\n**Message**: {message.content}')
