@@ -5,6 +5,16 @@ import urllib
 
 IMG_DIR = './images'  # Used in .csv method
 
+banned_users = [
+    '178563304321581056',   # jebbers
+    '837398236364275732',   # mort
+]
+
+bot_admins = [
+    '150125122408153088',   # me
+    '205144077144948737',   # liam
+]
+
 
 def valid_host(host):
     for accepted_host in config.accepted_hosts:
@@ -88,6 +98,9 @@ class People(commands.Cog):
     @commands.command()
     async def add_lights(self, context):
         """Add to the Lights collection"""
+        if str(context.author.id) in banned_users:
+            await context.send(f'I can\'t do that, {context.author.mention}')
+            return print(f'{config.time}: {context.author} failed to add image. Reason: Perm Banned')
 
         await add_image(context, 'lights')
 
@@ -102,6 +115,9 @@ class People(commands.Cog):
     @commands.command()
     async def add_jebrim(self, context):
         """Add to the Jebrim collection"""
+        if str(context.author.id) in banned_users:
+            await context.send(f'I can\'t do that, {context.author.mention}')
+            return print(f'{config.time}: {context.author} failed to add image. Reason: Perm Banned')
 
         await add_image(context, 'jebrim')
 
@@ -137,8 +153,8 @@ class People(commands.Cog):
     @commands.command()
     async def add_philo(self, context):
         """Add to the PhiloChat collection"""
-
-        await add_image(context, 'philo')
+        if str(context.message.author.id) in bot_admins:
+            await add_image(context, 'philo')
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
@@ -151,8 +167,8 @@ class People(commands.Cog):
     @commands.command()
     async def add_corona(self, context):
         """Add to the Corona collection"""
-
-        await add_image(context, 'corona')
+        if str(context.message.author.id) in bot_admins:
+            await add_image(context, 'corona')
 
 
 def setup(bot):
