@@ -14,6 +14,8 @@ accepted_servers = [
 ]
 banned_users = [
     '178563304321581056',   # jebbers
+    '635226170698235925',   # jebbers
+    '879813807453638786',   # mort
 ]
 common_users = {
     "elena": 209385907101368322,
