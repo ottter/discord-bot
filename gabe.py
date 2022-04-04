@@ -51,34 +51,9 @@ async def on_message(context):
     if context.author == bot.user:
         return
 
-    if message.startswith('!co2'):
-        await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
-                                   'and thus increase in agriculture as plants grow faster, more food, etc.')
-
-    # Guild specific on-messages
-    if context.guild:
-        # Lightscord specific on-messages
-        if context.guild.id == 563549980439347201:              # lightscord
-            if context.author.id == 209385907101368322:         # twil
-                await context.author.edit(nick="Elena")
-
-            # add some flair
-            if context.author.id == 178563304321581056:  # jeb
-                if message.lower() == "nope":
-                    await context.channel.send('Yep')
-                if message.lower() == "yep":
-                    await context.channel.send('Nope')
-                if message.lower() == "lol":
-                    await context.channel.send('HAHAHAHAHA')
-                if message.lower().find('prego') != -1:
-                    await context.channel.send('prego? preg-on deez nuts')
-                if message.lower().find('pasta') != -1:
-                    await context.channel.send('eat your spaghettios and shut it, kid')
-                if message.find('zillow.com') != -1:
-                    await context.channel.send('bro you\'ll never afford that. aim lower')
-                if context.channel.id == 570085619376848906:        # steamies
-                    await context.add_reaction('🌈')
-                    # await context.delete()                    # ban jebbers from steamies
+#    if message.startswith('!co2'):
+#        await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
+#                                   'and thus increase in agriculture as plants grow faster, more food, etc.')
 
     await bot.process_commands(context)
 
@@ -107,73 +82,12 @@ async def on_guild_remove(guild):
 
 
 @bot.event
-async def on_member_update(before, after):
-    # I'll put this in a table eventually...
-    auto_roller_add = {
-        657117149612998657: ['Admin', 'Redpilled', 'STEM'],             # gabe
-        436331384240472075: ['Admin', 'Redpilled', 'STEM'],             # dodo
-        150125122408153088: ['fun, loving individual', 'STEM'],         # james
-        273532188803203072: ['fun, loving individual', 'STEM'],         # morgan
-        240046314321084417: ['Austistic', 'STEM', 'Book Club'],         # zin
-        209385907101368322: ['Injun', 'STEM', 'Book Club', 'LGBTQ+'],   # twil
-        149187078981287936: ['Doctor Of Philosophy', 'STEM'],           # miles
-        193427271992868864: ['Liberal'],                                # swim
-        328043851891605506: ['Walmart Ambassador', 'Rap Champion', 'STEM']  # saj
-    }
-    auto_roller_rm = {
-        657117149612998657: ['whale'],    # gabe
-    }
-
-    # Role fixer
-    role_diff = list(set(before.roles) - set(after.roles)) + list(set(after.roles) - set(before.roles))
-    if before.guild.id == 563549980439347201:   # lightscord
-        for role in role_diff:
-            if role.name in auto_roller_add[before.id]:
-                try:
-                    await after.add_roles(role)
-                except Exception as err:
-                    print(f'Couldn\'t fix the role situation, but this might help:{err}')
-                    continue
-            if role.name in auto_roller_rm[before.id]:
-                try:
-                    await after.remove_roles(role)
-                except Exception as err:
-                    print(f'Couldn\'t fix the role situation, but this might help:{err}')
-                    continue
-            else:
-                pass
-
-
-@bot.event
 async def on_member_remove(member):
-    philoco = 563549980439347201
-    welcome = 703752970894049320
-    if member.guild.id == philoco:
-        channel = bot.get_channel(welcome)
+    primary_server_base_id = None
+    primary_welcome_channel = None
+    if primary_server_base_id and member.guild.id == primary_server_base_id:
+        channel = bot.get_channel(primary_welcome_channel)
         await channel.send(f'Cya {member} you dummy')
-
-        # Logic to automatically reinvite (and unban) users who leave
-        if member not in modules.admin.banned_users:
-            try:
-                await member.guild.unban(member)
-                print(f'automatically unbanned {member}')
-            except:
-                pass
-            invite_link = await channel.create_invite(max_age=1000)
-            invite_channel = await member.create_dm()
-            await invite_channel.send(f'wait come back lol {invite_link}')
-
-
-#@bot.event
-#async def on_message_delete(message):
-#    easter_egg_but_not_really_well_hidden = ''
-#    if message.author.bot is True:
-#        easter_egg_but_not_really_well_hidden = f'but it\'s a bot so who cares?\n**Message**: {message.content}'
-#    await message.channel.send(f'A message from **{message.author.name}** was deleted '
-#                               f'{easter_egg_but_not_really_well_hidden}')
-    # Removed this until I can tell difference between user deletion and admin abuse
-    # await message.channel.send(f'A message from **{message.author.name}** was deleted '
-    #                            f'{easter_egg_but_not_really_well_hidden}\n**Message**: {message.content}')
 
 
 def load_extensions():
