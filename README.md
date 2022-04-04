@@ -3,9 +3,13 @@
 *Remastered* version of my original Discord bot, dodo. I might change the name of this if it gets to a point where I'm happy with it.
 
 
-## How to run locally
+## How to run locally (Linux)
 
-todo
+    $   cd ~
+    $   git clone https://github.com/ottter/gabe.git && cd "$(basename "$_" .git)"
+    $   python3 -m venv gabe-env            # Create virtual environment    
+    $   source gabe-env/bin/activate        # Activate virtual environment
+    $   pip install -r requirements.txt     # Install dependencies (including discord.py)
 
 ## How to run on Heroku
 
