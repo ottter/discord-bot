@@ -7,8 +7,8 @@
 
     $   cd ~
     $   git clone https://github.com/ottter/gabe.git && cd "$(basename "$_" .git)"
-    $   python3 -m venv gabe-env            # Create virtual environment    
-    $   source gabe-env/bin/activate        # Activate virtual environment
+    $   python3 -m venv .venv               # Create virtual environment with a title in .gitignore
+    $   source .venv/bin/activate           # Activate virtual environment
     $   pip install -r requirements.txt     # Install dependencies (including discord.py)
 
 ## How to run on Heroku
@@ -16,15 +16,20 @@
 todo
 
 ## Explanation of Parts
-Procfile - Sync with Heroku. `gabe.py` is the main "chatbot" file that launches the modules
+**config.py** - Contains private environment or global vars. In Linux you can have `~/.envar` with the below and run `source $HOME/.envar` and ideally add it to your `.bashrc`
+    
+    DISCORD_TOKEN={token}
+    MONGO_TOKEN={token}
+
+**Procfile** - Sync with Heroku. `gabe.py` is the main "chatbot" file that launches the modules
     
     worker: python3 gabe.py
 
-runetime.txt - Heroku will automatically assign a Python runtime if not specified. Adding this is optional and locks the instance at that version
+**runtime.txt** - Heroku will automatically assign a Python runtime if not specified. Adding this is optional and locks the instance at that version
 
     python-3.9.5
 
-requirements.txt - Helpful Python file to install all dependencies via:
+**requirements.txt** - Helpful Python file to install all dependencies via:
 
     $ pip install -r requirements.txt
 
