@@ -2,6 +2,7 @@ import config
 import json
 import time
 import os
+import re
 import discord
 from discord.ext import commands
 
@@ -50,6 +51,9 @@ async def on_message(context):
 
     if context.author == bot.user:
         return
+
+    if context.channel.id == 786399511651287041 and re.search("(?i)(Wordle )\d{3}( )([3-6]|X)(\/6)", message):
+        await context.channel.send(f"Wordle loser {context.message.author.mention}")
 
 #    if message.startswith('!co2'):
 #        await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
