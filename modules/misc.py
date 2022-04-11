@@ -65,8 +65,8 @@ class Misc(commands.Cog):
         pasta = fbi_pasta_text(user, 0)
         message = await context.send(pasta)
 
-        await message.add_reaction(emoji='✔️')
-        await message.add_reaction(emoji='❌')
+        # await message.add_reaction(emoji='✔️')
+        # await message.add_reaction(emoji='❌')
 
         i, emoji = [0, '']
 
