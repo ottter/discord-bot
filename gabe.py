@@ -4,6 +4,7 @@ import time
 import os
 import re
 import discord
+import hashlib
 from discord.ext import commands
 
 import modules.admin
@@ -52,11 +53,28 @@ async def on_message(context):
     if context.author == bot.user:
         return
     
-    # if context.channel.id == 786399511651287041 and re.search("(?i)(Wordle )\d{3}( )([3-6]|X)(\/6)", message):
-    if re.search("(?i)(Wordle )\d{1,}( )-?(([0]|[3-9]|\d{2,})|X)(\/(6|\d{3,}))", message):
-        # if context.channel.id == 786399511651287041:
-        #     context.message.delete()
-        await context.channel.send(f"Wordle loser")
+    # TODO: Harass the Heardlers
+    # TODO: Lacerate the Lewdlers
+    # TODO: Dunk on the Dordlers
+    # TODO: Worldle is cool
+    # TODO: Quarrel with the Quordlers
+    # TODO: Demolish the Duotrigordlers
+    # TODO: Move this to a separate file
+
+    rdleverse_dict = { 
+        "Wordle": "(?i)(Wordle )\d{1,}( )-?(([0]|[3-9]|\d{2,})|X)(\/(6|\d{3,}))",  # Wordle 298 3/6
+        "Heardle": "(?i)(#Heardle #)\d{1,}",                                       # #Heardle #47
+        "Dordle": "(?i)(Daily Dordle #\d{4} )((0-9|X)&(0-9|X)/7)",                     # Daily Dordle #0078 X&X/7 
+        "Quordle": "(?i)(Daily Quordle \d{2,})",                                       # Daily Quordle 78
+        "Duotrigordle": "(?i)(Daily Duotrigordle #\d{2,})",                            # Daily Duotrigordle #42
+        "Lewdle": "(?i)(Lewdle 🍆💦 \d{2,})( (\d{1}|X)(/6))",}                        # Lewdle 🍆💦 83 5/6
+
+    
+    if context.channel.id == 786399511651287041:
+        for key, value in rdleverse_dict.items():
+            if re.search(value, message):
+                print(f'Put a {key}r in their place')
+                await context.channel.send(f"Get lost, {key}r")
 
 #    if message.startswith('!co2'):
 #        await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '

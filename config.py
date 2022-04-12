@@ -4,7 +4,7 @@ import datetime
 from pymongo import MongoClient
 
 # Gets a cool timestamp to use in logs or whatever
-time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+time = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
 
 # Discord token should be added to your path
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
