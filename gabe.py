@@ -54,13 +54,14 @@ async def on_message(context):
         return
 
     rdleverse_dict = { 
-        "Wordle": "(?i)(Wordle )\d{1,}( )-?(([0]|[3-9]|\d{2,})|X)(\/(6|\d{3,}))",  # Wordle 298 3/6
-        "Letterle": "(?i)(Letterle \d{1,}/26)",                                 # Letterle 7/26
-        "Heardle": "(?i)(#Heardle #)\d{1,}",                                       # #Heardle #47
-        "Dordle": "(?i)(Daily Dordle #\d{4} )((0-9|X)&(0-9|X)/7)",                 # Daily Dordle #0078 X&X/7 
-        "Quordle": "(?i)(Daily Quordle \d{2,})",                                   # Daily Quordle 78
-        "Duotrigordle": "(?i)(Daily Duotrigordle #\d{2,})",                        # Daily Duotrigordle #42
-        "Lewdle": "(?i)(Lewdle 🍆💦 \d{2,})( (\d{1}|X)(/6))",}                    # Lewdle 🍆💦 83 5/6
+        "Wordle": "(?i)(Wordle )\d{1,}( )-?(([0]|[3-9]|\d{2,})|X)(\/(6|\d{3,}))", # Wordle 298 3/6
+        "Letterle": "(?i)(Letterle \d{1,}/26)",                                   # Letterle 7/26
+        "Heardle": "(?i)(#Heardle #)\d{1,}",                                      # #Heardle #47
+        "Dordle": "(?i)(Daily Dordle #\d{4} )((0-9|X)&(0-9|X)/7)",                # Daily Dordle #0078 X&X/7
+        "Tridle": "(?i)(TRIDLE - \d{1,}/3 words, (\d{1,}/8 tries|failed))",       # TRIDLE - 3/3 words, 7/8 tries
+        "Quordle": "(?i)(Daily Quordle \d{2,})",                                  # Daily Quordle 78
+        "Duotrigordle": "(?i)(Daily Duotrigordle #\d{2,})",                       # Daily Duotrigordle #42
+        "Lewdle": "(?i)(Lewdle 🍆💦 \d{2,})( (\d{1}|X)(/6))",}                   # Lewdle 🍆💦 83 5/6
 
     
     if context.channel.id == 786399511651287041:
