@@ -4,7 +4,6 @@ import time
 import os
 import re
 import discord
-import hashlib
 from discord.ext import commands
 
 import modules.admin
@@ -120,7 +119,7 @@ def load_extensions():
                 print(f'Successfully loaded extension: {module}')
             except Exception as err:
                 exc = f'{type(err).__name__}: {err}'
-                print(f'Failed to load extension:  {module}\n{exc}')
+                print(f'Failed to load extension:  {module}\n\t{exc}')
 
 
 def log_in():
