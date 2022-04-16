@@ -12,8 +12,13 @@ bot_admins = [
 MODULE_SUBDIR = 'modules'
 FILES_SUBDIR = 'data'
 
+async def is_admin(context):
+    if str(context.message.author.id) not in bot_admins:
+        print(f'{context.message.author} tried to use an admin command.')
+        await context.send('You don\'t have permission to do that.')
+        return False
 
-def select_all_modules(action, action_str): # use * to perform action across all modules
+async def select_all_modules(context, action, action_str): # use * to perform action across all modules
     for filename in os.listdir('./modules'):
         module = filename[:-3]
         if filename.endswith('.py'):
@@ -23,7 +28,7 @@ def select_all_modules(action, action_str): # use * to perform action across all
             except Exception as err:
                 exc = f'{type(err).__name__}: {err}'
                 print(f'Failed to {action_str} extension:  {module}\n\t{exc}')
-    return
+    return await context.send(f'{action_str.capitalize()}ed all modules.')
 
 class Admin(commands.Cog):
     """Basic bot admin-level controls"""
@@ -35,31 +40,30 @@ class Admin(commands.Cog):
     async def change_prefix(self, context, prefix):
         """Custom prefixes on a per-server basis in order to prevent command overlap"""
         # TODO: Change prefix quantifier (right word?) to utilize RegEx for non-alphanumeric keyboard characters
-        if str(context.message.author.id) in bot_admins:
-            if len(prefix) == 1:
-                with open(f'./{FILES_SUBDIR}/prefixes.json', 'r') as file:
-                    prefixes = json.load(file)
-                prefixes[str(context.guild.id)] = prefix
-                with open(f'./{FILES_SUBDIR}/prefixes.json', 'w') as file:
-                    json.dump(prefixes, file, indent=4)
-                await context.send(f'Prefix changed to: {prefix}')
-            else:
-                await context.send(f'Entry is not a valid prefix')
+        if not await is_admin(context):
+            return
+        if len(prefix) == 1:
+            with open(f'./{FILES_SUBDIR}/prefixes.json', 'r') as file:
+                prefixes = json.load(file)
+            prefixes[str(context.guild.id)] = prefix
+            with open(f'./{FILES_SUBDIR}/prefixes.json', 'w') as file:
+                json.dump(prefixes, file, indent=4)
+            await context.send(f'Prefix changed to: {prefix}')
+        else:
+            await context.send(f'Entry is not a valid prefix')
 
     @commands.command(pass_context=True)
     async def reload(self, context, module: str):
         """Reload the specified cog [off then on]"""
-        reload = self.bot.reload_extension
-        if not str(context.message.author.id) in bot_admins:
-            return await context.send('You don\'t have permission to do that')
+        if await is_admin(context) is False:
+            return
         
         if module == '*':
-            select_all_modules(reload, 'reload')
-            return await context.send(f'Reloaded all modules')
+            return await select_all_modules(context, self.bot.reload_extension, 'reload')
 
         else:
             try:
-                reload(f'{MODULE_SUBDIR}.{module}')
+                self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
                 await context.send(f'Reloaded module: {module}')
 
             except Exception as err:
@@ -69,60 +73,70 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True)
     async def load(self, context, module: str):
         """Loads the specified cog [on]"""
-        if str(context.message.author.id) in bot_admins:
-            try:
-                self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send(f'Reloaded: {module}')
-            except Exception as err:
-                print('{}: {}'.format(type(err).__name__, err))
-                await context.send(err)
-        else:
-            await context.send('You don\'t have permission to do that')
+        if not await is_admin(context):
+            return
+
+        if module == '*':
+            return await select_all_modules(context, self.bot.load_extension, 'load')
+        
+        try:
+            self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
+            await context.send(f'Reloaded: {module}')
+        except Exception as err:
+            print('{}: {}'.format(type(err).__name__, err))
+            await context.send(err)
 
     @commands.command(pass_context=True)
     async def unload(self, context, module: str):
         """Unloads the specified cog [off]"""
-        if str(context.message.author.id) in bot_admins:
-            try:
-                self.bot.unload_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send(f'Unloaded: {module}')
-            except Exception as err:
-                print('{}: {}'.format(type(err).__name__, err))
-                await context.send('Error unloading cog')
-        else:
-            await context.send('You don\'t have permission to do that')
+        if not await is_admin(context):
+            return
+
+        if module == '*':
+            return await select_all_modules(context, self.bot.unload_extension, 'unload')
+
+        try:
+            self.bot.unload_extension(f'{MODULE_SUBDIR}.{module}')
+            await context.send(f'Unloaded: {module}')
+        except Exception as err:
+            print('{}: {}'.format(type(err).__name__, err))
+            await context.send('Error unloading cog')
 
     @commands.command(pass_context=True)
     async def game(self, context):
         """Changes the 'game played' status message"""
-        if str(context.message.author.id) in bot_admins:
-            user_input = context.message.content.split(' ', 1)
-            if user_input[1] == 'default'.lower():
-                return await self.bot.change_presence(activity=Game(name=config.discord_game_played))
-            await self.bot.change_presence(activity=Game(name=user_input[1]))
+        if not await is_admin(context):
+            return
+
+        user_input = context.message.content.split(' ', 1)
+        if user_input[1] == 'default'.lower():
+            return await self.bot.change_presence(activity=Game(name=config.discord_game_played))
+        await self.bot.change_presence(activity=Game(name=user_input[1]))
 
     @commands.command(pass_context=True)
     async def admin(self, context):
         """Lists the possible admin controls"""
-        if str(context.message.author.id) in bot_admins:
-            cog = ('Admin',)
-            variable = ((x, y) for x in self.bot.cogs for y in cog if x == y)
+        if not await is_admin(context):
+            return
 
-            for x, y in variable:
-                helper = discord.Embed(title='Admin Commands')
-                for cmd in self.bot.get_cog(y).get_commands():
-                    if not cmd.hidden:
-                        helper.add_field(name=cmd.name, value=cmd.help, inline=False)
+        cog = ('Admin',)
+        variable = ((x, y) for x in self.bot.cogs for y in cog if x == y)
 
-            await context.message.author.send('', embed=helper)
-        else:
-            await context.send('Bot Admin Only')
+        for x, y in variable:
+            helper = discord.Embed(title='Admin Commands')
+            for cmd in self.bot.get_cog(y).get_commands():
+                if not cmd.hidden:
+                    helper.add_field(name=cmd.name, value=cmd.help, inline=False)
+
+        await context.message.author.send('', embed=helper)
 
     @commands.command(hidden=True)
     async def shutdown(self, context):
-        if str(context.message.author.id) in bot_admins:
-            print('Shutting down...')
-            await self.bot.logout()
+        if not await is_admin(context):
+            return
+
+        print('Shutting down...')
+        await self.bot.logout()
 
 
 def setup(bot):
