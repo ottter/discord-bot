@@ -3,6 +3,10 @@ import time
 import datetime
 from pymongo import MongoClient
 
+# Dev account used for... deving. Ensures no conflict with live bot. Use a different prefix than live
+DEV_ACCOUNT = 'testdogtestdog'
+DEV_ACCOUNT_PREFIX = ','
+
 # Gets a cool timestamp to use in logs or whatever
 time = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
 

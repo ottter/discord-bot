@@ -3,14 +3,27 @@ from discord import Game
 import discord
 import config
 import json
+import os
 
 bot_admins = [
-    '150125122408153089',   # me
+    '918084315290673152',   # me
 ]
 
 MODULE_SUBDIR = 'modules'
 FILES_SUBDIR = 'data'
 
+
+def select_all_modules(action, action_str): # use * to perform action across all modules
+    for filename in os.listdir('./modules'):
+        module = filename[:-3]
+        if filename.endswith('.py'):
+            try:
+                action(f'modules.{module}')
+                print(f'Successfully {action_str}ed extension: {module}')
+            except Exception as err:
+                exc = f'{type(err).__name__}: {err}'
+                print(f'Failed to {action_str} extension:  {module}\n\t{exc}')
+    return
 
 class Admin(commands.Cog):
     """Basic bot admin-level controls"""
@@ -36,15 +49,23 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True)
     async def reload(self, context, module: str):
         """Reload the specified cog [off then on]"""
-        if str(context.message.author.id) in bot_admins:
-            try:
-                self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send(f'Reloaded: {module}')
-            except Exception as err:
-                print('{}: {}'.format(type(err).__name__, err))
-                await context.send(err)
+        reload = self.bot.reload_extension
+        if not str(context.message.author.id) in bot_admins:
+            return await context.send('You don\'t have permission to do that')
+        
+        if module == '*':
+            select_all_modules(reload, 'reload')
+            return await context.send(f'Reloaded all modules')
+
         else:
-            await context.send('You don\'t have permission to do that')
+            try:
+                reload(f'{MODULE_SUBDIR}.{module}')
+                await context.send(f'Reloaded module: {module}')
+
+            except Exception as err:
+                # print('{}: {}'.format(type(err).__name__, err))
+                print(f'{type(err).__name__}: {err}')
+                await context.send(f'Could not reload: {module}')
 
     @commands.command(pass_context=True)
     async def load(self, context, module: str):

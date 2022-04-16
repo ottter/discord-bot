@@ -18,15 +18,18 @@ def get_prefix(client, message):
         return '.'
 
 
+print('init discord bot')
 intents = discord.Intents.default()
 intents.members = True  # Subscribe to the privileged members intent.
 # bot = commands.Bot(command_prefix=get_prefix)
-bot = commands.Bot(command_prefix='.', intents=intents)
+bot = commands.Bot(command_prefix=config.DEV_ACCOUNT_PREFIX, intents=intents)
 bot.remove_command('help')
 
 
 @bot.event
 async def on_ready():
+    if bot.user.name == config.DEV_ACCOUNT:
+        commands.Bot(command_prefix=config.DEV_ACCOUNT_PREFIX)
 
     print('-'*34)
     print('Logged in as: ', bot.user.name)
