@@ -4,9 +4,9 @@ import time
 import os
 import re
 import discord
+import pprint
 from discord.ext import commands
 
-import modules.admin
 
 
 def get_prefix(client, message):
@@ -21,15 +21,15 @@ def get_prefix(client, message):
 print('init discord bot')
 intents = discord.Intents.default()
 intents.members = True  # Subscribe to the privileged members intent.
-# bot = commands.Bot(command_prefix=get_prefix)
-bot = commands.Bot(command_prefix=config.DEV_ACCOUNT_PREFIX, intents=intents)
-bot.remove_command('help')
+bot = commands.Bot(command_prefix=config.PRIMARY_ACCOUNT_PREFIX, intents=intents)
+# bot.remove_command('help')
+# TODO: Improve the .help command; disabled until fixed
 
 
 @bot.event
 async def on_ready():
-    if bot.user.name == config.DEV_ACCOUNT:
-        commands.Bot(command_prefix=config.DEV_ACCOUNT_PREFIX)
+    if bot.user.name == config.DEV_ACCOUNT_NAME:
+        bot.command_prefix = config.DEV_ACCOUNT_PREFIX
 
     print('-'*34)
     print('Logged in as: ', bot.user.name)

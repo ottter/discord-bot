@@ -63,7 +63,6 @@ class Admin(commands.Cog):
                 await context.send(f'Reloaded module: {module}')
 
             except Exception as err:
-                # print('{}: {}'.format(type(err).__name__, err))
                 print(f'{type(err).__name__}: {err}')
                 await context.send(f'Could not reload: {module}')
 
