@@ -24,10 +24,11 @@ async def select_all_modules(context, action, action_str): # use * to perform ac
         if filename.endswith('.py'):
             try:
                 action(f'modules.{module}')
-                print(f'Successfully {action_str}ed extension: {module}')
             except Exception as err:
                 exc = f'{type(err).__name__}: {err}'
                 print(f'Failed to {action_str} extension:  {module}\n\t{exc}')
+    
+    print(f'{context.author} {action_str}ed all extensions')
     return await context.send(f'{action_str.capitalize()}ed all modules.')
 
 class Admin(commands.Cog):
