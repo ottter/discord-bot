@@ -6,7 +6,6 @@ import discord
 from discord.ext import commands
 
 
-
 def get_prefix(client, message):
     try:
         with open('./files/prefix.json', 'r') as file:
@@ -43,38 +42,6 @@ async def ping(context):
 
     await message.edit(content=f'Ping: {server_ping}ms')
     print(f'{context.author} pinged the server: {server_ping}ms')
-
-
-@bot.event
-async def on_guild_join(guild):
-    # TODO: Create server join message
-    # with open('./files/prefix.json', 'r') as file:
-    #     prefixes = json.load(file)
-    # prefixes[str(guild.id)] = "."
-    # with open('./files/prefix.json', 'w') as file:
-    #     json.dump(prefixes, file, indent=4)
-    print(f'joined new server: {guild}')
-
-
-@bot.event
-async def on_guild_remove(guild):
-    # Removes the custom prefix from prefixes.json when bot is removed from a server
-    # TODO: Get this to work with extensions
-    with open('./files/prefix.json', 'r') as file:
-        prefixes = json.load(file)
-    prefixes.pop(str(guild.id))
-    with open('./files/prefix.json', 'w') as file:
-        json.dump(prefixes, file, indent=4)
-    print(f'left server: {guild}')
-
-
-@bot.event
-async def on_member_remove(member):
-    primary_server_base_id = None
-    primary_welcome_channel = None
-    if primary_server_base_id and member.guild.id == primary_server_base_id:
-        channel = bot.get_channel(primary_welcome_channel)
-        await channel.send(f'Cya {member} you dummy')
 
 
 def load_extensions():
