@@ -14,6 +14,9 @@ PRIMARY_ACCOUNT_PREFIX = '.'
 DEV_ACCOUNT_NAME = 'testdogtestdog'
 DEV_ACCOUNT_PREFIX = ','
 
+# Do you want the long FBI pasta from modules/misc.py? Includes adding reactions
+FBI_PASTA_BOOL = False
+
 # Mongo token should be added to your path
 MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
 db = MONGO_TOKEN.get_database('discord')

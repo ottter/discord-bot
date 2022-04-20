@@ -45,7 +45,7 @@ async def ping(context):
 
 
 def load_extensions():
-    dir_list = ['modules', 'listeners']
+    dir_list = ['listeners', 'modules']
     exclusion_list = []
     for dir_ in dir_list:
         for filename in os.listdir(f'./{dir_}'):

@@ -1,5 +1,6 @@
 from discord.ext import commands
 from random import choice, randint
+import config
 
 
 def fbi_pasta_text(name, version):
@@ -12,11 +13,10 @@ def fbi_pasta_text(name, version):
               f"I do not have any involvement with this group or with the people in it, I do not know how I am here, " \
               f"probably added by a third party, I do not support any actions by the members of this group."
     # spam_prev = "\n\n*React with `✔`️ for full pasta and `❌` for abbreviated version*"
-    if version == 0:
-        return pasta_1              # + pasta_2    # Outputs the entire pasta
-    if version == 1:
-        return pasta_1              # Outputs just the opening paragraph
-    return pasta_1
+    if version == 'long':
+        return pasta_1 + pasta_2
+    elif version == 'short':
+        return pasta_1
 
 
 class Misc(commands.Cog):
@@ -62,31 +62,15 @@ class Misc(commands.Cog):
     @commands.command(name='fbi', aliases=['cia', 'nsa'], pass_context=True)
     async def fbi_pasta(self, context):
         user = context.message.author.mention
-        pasta = fbi_pasta_text(user, 0)
-        message = await context.send(pasta)
+        pasta = fbi_pasta_text(user, 'short')
+        response = await context.send(pasta)
 
-        # await message.add_reaction(emoji='✔️')
-        # await message.add_reaction(emoji='❌')
+        if not config.FBI_PASTA_BOOL:
+            return
 
-        i, emoji = [0, '']
+        await response.add_reaction(emoji='✔️')
+        await response.add_reaction(emoji='❌')
 
-        while True:
-            if emoji == '✔️':
-                await message.edit(content=fbi_pasta_text(user, 0))
-            if emoji == '❌':
-                await message.edit(content=fbi_pasta_text(user, 1))
-
-            response = await self.bot.wait_for('reaction_add', timeout=60)
-            if response is None:
-                await message.edit(content=fbi_pasta_text(user, 1))
-                break
-
-            if str(response[1]) != 'Dodo#9228' and str(
-                    response[1]) != context.message.author.id:  # So bot doesn't trigger from it's own reactions
-                emoji = str(response[0].emoji)
-                await message.remove_reaction(response[0].emoji, response[1])
-
-        await context.clear_reactions(message)
 
     # TODO: word-association-metagame https://wordassociations.net/en random response
 
