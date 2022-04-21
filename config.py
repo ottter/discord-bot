@@ -4,18 +4,25 @@ import datetime
 from pymongo import MongoClient
 
 
-# Discord token should be added to your path
+# Discord token should be added to your path. Keep this extra secure.
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
 
-# Token used by Heroku, in my case.
+# Token used by Heroku, in my case. STRING
 PRIMARY_ACCOUNT_PREFIX = '.'
 
-# Dev account used for... deving. Ensures no conflict with live bot. Use a different prefix than live
+# Dev account used for... deving. Ensures no conflict with live bot. Use a different prefix than live. STRING(S)
 DEV_ACCOUNT_NAME = 'testdogtestdog'
 DEV_ACCOUNT_PREFIX = ','
 
-# Do you want the long FBI pasta from modules/misc.py? Includes adding reactions
+# Do you want the long FBI pasta from modules/misc.py? Includes adding reactions. BOOLEAN
 FBI_PASTA_BOOL = False
+
+# Channel ID to send messages to bot's DMs to. INTEGER
+PRIVATE_CHANNEL = 966507830641315860
+
+# Do you want wordle scanner active in all channels? List of channels to relegate ant-wordlering to. BOOLEAN & LIST(INT)
+WORDLE_GLOBAL_BAN = False
+WORDLE_BAN_LIST = [786399511651287041]
 
 # Mongo token should be added to your path
 MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
@@ -24,6 +31,6 @@ db = MONGO_TOKEN.get_database('discord')
 # Gets a cool timestamp to use in logs or whatever
 time = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
 
-# (Unsecure) way to filter additions to image db. I'll improve this later
+# (Unsecure) way to filter additions to image db. I'll improve this later. LIST(STR)
 accepted_hosts = ['discord', 'imgur', 'youtube', 'gyazo']
 accepted_media_types = ['png', 'jpg', 'jpeg']

@@ -44,9 +44,17 @@ async def ping(context):
     print(f'{context.author} pinged the server: {server_ping}ms')
 
 
+@bot.event
+async def on_message(context):
+    if context.author == bot.user:
+        return
+    await bot.process_commands(context)
+
+
 def load_extensions():
     dir_list = ['listeners', 'modules']
-    exclusion_list = []
+    exclusion_list = ['help']
+    # exclusion_list = ['guild_events', 'member_events', 'on_message', 'help']
     for dir_ in dir_list:
         for filename in os.listdir(f'./{dir_}'):
             module = filename[:-3]

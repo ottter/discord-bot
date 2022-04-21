@@ -54,10 +54,11 @@ class Admin(commands.Cog):
             await context.send(f'Entry is not a valid prefix')
 
     @commands.command(pass_context=True)
+    @commands.is_owner()
     async def reload(self, context, module: str):
         """Reload the specified cog [off then on]"""
-        if await is_admin(context) is False:
-            return
+        # if await is_admin(context) is False:
+        #     return
         
         if module == '*':
             return await select_all_modules(context, self.bot.reload_extension, 'reload')
