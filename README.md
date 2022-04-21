@@ -13,7 +13,12 @@
 
 ## How to run on Heroku
 
-todo
+Originally I had this deploy only to GitHub and then a pipeline to automatically deploy from there. Since the [breach](https://thehackernews.com/2022/04/github-notifies-victims-whose-private.html) with disabled GitHub authentication, I just use Heroku CLI to push out changes.
+
+    heroku login
+    (existing) heroku git:remote -a {app-name}     # Will require authorized app owner/developer
+    (or clone) heroku git:clone -a {app-name}      # Which one depends if repo is on system already
+    git push heroku main                           # can checkout main and delete master branch to make this default
 
 ## Explanation of Parts
 
@@ -22,7 +27,7 @@ todo
     DISCORD_TOKEN={token}
     MONGO_TOKEN={token}
 
-**Procfile** - Sync with Heroku. `gabe.py` is the main "chatbot" file that launches the modules
+**Procfile** - Sync with Heroku. `main.py` is the main "chatbot" file that launches the modules
 
     worker: python3 gabe.py
 
