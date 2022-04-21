@@ -20,27 +20,29 @@ class OnMessage(commands.Cog):
         self.bot = bot
     
     @commands.Cog.listener()
-    @commands.dm_only()
     async def on_message(self, context):
         message = str(context.content.lower())
         if context.author == self.bot.user:
             return
         
+        # If someone sends the bot a dm, that message will be relayed to a selected channel (based on ID)
         if context.channel.type is discord.ChannelType.private:
             private_channel = self.bot.get_channel(config.PRIVATE_CHANNEL)
             await private_channel.send(context.content)
         
-        # if context.channel.id == 786399511651287041:
+        # "Harasses" a wordler if either of the options are True
         if config.WORDLE_GLOBAL_BAN or context.channel.id in config.WORDLE_BAN_LIST:
             for key, value in rdleverse_dict.items():
                 if re.search(value.lower(), message):
                     print(f'Put a {key}r in their place')
                     await context.channel.send(f"Get lost, {key}r")
 
+        # Legacy? I should probably move this to an actual command, but I like hardcoded '!'
         if message.startswith('!co2'):
             await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
                                        'and thus increase in agriculture as plants grow faster, more food, etc.')
 
+        # Removed until I figure out why having this made commands run twice. Solution was add on_message event to main
         # await self.bot.process_commands(context)
 
 def setup(bot):

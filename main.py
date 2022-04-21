@@ -27,11 +27,11 @@ async def on_ready():
     if bot.user.name == config.DEV_ACCOUNT_NAME:
         bot.command_prefix = config.DEV_ACCOUNT_PREFIX
 
-    print('-'*34)
+    print('='*34)
     print('Logged in as: ', bot.user.name)
     print('Client ID:    ', bot.user.id)
     print('Local time:   ', config.time)
-    print('-'*34)
+    print('='*34)
 
 
 @bot.command(hidden=True, pass_context=True)
@@ -54,26 +54,29 @@ async def on_message(context):
 def load_extensions():
     dir_list = ['listeners', 'modules']
     exclusion_list = ['help']
-    # exclusion_list = ['guild_events', 'member_events', 'on_message', 'help']
     for dir_ in dir_list:
+        print(f'=== Attempting to load all extensions in {dir_} directory ...')
         for filename in os.listdir(f'./{dir_}'):
             module = filename[:-3]
             if filename.endswith('.py') and module not in exclusion_list:
                 try:
                     bot.load_extension(f'{dir_}.{module}')
-                    print(f'Successfully loaded extension: {module}')
+                    print(f'\tSuccessfully loaded extension: {module}')
                 except Exception as err:
                     exc = f'{type(err).__name__}: {err}'
-                    print(f'Failed to load extension:  {module}\n\t{exc}')
+                    print(f'\tFailed to load extension:  {module}\n\t\t{exc}')
+    for excl_module in exclusion_list:
+        print(f'=== Excluding the extension: {excl_module}')
 
 
 def log_in():
+    print('=== Initializing startup procedure ...')
     load_extensions()
-    print('Attempting to log in...')
+    print(f'=== Attempting to log in to bot ...')
     try:
         bot.run(config.DISCORD_TOKEN)
     except Exception as error:
-        print('Discord: Unsuccessful login. Error: ', error)
+        print('\nDiscord: Unsuccessful login. Error: ', error)
         quit()
 
 

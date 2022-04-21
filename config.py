@@ -20,9 +20,9 @@ FBI_PASTA_BOOL = False
 # Channel ID to send messages to bot's DMs to. INTEGER
 PRIVATE_CHANNEL = 966507830641315860
 
-# Do you want wordle scanner active in all channels? List of channels to relegate ant-wordlering to. BOOLEAN & LIST(INT)
+# Do you want wordle scanner active in all channels? List of channels to moderate wordlers. BOOLEAN & LIST(INT)
 WORDLE_GLOBAL_BAN = False
-WORDLE_BAN_LIST = [786399511651287041]
+WORDLE_BAN_LIST = [786399511651287041,]
 
 # Mongo token should be added to your path
 MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
