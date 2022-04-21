@@ -1,9 +1,9 @@
 import config
 import json
-import time
 import os
 import discord
 from discord.ext import commands
+from discord_slash import SlashCommand
 
 
 def get_prefix(client, message):
@@ -18,6 +18,7 @@ def get_prefix(client, message):
 intents = discord.Intents.default()
 intents.members = True  # Subscribe to the privileged members intent.
 bot = commands.Bot(command_prefix=config.PRIMARY_ACCOUNT_PREFIX, intents=intents)
+slash = SlashCommand(bot, sync_commands=True)
 # bot.remove_command('help')
 # TODO: Improve the .help command; disabled until fixed
 
@@ -36,11 +37,8 @@ async def on_ready():
 
 @bot.command(hidden=True, pass_context=True)
 async def ping(context):
-    before = time.monotonic()
-    message = await context.channel.send("Pong!")
-    server_ping = int((time.monotonic() - before) * 1000)
-
-    await message.edit(content=f'Ping: {server_ping}ms')
+    server_ping = round(bot.latency * 1000)
+    await context.channel.send(f"Ping: {server_ping}ms")
     print(f'{context.author} pinged the server: {server_ping}ms')
 
 
@@ -52,7 +50,7 @@ async def on_message(context):
 
 
 def load_extensions():
-    dir_list = ['listeners', 'modules']
+    dir_list = ['listeners', 'modules', 'slashes']
     exclusion_list = ['help']
     for dir_ in dir_list:
         print(f'=== Attempting to load all extensions in {dir_} directory ...')

@@ -1,3 +1,4 @@
 pymongo
 discord.py
 dnspython
+discord-py-slash-command
