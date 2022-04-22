@@ -1,22 +1,5 @@
 from discord.ext import commands
 from random import choice, randint
-import config
-
-
-def fbi_pasta_text(name, version):
-    pasta_1 = f"I, {name} , DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE. I DO NOT CONDONE NOR " \
-              f"SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM."
-    pasta_2 = f"\n\nAny post associated with this IP is satire " \
-              f"and should be treated as such. At no point has anyone associated with this IP ever condoned, encouraged, " \
-              f"committed or abated acts of violence or threats of violence against any persons, regardless of racial, " \
-              f"ethnic, religious or cultural background.\n\nIn case of an investigation by any federal entity or similar, " \
-              f"I do not have any involvement with this group or with the people in it, I do not know how I am here, " \
-              f"probably added by a third party, I do not support any actions by the members of this group."
-    # spam_prev = "\n\n*React with `✔`️ for full pasta and `❌` for abbreviated version*"
-    if version == 'long':
-        return pasta_1 + pasta_2
-    elif version == 'short':
-        return pasta_1
 
 
 class Misc(commands.Cog):
@@ -61,15 +44,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.command(name='fbi', aliases=['cia', 'nsa'], pass_context=True)
     async def fbi_pasta(self, context):
-        user = context.message.author.mention
-        pasta = fbi_pasta_text(user, 'short')
-        response = await context.send(pasta)
-
-        if not config.FBI_PASTA_BOOL:
-            return
-
-        await response.add_reaction(emoji='✔️')
-        await response.add_reaction(emoji='❌')
+        await context.send('use /fbi instead :)')
 
 
     # TODO: word-association-metagame https://wordassociations.net/en random response

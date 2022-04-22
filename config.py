@@ -14,9 +14,6 @@ PRIMARY_ACCOUNT_PREFIX = '.'
 DEV_ACCOUNT_NAME = 'testdogtestdog'
 DEV_ACCOUNT_PREFIX = ','
 
-# Do you want the long FBI pasta from modules/misc.py? Includes adding reactions. BOOLEAN
-FBI_PASTA_BOOL = False
-
 # Channel ID to send messages to bot's DMs to. INTEGER
 PRIVATE_CHANNEL = 966507830641315860
 

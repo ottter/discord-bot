@@ -24,11 +24,14 @@ class OnMessage(commands.Cog):
         message = str(context.content.lower())
         if context.author == self.bot.user:
             return
-        
+
         # If someone sends the bot a dm, that message will be relayed to a selected channel (based on ID)
         if context.channel.type is discord.ChannelType.private:
             private_channel = self.bot.get_channel(config.PRIVATE_CHANNEL)
-            await private_channel.send(context.content)
+            if len(context.attachments) > 0:    # Length check required to avoid IndexError
+                await private_channel.send(f'{context.author} sent me this:\n{context.attachments[0].url}')
+            else:
+                await private_channel.send(f'{context.author} sent me this:\n{context.content}')
         
         # Moderates a wordler if either of the options are True by telling them to leave
         if config.WORDLE_GLOBAL_BAN or context.channel.id or context.guild.id in config.WORDLE_BAN_LIST:

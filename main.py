@@ -32,7 +32,7 @@ async def on_ready():
     print('Logged in as: ', bot.user.name)
     print('Client ID:    ', bot.user.id)
     print('Local time:   ', config.time)
-    print('='*34)
+    print('='*34, '\n'*4)
 
 
 @bot.command(hidden=True, pass_context=True)
@@ -68,7 +68,7 @@ def load_extensions():
 
 
 def log_in():
-    print('=== Initializing startup procedure ...')
+    print('=== Initializing startup sequence ...')
     load_extensions()
     print(f'=== Attempting to log in to bot ...')
     try:
