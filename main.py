@@ -32,7 +32,7 @@ async def on_ready():
     print('Logged in as: ', bot.user.name)
     print('Client ID:    ', bot.user.id)
     print('Local time:   ', config.time)
-    print('='*34, '\n'*4)
+    print('='*34, '\n'*2)
 
 
 @bot.command(hidden=True, pass_context=True)

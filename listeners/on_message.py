@@ -34,16 +34,11 @@ class OnMessage(commands.Cog):
                 await private_channel.send(f'{context.author} sent me this:\n{context.content}')
         
         # Moderates a wordler if either of the options are True by telling them to leave
-        if config.WORDLE_GLOBAL_BAN or context.channel.id or context.guild.id in config.WORDLE_BAN_LIST:
+        if (config.WORDLE_GLOBAL_BAN) or (context.channel.id or context.guild.id in config.WORDLE_BAN_LIST):
             for key, value in rdleverse_dict.items():
                 if re.search(value.lower(), message):
                     print(f'Put a {key}r in their place')
                     await context.channel.send(f"Get lost, {key}r")
-
-        # Legacy? I should probably move this to an actual command, but I like hardcoded "!"
-        if message.startswith('!co2'):
-            await context.channel.send('Also CO2 is good for plants, meaning more CO2 means more life-sustaining oxygen '
-                                       'and thus increase in agriculture as plants grow faster, more food, etc.')
 
         # Removed until I figure out why having this made commands run twice. Solution was add on_message event to main
         # await self.bot.process_commands(context)
