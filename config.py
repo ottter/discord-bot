@@ -20,7 +20,7 @@ PRIVATE_CHANNEL = 966507830641315860
 # Scan all servers for wordlers?
 WORDLE_GLOBAL_BAN = False
 # Integer list of all servers/guilds & channels to moderate. LIST(INT)
-WORDLE_BAN_LIST = [786399511651287041,963213566733873192]
+WORDLE_BAN_LIST = [786399511651287041,963213566733873192,918187449845424158]
 
 # Mongo token should be added to your path
 MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
