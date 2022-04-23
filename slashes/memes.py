@@ -7,6 +7,13 @@ oxygen and thus increase in agriculture as plants grow faster, more food, etc.""
 pasta_fbi = """I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE. 
 I DO NOT CONDONE NOR SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM."""
 
+slash_img_dict = {
+    "only_pretending"   : "https://i.imgur.com/6kGliTj.jpeg",
+    "pepe_copium"       : "https://i.imgur.com/feSABOV.jpeg",
+    "pepe_bedge"        : "https://cdn.betterttv.net/emote/6049a20d306b602acc59aab5/3x",
+    "no_maidens"        : "https://i.imgur.com/iqv14Bb.jpg",
+}
+
 class SlashMemes(Cog):
 
     def __init__(self, bot):
@@ -16,8 +23,25 @@ class SlashMemes(Cog):
         name="okbuddy",
         description="Jokes on them, I was only pretending")
     async def _okbuddy(self, context:SlashContext):
-        only_pretending='https://i.imgur.com/6kGliTj.jpeg'
-        await context.send(only_pretending)
+        await context.send(slash_img_dict["only_pretending"])
+
+    @cog_ext.cog_slash(
+        name="cope",
+        description="Copium OD")
+    async def _copium(self, context:SlashContext):
+        await context.send(slash_img_dict["pepe_copium"])
+
+    @cog_ext.cog_slash(
+        name="bedge",
+        description="Go to bed")
+    async def _bedge(self, context:SlashContext):
+        await context.send(slash_img_dict["pepe_bedge"])
+
+    @cog_ext.cog_slash(
+        name="maidens",
+        description="Maidenless Behavior")
+    async def _maidens(self, context:SlashContext):
+        await context.send(slash_img_dict["no_maidens"])
 
     @cog_ext.cog_slash(
         name="co2",

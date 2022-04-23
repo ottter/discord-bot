@@ -38,7 +38,7 @@ class OnMessage(commands.Cog):
             for key, value in rdleverse_dict.items():
                 if re.search(value.lower(), message):
                     print(f'Put a {key}r in their place')
-                    await context.channel.send(f"Get lost, {key}r")
+                    return await context.channel.send(f"Get lost, {key}r")
 
         # Removed until I figure out why having this made commands run twice. Solution was add on_message event to main
         # await self.bot.process_commands(context)
