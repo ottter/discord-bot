@@ -1,11 +1,11 @@
 from discord.ext.commands import Bot, Cog
 from discord_slash import cog_ext, SlashCommand, SlashContext
 
-pasta_co2 = """Also CO2 is good for plants, meaning more CO2 means more life-sustaining 
-oxygen and thus increase in agriculture as plants grow faster, more food, etc."""
+pasta_co2 = ("Also CO2 is good for plants, meaning more CO2 means more life-sustaining"
+    " oxygen and thus increase in agriculture as plants grow faster, more food, etc.")
 
-pasta_fbi = """I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE. 
-I DO NOT CONDONE NOR SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM."""
+pasta_fbi = ("I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE."
+    " I DO NOT CONDONE NOR SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM.")
 
 slash_img_dict = {
     "only_pretending"   : "https://i.imgur.com/6kGliTj.jpeg",
