@@ -3,7 +3,7 @@ from discord.ext import commands
 class MemberEvents(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    
+
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         primary_server_base_id = None

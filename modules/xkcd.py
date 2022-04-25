@@ -1,9 +1,11 @@
-from discord.ext import commands
+import json
+import random
 import urllib.request
 import discord
-import random
+from discord.ext import commands
+
 import config
-import json
+
 
 # Source data: https://xkcd.com/json.html
 
@@ -44,7 +46,7 @@ def xkcd_output(context, doc):
     xkcd_embed.set_footer(text=f"{doc['sum']}")
     return context.send(embed=xkcd_embed)
 
-class xkcd(commands.Cog):
+class Xkcd(commands.Cog):
     """ Provides user with random and relevant xkcd comics"""
     def __init__(self, bot):
         self.bot = bot
@@ -84,10 +86,10 @@ class xkcd(commands.Cog):
         num = xkcd_count() + 1
 
         if count == num:
-            return await context.send(f'No new comics to update')
+            return await context.send('No new comics to update')
 
-        for x in range(count, num):
-            with urllib.request.urlopen(f'https://xkcd.com/{x}/info.0.json') as url:
+        for _x in range(count, num):
+            with urllib.request.urlopen(f'https://xkcd.com/{_x}/info.0.json') as url:
                 data = json.loads(url.read().decode())
                 json_data = {"_id": data['num'], "title": data['title'], "sum": data['alt'], "img": data['img']}
                 self.collection.insert_one(json_data)
@@ -96,4 +98,4 @@ class xkcd(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(xkcd(bot))
+    bot.add_cog(Xkcd(bot))

@@ -1,8 +1,4 @@
 from discord.ext import commands
-from discord import Game
-import discord
-import config
-import json
 
 
 def cc_add():
@@ -27,11 +23,10 @@ class CustomCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def cc(self, context):
+    @commands.command(aliases=['cc'])
+    async def _cc(self, context):
         args = context.message.content.lower().split(" ", 1)
         if args[1] in ['add', 'a']:
-            # TODO: .cc add [name] content [content] .cc -a [name] -c [content]
             cc_add()
         elif args[1] in ['list', 'ls', 'l']:
             cc_list()

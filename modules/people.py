@@ -1,17 +1,19 @@
 import random
-import config
-from discord.ext import commands
 import urllib
+from discord.ext import commands
+
+import config
+
 
 IMG_DIR = './images'  # Used in .csv method
 
 banned_users = [
-    '178563304321581056',   # jebbers
-    '837398236364275732',   # mort
+    '635226170698235925',   # jebbers
+    '899543527682367518',   # mort
 ]
 
 bot_admins = [
-    '150125122408153088',   # me
+    '918084315290673152',   # me
     '205144077144948737',   # liam
 ]
 
@@ -37,10 +39,11 @@ def add_image(context, person):
     media_type = args[1].split('.')[-1]
 
     if not valid_host(host) and not valid_media_type(media_type):  # Tests for imgur image URL
-        return context.send(f'Invalid URL, try again.')
+        return context.send('Invalid URL, try again.')
 
     collection = config.db['people']
-    collection.update_one({'image_url': args[1]}, {'$set': {'person': person}}, upsert=True)  # Prevents duplicates
+    # Prevent duplicate inputs
+    collection.update_one({'image_url': args[1]}, {'$set': {'person': person}}, upsert=True)
     return context.send(f'Added to the `{person}` collection')
 
     # # To use with .csv storage instead of in a database
@@ -49,8 +52,9 @@ def add_image(context, person):
     #     for r in reader:
     #         if args[1] == r[0]:
     #             return context.send(f'That image is already in: `{person}.csv`')
-    #
-    # with open(f'{img_dir}/{person}.csv', 'a') as f:  # Adds entry to the .csv if it passes RegEx & duplicate
+
+    # Adds entry to the .csv if it passes RegEx & duplicate
+    # with open(f'{img_dir}/{person}.csv', 'a') as f:
     #     f.write(f'\n{args[1]}')
     #     return context.send(f'Added to the `{person}` collection')
 
@@ -83,7 +87,8 @@ class People(commands.Cog):
             person_count.append(person['person'])
         for person in list(set(person_count)):
             count_dict[person] = person_count.count(person)
-        person_print = ['`{0}: {1}`\t'.format(k.capitalize(), v) for k, v in sorted(count_dict.items())]
+        person_print = [f'`{k.capitalize()}: {v}`\t' for k, v in sorted(count_dict.items())]
+
         await context.send('Current Image Totals:\n')
         await context.send(''.join(person_print))
 
@@ -100,7 +105,7 @@ class People(commands.Cog):
         """Add to the Lights collection"""
         if str(context.author.id) in banned_users:
             await context.send(f'I can\'t do that, {context.author.mention}')
-            return print(f'{config.time}: {context.author} failed to add image. Reason: Perm Banned')
+            return print(f'{config.time}: {context.author} failed to add image Banned.')
 
         await add_image(context, 'lights')
 
@@ -117,7 +122,7 @@ class People(commands.Cog):
         """Add to the Jebrim collection"""
         if str(context.author.id) in banned_users:
             await context.send(f'I can\'t do that, {context.author.mention}')
-            return print(f'{config.time}: {context.author} failed to add image. Reason: Perm Banned')
+            return print(f'{config.time}: {context.author} failed to add image. Reason: Banned')
 
         await add_image(context, 'jebrim')
 

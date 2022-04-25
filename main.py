@@ -1,9 +1,10 @@
-import config
-import json
 import os
+import json
 import discord
 from discord.ext import commands
 from discord_slash import SlashCommand
+
+import config
 
 
 def get_prefix(client, message):
@@ -20,8 +21,6 @@ intents.members = True  # Subscribe to the privileged members intent.
 bot = commands.Bot(command_prefix=config.PRIMARY_ACCOUNT_PREFIX, intents=intents)
 slash = SlashCommand(bot, sync_commands=True)
 # bot.remove_command('help')
-# TODO: Improve the .help command; disabled until fixed
-
 
 @bot.event
 async def on_ready():

@@ -1,20 +1,22 @@
+import os
+import json
+import discord
 from discord.ext import commands
 from discord import Game
-import discord
+
 import config
-import json
-import os
+
 
 bot_admins = [
-    '918084315290673152',   # me
+    '9180843152906731522',   # me
 ]
 
 MODULE_SUBDIR = 'modules'
 FILES_SUBDIR = 'data'
 
 async def is_admin(context):
-    if str(context.message.author.id) not in bot_admins:
-        print(f'{context.message.author} tried to use an admin command.')
+    if str(context.author.id) not in bot_admins:
+        print(f'{context.author} tried to use an admin command.')
         await context.send('You don\'t have permission to do that.')
         return False
 
@@ -27,7 +29,7 @@ async def select_all_modules(context, action, action_str): # use * to perform ac
             except Exception as err:
                 exc = f'{type(err).__name__}: {err}'
                 print(f'Failed to {action_str} extension:  {module}\n\t{exc}')
-    
+
     print(f'{context.author} {action_str}ed all extensions')
     return await context.send(f'{action_str.capitalize()}ed all modules.')
 
@@ -40,9 +42,9 @@ class Admin(commands.Cog):
     @commands.command()
     async def change_prefix(self, context, prefix):
         """Custom prefixes on a per-server basis in order to prevent command overlap"""
-        # TODO: Change prefix quantifier (right word?) to utilize RegEx for non-alphanumeric keyboard characters
-        if not await is_admin(context):
+        if await is_admin(context) is False:
             return
+
         if len(prefix) == 1:
             with open(f'./{FILES_SUBDIR}/prefixes.json', 'r') as file:
                 prefixes = json.load(file)
@@ -58,7 +60,7 @@ class Admin(commands.Cog):
         """Reload the specified cog [off then on]"""
         if await is_admin(context) is False:
             return
-        
+
         if module == '*':
             return await select_all_modules(context, self.bot.reload_extension, 'reload')
 
@@ -74,23 +76,23 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True)
     async def load(self, context, module: str):
         """Loads the specified cog [on]"""
-        if not await is_admin(context):
+        if await is_admin(context) is False:
             return
 
         if module == '*':
             return await select_all_modules(context, self.bot.load_extension, 'load')
-        
+
         try:
             self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
             await context.send(f'Reloaded: {module}')
         except Exception as err:
-            print('{}: {}'.format(type(err).__name__, err))
+            print(f'{type(err).__name__}: {err}')
             await context.send(err)
 
     @commands.command(pass_context=True)
     async def unload(self, context, module: str):
         """Unloads the specified cog [off]"""
-        if not await is_admin(context):
+        if await is_admin(context) is False:
             return
 
         if module == '*':
@@ -100,7 +102,7 @@ class Admin(commands.Cog):
             self.bot.unload_extension(f'{MODULE_SUBDIR}.{module}')
             await context.send(f'Unloaded: {module}')
         except Exception as err:
-            print('{}: {}'.format(type(err).__name__, err))
+            print(f'{type(err).__name__}: {err}')
             await context.send('Error unloading cog')
 
     @commands.command(pass_context=True)
@@ -117,23 +119,22 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True)
     async def admin(self, context):
         """Lists the possible admin controls"""
-        if not await is_admin(context):
+        if await is_admin(context) is False:
             return
 
         cog = ('Admin',)
-        variable = ((x, y) for x in self.bot.cogs for y in cog if x == y)
+        variable = ((_x, _y) for _x in self.bot.cogs for _y in cog if _x == _y)
 
-        for x, y in variable:
+        for _x, _y in variable:
             helper = discord.Embed(title='Admin Commands')
-            for cmd in self.bot.get_cog(y).get_commands():
+            for cmd in self.bot.get_cog(_y).get_commands():
                 if not cmd.hidden:
                     helper.add_field(name=cmd.name, value=cmd.help, inline=False)
-
-        await context.message.author.send('', embed=helper)
+        await context.send('', embed=helper)
 
     @commands.command(hidden=True)
     async def shutdown(self, context):
-        if not await is_admin(context):
+        if await is_admin(context) is False:
             return
 
         print('Shutting down...')

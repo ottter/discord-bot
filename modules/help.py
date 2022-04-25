@@ -8,8 +8,6 @@ class Help(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    # TODO: Add descriptions to all relevant commands and classes
-    # TODO: Hide any irrelevant commands and classes from appearing
     @commands.cooldown(1, 1, commands.BucketType.user)
     @commands.command(name='help', pass_context=True, brief='help command')
     async def help(self, context, *cog):
@@ -18,7 +16,7 @@ class Help(commands.Cog):
         try:
             if not cog:
                 helper = discord.Embed(title='Cog Help',
-                                       description=f'Use `.help *cog*` for more information')
+                                       description='Use `.help *cog*` for more information')
                 module_desc = ''
 
                 for x in self.client.cogs:
@@ -31,7 +29,7 @@ class Help(commands.Cog):
                     if not command_call.cog_name and not command_call.hidden:
                         command_desc += f'{command_call.name} - {command_call.help}\n'
 
-                # If commands are in main.py. TODO: Clean this up
+                # If commands are in main.py
                 # helper.add_field(name='Misc Commands', value=command_desc[0:len(command_desc) - 1], inline=False)
 
                 await context.message.author.send('', embed=helper)
