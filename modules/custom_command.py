@@ -1,19 +1,24 @@
+"""Module to allow the creation and use of simple custom commands"""
 from discord.ext import commands
 
 
 def cc_add():
+    """Add a custom command"""
     print('1 add')
 
 
 def cc_list():
+    """List all custom commands"""
     print('2 list')
 
 
 def cc_delete():
+    """Delete a custom command"""
     print('3 delete')
 
 
 def cc_help():  # syntax help for creating a custom command
+    """Man page for custom_command"""
     print('4 help')
 
 
@@ -39,4 +44,5 @@ class CustomCommand(commands.Cog):
 
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(CustomCommand(bot))

@@ -1,3 +1,4 @@
+"""Module for random commands that don't have a better place"""
 from random import choice, randint
 from discord.ext import commands
 
@@ -47,8 +48,10 @@ class Misc(commands.Cog):
     @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.command(name='fbi', aliases=['cia', 'nsa'], pass_context=True)
     async def fbi_pasta(self, context):
+        """Legacy meant to redirect users to the new slash command"""
         await context.send('use /fbi instead :)')
 
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(Misc(bot))

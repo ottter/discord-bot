@@ -1,3 +1,4 @@
+"""Custom HELP command instead of Discord's default"""
 import discord
 from discord.ext import commands
 
@@ -19,10 +20,13 @@ class Help(commands.Cog):
                                        description='Use `.help *cog*` for more information')
                 module_desc = ''
 
-                for x in self.client.cogs:
-                    module_desc += f'{x} - {self.client.cogs[x].__doc__}\n'
+                for _x in self.client.cogs:
+                    module_desc += f'{_x} - {self.client.cogs[_x].__doc__}\n'
 
-                helper.add_field(name='Cogs', value=module_desc[0:len(module_desc) - 1], inline=False)
+                helper.add_field(
+                    name='Cogs',
+                    value=module_desc[0:len(module_desc) - 1],
+                    inline=False)
                 command_desc = ''
 
                 for command_call in self.client.walk_commands():
@@ -41,12 +45,12 @@ class Help(commands.Cog):
 
                 else:
                     found = False
-                    variable = ((x, y) for x in self.client.cogs for y in cog if x == y)
+                    variable = ((_x, _y) for _x in self.client.cogs for _y in cog if _x == _y)
                     cmd_desc = self.client.cogs[cog[0]].__doc__
 
-                    for x, y in variable:
+                    for _x, _y in variable:
                         helper = discord.Embed(title=f'{cog[0]} Command Listing', description=cmd_desc)
-                        for cmd in self.client.get_cog(y).get_commands():
+                        for cmd in self.client.get_cog(_y).get_commands():
                             if not cmd.hidden:
                                 helper.add_field(name=cmd.name, value=cmd.help, inline=False)
                         found = True
@@ -62,4 +66,5 @@ class Help(commands.Cog):
 
 
 def setup(client):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     client.add_cog(Help(client))

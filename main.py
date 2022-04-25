@@ -1,4 +1,10 @@
+"""
+Remastered version of my original Discord bot, which I used to "learn" Python
+This is the main setup file that is used to run the entire bot
+Reference ./README.md for instructions and useful information
+"""
 import os
+import sys
 import json
 import discord
 from discord.ext import commands
@@ -7,9 +13,10 @@ from discord_slash import SlashCommand
 import config
 
 
-def get_prefix(client, message):
+def get_prefix(message):
+    """LEGACY set the server-custom prefix used to run commands"""
     try:
-        with open('./files/prefix.json', 'r') as file:
+        with open('./files/prefix.json', 'r', encoding="utf-8") as file:
             prefixes = json.load(file)
         return prefixes[str(message.guild.id)]
     except:
@@ -24,6 +31,7 @@ slash = SlashCommand(bot, sync_commands=True)
 
 @bot.event
 async def on_ready():
+    """Runs if login attempt is successful"""
     if bot.user.name == config.DEV_ACCOUNT_NAME:
         bot.command_prefix = config.DEV_ACCOUNT_PREFIX
 
@@ -36,6 +44,7 @@ async def on_ready():
 
 @bot.command(hidden=True, pass_context=True)
 async def ping(context):
+    """Test latency"""
     server_ping = round(bot.latency * 1000)
     await context.channel.send(f"Ping: {server_ping}ms")
     print(f'{context.author} pinged the server: {server_ping}ms')
@@ -43,12 +52,14 @@ async def ping(context):
 
 @bot.event
 async def on_message(context):
+    """Ignore messages from self"""
     if context.author == bot.user:
         return
     await bot.process_commands(context)
 
 
 def load_extensions():
+    """Load all modules/extensions/cogs from specificed directories"""
     dir_list = ['listeners', 'modules', 'slashes']
     exclusion_list = ['help']
     for dir_ in dir_list:
@@ -67,14 +78,16 @@ def load_extensions():
 
 
 def log_in():
+    """Login function"""
     print('=== Initializing startup sequence ...')
     load_extensions()
-    print(f'=== Attempting to log in to bot ...')
+    print('=== Attempting to log in to bot ...')
     try:
         bot.run(config.DISCORD_TOKEN)
-    except Exception as error:
-        print('\nDiscord: Unsuccessful login. Error: ', error)
-        quit()
+    except discord.errors.HTTPException and discord.errors.LoginFailure as error:
+        print('\nDiscord: Unsuccessful login:', error)
+    else:
+        sys.exit("Login Unsuccessful")
 
 
 if __name__ == '__main__':

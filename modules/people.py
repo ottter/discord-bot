@@ -1,3 +1,4 @@
+"""Module that collects and shows memorable quotes from special people"""
 import random
 import urllib
 from discord.ext import commands
@@ -19,6 +20,7 @@ bot_admins = [
 
 
 def valid_host(host):
+    """Compares input URL against list from config.py"""
     for accepted_host in config.accepted_hosts:
         if host in accepted_host:
             return True
@@ -27,6 +29,7 @@ def valid_host(host):
 
 
 def valid_media_type(media_type):
+    """Compares input URL's media type against list from config.py"""
     return media_type in config.accepted_media_types
 
 
@@ -177,4 +180,5 @@ class People(commands.Cog):
 
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(People(bot))

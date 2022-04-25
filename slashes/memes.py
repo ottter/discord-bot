@@ -1,3 +1,4 @@
+"""Meme SLASH commands go here"""
 from discord.ext.commands import Cog
 from discord_slash import cog_ext, SlashContext
 
@@ -15,6 +16,8 @@ slash_img_dict = {
 }
 
 class SlashMemes(Cog):
+    """All slash commands.
+    Bot MUST be invited with 'applications.commands' permission for use"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -56,4 +59,5 @@ class SlashMemes(Cog):
         await context.send(PASTA_FBI)
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(SlashMemes(bot))

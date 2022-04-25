@@ -1,3 +1,4 @@
+"""BOT admin commands. Not to be confused with SERVER admins"""
 import os
 import json
 import discord
@@ -7,20 +8,18 @@ from discord import Game
 import config
 
 
-bot_admins = [
-    '9180843152906731522',   # me
-]
-
 MODULE_SUBDIR = 'modules'
 FILES_SUBDIR = 'data'
 
 async def is_admin(context):
-    if str(context.author.id) not in bot_admins:
+    """Check if the user is considered a BOT admin"""
+    if str(context.author.id) not in config.bot_admins:
         print(f'{context.author} tried to use an admin command.')
         await context.send('You don\'t have permission to do that.')
         return False
 
-async def select_all_modules(context, action, action_str): # use * to perform action across all modules
+async def select_all_modules(context, action, action_str):
+    """Use * to perform action across all modules"""
     for filename in os.listdir('./modules'):
         module = filename[:-3]
         if filename.endswith('.py'):
@@ -46,14 +45,14 @@ class Admin(commands.Cog):
             return
 
         if len(prefix) == 1:
-            with open(f'./{FILES_SUBDIR}/prefixes.json', 'r') as file:
+            with open(f'./{FILES_SUBDIR}/prefixes.json', 'r', encoding="utf-8") as file:
                 prefixes = json.load(file)
             prefixes[str(context.guild.id)] = prefix
-            with open(f'./{FILES_SUBDIR}/prefixes.json', 'w') as file:
+            with open(f'./{FILES_SUBDIR}/prefixes.json', 'w', encoding="utf-8") as file:
                 json.dump(prefixes, file, indent=4)
             await context.send(f'Prefix changed to: {prefix}')
         else:
-            await context.send(f'Entry is not a valid prefix')
+            await context.send('Entry is not a valid prefix')
 
     @commands.command(pass_context=True)
     async def reload(self, context, module: str):
@@ -64,14 +63,13 @@ class Admin(commands.Cog):
         if module == '*':
             return await select_all_modules(context, self.bot.reload_extension, 'reload')
 
-        else:
-            try:
-                self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
-                await context.send(f'Reloaded module: {module}')
+        try:
+            self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
+            await context.send(f'Reloaded module: {module}')
 
-            except Exception as err:
-                print(f'{type(err).__name__}: {err}')
-                await context.send(f'Could not reload: {module}')
+        except Exception as err:
+            print(f'{type(err).__name__}: {err}')
+            await context.send(f'Could not reload: {module}')
 
     @commands.command(pass_context=True)
     async def load(self, context, module: str):
@@ -113,7 +111,7 @@ class Admin(commands.Cog):
 
         user_input = context.message.content.split(' ', 1)
         if user_input[1] == 'default'.lower():
-            return await self.bot.change_presence(activity=Game(name=config.discord_game_played))
+            return await self.bot.change_presence(activity=Game(name=config.DISCORD_GAME_PLAYED))
         await self.bot.change_presence(activity=Game(name=user_input[1]))
 
     @commands.command(pass_context=True)
@@ -134,6 +132,7 @@ class Admin(commands.Cog):
 
     @commands.command(hidden=True)
     async def shutdown(self, context):
+        """Shutdown the bot. Can only be restarted through host"""
         if await is_admin(context) is False:
             return
 
@@ -142,4 +141,5 @@ class Admin(commands.Cog):
 
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(Admin(bot))

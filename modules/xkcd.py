@@ -1,3 +1,4 @@
+"""Module that links to xkcd comics"""
 import json
 import random
 import urllib.request
@@ -35,19 +36,25 @@ def xkcd_latest(context):
     """ Gets the latest xkcd comic posted"""
     with urllib.request.urlopen("https://xkcd.com/info.0.json") as url:
         data = json.loads(url.read().decode())
-        doc = {'_id': data['num'], 'title': data['title'], 'sum': data['alt'], 'img': data['img']}
+        doc = {
+            '_id': data['num'],
+            'title': data['title'],
+            'sum': data['alt'],
+            'img': data['img']}
         return xkcd_output(context, doc)
 
 def xkcd_output(context, doc):
     """ Converts document to discord embed"""
     xkcd_embed = discord.Embed(color=0x16e40c)
-    xkcd_embed.set_author(name=f"#{doc['_id']} - {doc['title']}", url=f"https://xkcd.com/{doc['_id']}/")
+    xkcd_embed.set_author(
+        name=f"#{doc['_id']} - {doc['title']}",
+        url=f"https://xkcd.com/{doc['_id']}/")
     xkcd_embed.set_image(url=doc['img'])
     xkcd_embed.set_footer(text=f"{doc['sum']}")
     return context.send(embed=xkcd_embed)
 
 class Xkcd(commands.Cog):
-    """ Provides user with random and relevant xkcd comics"""
+    """Provides user with random and relevant xkcd comics"""
     def __init__(self, bot):
         self.bot = bot
         self.collection = config.db['xkcd']
@@ -91,11 +98,16 @@ class Xkcd(commands.Cog):
         for _x in range(count, num):
             with urllib.request.urlopen(f'https://xkcd.com/{_x}/info.0.json') as url:
                 data = json.loads(url.read().decode())
-                json_data = {"_id": data['num'], "title": data['title'], "sum": data['alt'], "img": data['img']}
+                json_data = {
+                    "_id": data['num'],
+                    "title": data['title'],
+                    "sum": data['alt'],
+                    "img": data['img']}
                 self.collection.insert_one(json_data)
 
         await context.send(f'Updated `xkcd` database with `{num - count}` new image(s)')
 
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(Xkcd(bot))

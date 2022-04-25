@@ -1,3 +1,4 @@
+"""Module that processes all received messages"""
 import re
 import emoji
 import discord
@@ -5,7 +6,7 @@ from discord.ext import commands
 from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, PRIVATE_CHANNEL
 
 
-rdleverse_dict = { 
+rdleverse_dict = {
     "Wordle": "(Wordle \\d{1,} \\d/\\d)",                             # Wordle 298 3/6
     "Letterle": "(Letterle \\d{1,}/26)",                              # Letterle 7/26
     "Heardle": "(#Heardle #)\\d{1,}",                                 # #Heardle #47
@@ -17,24 +18,26 @@ rdleverse_dict = {
     }
 
 class OnMessage(commands.Cog):
+    """Class handling all viewable messages"""
     def __init__(self, bot):
         self.bot = bot
-    
+
     @commands.Cog.listener()
     async def on_message(self, context):
+        """Actions upon seeing any message in viewable channel"""
         message = str(context.content.lower())
 
         if context.author == self.bot.user:
             return
 
-        # If someone sends the bot a dm, that message will be relayed to a selected channel (based on ID)
+        # Relays received DM to specified channel (based on ID)
         if context.channel.type is discord.ChannelType.private:
-            private_channel = self.bot.get_channel(PRIVATE_CHANNEL)
+            priv = self.bot.get_channel(PRIVATE_CHANNEL)
             if len(context.attachments) > 0:    # Length check required to avoid IndexError
-                await private_channel.send(f'{context.author} sent me this:\n{context.attachments[0].url}')
+                await priv.send(f'{context.author} sent me this:\n{context.attachments[0].url}')
             else:
-                await private_channel.send(f'{context.author} sent me this:\n{context.content}')
-        
+                await priv.send(f'{context.author} sent me this:\n{context.content}')
+
         # Moderates a wordler if either of the options are True by telling them to leave
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
             square_count = len(re.findall("(_square:)", emoji.demojize(message)))
@@ -48,4 +51,5 @@ class OnMessage(commands.Cog):
         # await self.bot.process_commands(context)
 
 def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
     bot.add_cog(OnMessage(bot))
