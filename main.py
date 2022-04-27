@@ -19,8 +19,8 @@ def get_prefix(message):
         with open('./files/prefix.json', 'r', encoding="utf-8") as file:
             prefixes = json.load(file)
         return prefixes[str(message.guild.id)]
-    except:
-        return '.'
+    except Exception:
+        return "."
 
 
 intents = discord.Intents.default()
@@ -84,7 +84,7 @@ def log_in():
     print('=== Attempting to log in to bot ...')
     try:
         bot.run(config.DISCORD_TOKEN)
-    except discord.errors.HTTPException and discord.errors.LoginFailure as error:
+    except discord.errors.HTTPException or discord.errors.LoginFailure as error:
         print('\nDiscord: Unsuccessful login:', error)
     else:
         sys.exit("Login Unsuccessful")

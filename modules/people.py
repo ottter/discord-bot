@@ -21,7 +21,7 @@ bot_admins = [
 
 def valid_host(host):
     """Compares input URL against list from config.py"""
-    for accepted_host in config.accepted_hosts:
+    for accepted_host in config.ACCEPTED_HOSTS:
         if host in accepted_host:
             return True
 
@@ -30,7 +30,7 @@ def valid_host(host):
 
 def valid_media_type(media_type):
     """Compares input URL's media type against list from config.py"""
-    return media_type in config.accepted_media_types
+    return media_type in config.ACCEPTED_MEDIA_TYPES
 
 
 def add_image(context, person):

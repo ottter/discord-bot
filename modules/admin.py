@@ -13,7 +13,7 @@ FILES_SUBDIR = 'data'
 
 async def is_admin(context):
     """Check if the user is considered a BOT admin"""
-    if str(context.author.id) not in config.bot_admins:
+    if str(context.author.id) not in config.BOT_ADMINS:
         print(f'{context.author} tried to use an admin command.')
         await context.send('You don\'t have permission to do that.')
         return False

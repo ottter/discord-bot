@@ -16,7 +16,7 @@ DEV_ACCOUNT_NAME = 'testdogtestdog'
 DEV_ACCOUNT_PREFIX = ','
 
 # Users who are to be given "admin" access to the bot. LIST(STRING)
-bot_admins = [
+BOT_ADMINS = [
     '918084315290673152',   # me
 ]
 
@@ -39,5 +39,5 @@ db = MONGO_TOKEN.get_database('discord')
 time = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
 
 # (Unsecure) way to filter additions to image db. I'll improve this later. LIST(STR)
-accepted_hosts = ['discord', 'imgur', 'youtube', 'gyazo']
-accepted_media_types = ['png', 'jpg', 'jpeg']
+ACCEPTED_HOSTS = ['discord', 'imgur', 'youtube', 'gyazo']
+ACCEPTED_MEDIA_TYPES = ['png', 'jpg', 'jpeg']
