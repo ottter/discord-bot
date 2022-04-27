@@ -2,6 +2,8 @@
 
 *Remastered* version of my original Discord bot, dodo. I might change the name of this if it gets to a point where I'm happy with it.
 
+-----------------------
+
 ## How to run locally (Linux)
 
     cd ~
@@ -11,7 +13,7 @@
     pip install -r requirements.txt     # Install dependencies (including discord.py)
     ./main.py                           # Or just use an IDE...
 
-## How to run on Heroku
+## How to run via Heroku
 
 Originally I had this deploy only to GitHub and then a pipeline to automatically deploy from there. Since the [breach](https://thehackernews.com/2022/04/github-notifies-victims-whose-private.html) with disabled GitHub authentication, I just use Heroku CLI to push out changes.
 
@@ -20,24 +22,24 @@ Originally I had this deploy only to GitHub and then a pipeline to automatically
     (or clone) heroku git:clone -a {app-name}      # Which one depends if repo is on system already
     git push heroku main                           # can checkout main and delete master branch to make this default
 
-## Explanation of Parts
+## How to run via Docker
 
-**config.py** - Contains private environment or global vars. In Linux you can have `~/.envar` with the below and run `source $HOME/.envar` and ideally add it to your `.bashrc`
+    git clone https://github.com/ottter/discord-bot.git && cd "$(basename "$_" .git)"
+    docker build --tag discord-bot .       # Build the container
+    docker run --detach discord-bot        # Run the container in background
 
-    DISCORD_TOKEN={token}
-    MONGO_TOKEN={token}
+-----------------------
 
-**Procfile** - Sync with Heroku. `main.py` is the main "chatbot" file that launches the modules
+### Workflow: Pylint
 
-    worker: python3 gabe.py
+This project uses Github Actions to run a Pylint workflow which is ran on each commit. Run locally by using the command:
 
-**runtime.txt** - Heroku will automatically assign a Python runtime if not specified. Adding this is optional and locks the instance at that version
+    pylint --rcfile ./.pylintrc $(git ls-files '*.py')
 
-    python-3.9.5
+    # Or generate default pylint config file:
+    pylint --generate-rcfile > ./.pylintrc
 
-**requirements.txt** - Helpful Python file to install all dependencies via:
-
-    pip install -r requirements.txt
+-----------------------
 
 ## Notes
 
