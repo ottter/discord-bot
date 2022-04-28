@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord import Game
 
-import config
+from config import BOT_ADMINS, DISCORD_GAME_PLAYED
 
 
 MODULE_SUBDIR = 'modules'
@@ -13,7 +13,7 @@ FILES_SUBDIR = 'data'
 
 async def is_admin(context):
     """Check if the user is considered a BOT admin"""
-    if str(context.author.id) not in config.BOT_ADMINS:
+    if str(context.author.id) not in BOT_ADMINS:
         print(f'{context.author} tried to use an admin command.')
         await context.send('You don\'t have permission to do that.')
         return False
@@ -111,7 +111,7 @@ class Admin(commands.Cog):
 
         user_input = context.message.content.split(' ', 1)
         if user_input[1] == 'default'.lower():
-            return await self.bot.change_presence(activity=Game(name=config.DISCORD_GAME_PLAYED))
+            return await self.bot.change_presence(activity=Game(name=DISCORD_GAME_PLAYED))
         await self.bot.change_presence(activity=Game(name=user_input[1]))
 
     @commands.command(pass_context=True)

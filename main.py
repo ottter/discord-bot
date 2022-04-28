@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 from discord_slash import SlashCommand
 
-import config
+from config import PRIMARY_ACCOUNT_PREFIX, DEV_ACCOUNT_NAME, DEV_ACCOUNT_PREFIX, DISCORD_TOKEN, time
 
 
 def get_prefix(message):
@@ -25,20 +25,20 @@ def get_prefix(message):
 
 intents = discord.Intents.default()
 intents.members = True  # Subscribe to the privileged members intent.
-bot = commands.Bot(command_prefix=config.PRIMARY_ACCOUNT_PREFIX, intents=intents)
+bot = commands.Bot(command_prefix=PRIMARY_ACCOUNT_PREFIX, intents=intents)
 slash = SlashCommand(bot, sync_commands=True)
 # bot.remove_command('help')
 
 @bot.event
 async def on_ready():
     """Runs if login attempt is successful"""
-    if bot.user.name == config.DEV_ACCOUNT_NAME:
-        bot.command_prefix = config.DEV_ACCOUNT_PREFIX
+    if bot.user.name == DEV_ACCOUNT_NAME:
+        bot.command_prefix = DEV_ACCOUNT_PREFIX
 
     print('='*34)
     print('Logged in as: ', bot.user.name)
     print('Client ID:    ', bot.user.id)
-    print('Local time:   ', config.time)
+    print('Local time:   ', time)
     print('='*34, '\n'*2)
 
 
@@ -83,7 +83,7 @@ def log_in():
     load_extensions()
     print('=== Attempting to log in to bot ...')
     try:
-        bot.run(config.DISCORD_TOKEN)
+        bot.run(DISCORD_TOKEN)
     except discord.errors.HTTPException or discord.errors.LoginFailure as error:
         print('\nDiscord: Unsuccessful login:', error)
     else:

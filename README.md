@@ -25,7 +25,7 @@ Originally I had this deploy only to GitHub and then a pipeline to automatically
 ## How to run via Docker
 
     git clone https://github.com/ottter/discord-bot.git && cd "$(basename "$_" .git)"
-    docker build --tag discord-bot .       # Build the container
+    docker build --tag discord-bot .       # Build the image from a Dockerfile
     docker run --detach discord-bot        # Run the container in background
 
 -----------------------

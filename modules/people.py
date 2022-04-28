@@ -3,7 +3,7 @@ import random
 import urllib
 from discord.ext import commands
 
-import config
+from config import ACCEPTED_HOSTS, ACCEPTED_MEDIA_TYPES, db, time
 
 
 IMG_DIR = './images'  # Used in .csv method
@@ -21,7 +21,7 @@ bot_admins = [
 
 def valid_host(host):
     """Compares input URL against list from config.py"""
-    for accepted_host in config.ACCEPTED_HOSTS:
+    for accepted_host in ACCEPTED_HOSTS:
         if host in accepted_host:
             return True
 
@@ -30,7 +30,7 @@ def valid_host(host):
 
 def valid_media_type(media_type):
     """Compares input URL's media type against list from config.py"""
-    return media_type in config.ACCEPTED_MEDIA_TYPES
+    return media_type in ACCEPTED_MEDIA_TYPES
 
 
 def add_image(context, person):
@@ -44,7 +44,7 @@ def add_image(context, person):
     if not valid_host(host) and not valid_media_type(media_type):  # Tests for imgur image URL
         return context.send('Invalid URL, try again.')
 
-    collection = config.db['people']
+    collection = db['people']
     # Prevent duplicate inputs
     collection.update_one({'image_url': args[1]}, {'$set': {'person': person}}, upsert=True)
     return context.send(f'Added to the `{person}` collection')
@@ -64,7 +64,7 @@ def add_image(context, person):
 
 def random_image(context, person):
     """ Returns a random Imgur URL from the selected file"""
-    collection = config.db['people']
+    collection = db['people']
     images = collection.find({'person': person})
     row = []
     for image in images:
@@ -83,7 +83,7 @@ class People(commands.Cog):
     @commands.command()
     async def people(self, context):
         """Stat count on People database"""
-        collection = config.db['people']
+        collection = db['people']
         person_count = []
         count_dict = {}
         for person in collection.find({}, {'_id': 0, 'person': 1}):
@@ -108,7 +108,7 @@ class People(commands.Cog):
         """Add to the Lights collection"""
         if str(context.author.id) in banned_users:
             await context.send(f'I can\'t do that, {context.author.mention}')
-            return print(f'{config.time}: {context.author} failed to add image Banned.')
+            return print(f'{time}: {context.author} failed to add image Banned.')
 
         await add_image(context, 'lights')
 
@@ -125,7 +125,7 @@ class People(commands.Cog):
         """Add to the Jebrim collection"""
         if str(context.author.id) in banned_users:
             await context.send(f'I can\'t do that, {context.author.mention}')
-            return print(f'{config.time}: {context.author} failed to add image. Reason: Banned')
+            return print(f'{time}: {context.author} failed to add image. Reason: Banned')
 
         await add_image(context, 'jebrim')
 

@@ -18,7 +18,7 @@ DEV_ACCOUNT_PREFIX = ','
 # Users who are to be given "admin" access to the bot. LIST(STRING)
 BOT_ADMINS = [
     '918084315290673152',   # me
-]
+    ]
 
 # Decides what the bot should show as currently being played
 DISCORD_GAME_PLAYED='Vim Tutorial'
@@ -29,7 +29,11 @@ PRIVATE_CHANNEL = 966507830641315860
 # Scan all servers for wordlers?
 WORDLE_GLOBAL_BAN = False
 # Integer list of all servers/guilds & channels to moderate. LIST(INT)
-WORDLE_BAN_LIST = [786399511651287041,963213566733873192,918187449845424158]
+WORDLE_BAN_LIST = [
+    786399511651287041,
+    963213566733873192,
+    918187449845424158,
+    ]
 
 # Mongo token should be added to your path
 MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
