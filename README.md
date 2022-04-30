@@ -20,13 +20,28 @@ Originally I had this deploy only to GitHub and then a pipeline to automatically
     heroku login
     (existing) heroku git:remote -a {app-name}     # Will require authorized app owner/developer
     (or clone) heroku git:clone -a {app-name}      # Which one depends if repo is on system already
-    git push heroku main                           # can checkout main and delete master branch to make this default
+    git push heroku main
 
 ## How to run via Docker
 
+    # getting started
     git clone https://github.com/ottter/discord-bot.git && cd "$(basename "$_" .git)"
-    docker build --tag discord-bot .       # Build the image from a Dockerfile
-    docker run --detach discord-bot        # Run the container in background
+    docker build --tag discord-bot .    # Build the image from a Dockerfile
+    docker run --detach discord-bot     # Run the container in background
+    ---
+    # docker container management
+    docker ps -a                        # List ALL containers
+    docker kill {container-id}          # kill select container
+    docker rm {container-id}            # remove select container
+
+    docker kill $(docker ps -q)         # Stop ALL containers
+    docker rm $(docker ps -a -q)        # Remove ALL containers
+    ---
+    # docker image management
+    docker image ls                     # List ALL images
+    docker rmi {image-id}               # Remove select image
+    
+    docker rmi $(docker images -q)      # Remove ALL images
 
 -----------------------
 
