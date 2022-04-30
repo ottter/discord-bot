@@ -1,6 +1,5 @@
 name: Pylint & Test
 
-#on: [push]
 on:
   push:
     branches:
@@ -26,7 +25,7 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         pylint --rcfile ./.pylintrc $(git ls-files '*.py')
-# /c/Users/James/AppData/Roaming/Python/Python39/Scripts/pylint.exe --rcfile ./.pylintrc $(git ls-files '*.py')
+    # python -m pylint  --rcfile ./.pylintrc $(git ls-files '*.py')
 
     # Prepare the Pull Request Payload artifact. If this fails, we
     # we fail silently using the `continue-on-error` option. It's

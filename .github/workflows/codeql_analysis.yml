@@ -14,7 +14,7 @@ name: "CodeQL"
 on:
   workflow_run:
     workflows:
-      - Pylint & Test
+      - Discord Status Embed
     types:
       - completed
   schedule:

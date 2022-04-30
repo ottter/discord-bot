@@ -45,14 +45,28 @@ Originally I had this deploy only to GitHub and then a pipeline to automatically
 
 -----------------------
 
-### Workflow: Pylint
+### Github Actions
 
-This project uses Github Actions to run a Pylint workflow which is ran on each commit. Run locally by using the command:
+GitHub Actions used in this project:
 
+- [Pylint](https://pypi.org/project/pylint/)
+- [GitHub Actions Status Embed for Discord](https://github.com/marketplace/actions/github-actions-status-embed-for-discord)
+- [CodeQL Analysis](https://github.com/github/codeql-action)
+
+Pylint - Static code analysis
+
+    # run locally
     pylint --rcfile ./.pylintrc $(git ls-files '*.py')
+
+    # run locally without adding pylint to PATH
+    python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
 
     # Or generate default pylint config file:
     pylint --generate-rcfile > ./.pylintrc
+
+Discord Status Embed - Post in specified Discord channel a build's status. DISCORD_WEBHOOK_TOKEN and GITHUB_TOKEN are managed by Github.
+
+CodeQL Analysis - Semantic code analysis engine
 
 -----------------------
 
