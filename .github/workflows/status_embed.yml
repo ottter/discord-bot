@@ -12,27 +12,45 @@ jobs:
     name: Send an embed to Discord
 
     steps:
-    - name: Run the GitHub Actions Status Embed Action
-      uses: SebastiaanZ/github-status-embed-for-discord@main
-      with:
-        # Discord webhook
-        webhook_id: '969774054133358653'
-        webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+      # Process the artifact uploaded in the `pull_request`-triggered workflow:
+      - name: Get Pull Request Information
+        id: pr_info
+        if: github.event.workflow_run.event == 'pull_request'
+        run: |
+          curl -s -H "Authorization: token $GITHUB_TOKEN" ${{ github.event.workflow_run.artifacts_url }} > artifacts.json
+          DOWNLOAD_URL=$(cat artifacts.json | jq -r '.artifacts[] | select(.name == "pull-request-payload") | .archive_download_url')
+          [ -z "$DOWNLOAD_URL" ] && exit 1
+          wget --quiet --header="Authorization: token $GITHUB_TOKEN" -O pull_request_payload.zip $DOWNLOAD_URL || exit 2
+          unzip -p pull_request_payload.zip > pull_request_payload.json
+          [ -s pull_request_payload.json ] || exit 3
+          echo "::set-output name=pr_author_login::$(jq -r '.user.login // empty' pull_request_payload.json)"
+          echo "::set-output name=pr_number::$(jq -r '.number // empty' pull_request_payload.json)"
+          echo "::set-output name=pr_title::$(jq -r '.title // empty' pull_request_payload.json)"
+          echo "::set-output name=pr_source::$(jq -r '.head.label // empty' pull_request_payload.json)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-        # We need to provide the information of the workflow that
-        # triggered this workflow instead of this workflow.
-        workflow_name: ${{ github.event.workflow_run.name }}
-        run_id: ${{ github.event.workflow_run.id }}
-        run_number: ${{ github.event.workflow_run.run_number }}
-        status: ${{ github.event.workflow_run.conclusion }}
-        sha: ${{ github.event.workflow_run.head_sha }}
+      - name: Run the GitHub Actions Status Embed Action
+        uses: SebastiaanZ/github-status-embed-for-discord@main
+        with:
+          # Discord webhook
+          webhook_id: '969774054133358653'
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
-        # Optional arguments for PR-related events
-        # Note: There's no harm in including these lines for non-PR
-        # events, as non-existing paths in objects will evaluate to
-        # `null` silently and the github status embed action will
-        # treat them as absent.
-        pr_author_login: ${{ github.event.pull_request.user.login }}
-        pr_number: ${{ github.event.pull_request.number }}
-        pr_title: ${{ github.event.pull_request.title }}
-        pr_source: ${{ github.event.pull_request.head.label }}
+          # We need to provide the information of the workflow that
+          # triggered this workflow instead of this workflow.
+          workflow_name: ${{ github.event.workflow_run.name }}
+          run_id: ${{ github.event.workflow_run.id }}
+          run_number: ${{ github.event.workflow_run.run_number }}
+          status: ${{ github.event.workflow_run.conclusion }}
+          sha: ${{ github.event.workflow_run.head_sha }}
+
+          # Optional arguments for PR-related events
+          # Note: There's no harm in including these lines for non-PR
+          # events, as non-existing paths in objects will evaluate to
+          # `null` silently and the github status embed action will
+          # treat them as absent.
+          pr_author_login: ${{ github.event.pull_request.user.login }}
+          pr_number: ${{ github.event.pull_request.number }}
+          pr_title: ${{ github.event.pull_request.title }}
+          pr_source: ${{ github.event.pull_request.head.label }}
