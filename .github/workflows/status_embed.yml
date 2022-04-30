@@ -1,3 +1,5 @@
+name: Discord Status Embed
+
 on:
   push:
     branches:
@@ -16,6 +18,14 @@ jobs:
         # Discord webhook
         webhook_id: '969774054133358653'
         webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+
+        # We need to provide the information of the workflow that
+        # triggered this workflow instead of this workflow.
+        workflow_name: ${{ github.event.workflow_run.name }}
+        run_id: ${{ github.event.workflow_run.id }}
+        run_number: ${{ github.event.workflow_run.run_number }}
+        status: ${{ github.event.workflow_run.conclusion }}
+        sha: ${{ github.event.workflow_run.head_sha }}
 
         # Optional arguments for PR-related events
         # Note: There's no harm in including these lines for non-PR
