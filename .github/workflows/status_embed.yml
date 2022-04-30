@@ -1,10 +1,11 @@
 name: Discord Status Embed
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_run:
+    workflows:
+      - Pylint & Test
+    types:
+      - completed
 
 jobs:
   send_embed:
