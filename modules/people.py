@@ -8,12 +8,12 @@ from config import ACCEPTED_HOSTS, ACCEPTED_MEDIA_TYPES, db, time
 
 IMG_DIR = './images'  # Used in .csv method
 
-banned_users = [
+BANNED_USERS = [
     '635226170698235925',   # jebbers
     '899543527682367518',   # mort
 ]
 
-bot_admins = [
+BOT_ADMINS = [
     '918084315290673152',   # me
     '205144077144948737',   # liam
 ]
@@ -106,7 +106,7 @@ class People(commands.Cog):
     @commands.command()
     async def add_lights(self, context):
         """Add to the Lights collection"""
-        if str(context.author.id) in banned_users:
+        if str(context.author.id) in BANNED_USERS:
             await context.send(f'I can\'t do that, {context.author.mention}')
             return print(f'{time}: {context.author} failed to add image Banned.')
 
@@ -123,7 +123,7 @@ class People(commands.Cog):
     @commands.command()
     async def add_jebrim(self, context):
         """Add to the Jebrim collection"""
-        if str(context.author.id) in banned_users:
+        if str(context.author.id) in BANNED_USERS:
             await context.send(f'I can\'t do that, {context.author.mention}')
             return print(f'{time}: {context.author} failed to add image. Reason: Banned')
 
@@ -161,7 +161,7 @@ class People(commands.Cog):
     @commands.command()
     async def add_philo(self, context):
         """Add to the PhiloChat collection"""
-        if str(context.message.author.id) in bot_admins:
+        if str(context.message.author.id) in BOT_ADMINS:
             await add_image(context, 'philo')
 
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -175,7 +175,7 @@ class People(commands.Cog):
     @commands.command()
     async def add_corona(self, context):
         """Add to the Corona collection"""
-        if str(context.message.author.id) in bot_admins:
+        if str(context.message.author.id) in BOT_ADMINS:
             await add_image(context, 'corona')
 
 

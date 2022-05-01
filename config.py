@@ -20,6 +20,13 @@ BOT_ADMINS = [
     '918084315290673152',   # me
     ]
 
+# List for active on_member events (leave, join server). {SERVER_ID: WECLOME_CHANNEL_ID}
+ON_MEMBER_SERVERLIST = {
+    963213566733873192: 970377569956425779,
+    918187449845424158: 918187449845424161,
+    436267595365351434: 436267595365351436,
+}
+
 # Decides what the bot should show as currently being played
 DISCORD_GAME_PLAYED='Vim Tutorial'
 

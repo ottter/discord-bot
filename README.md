@@ -47,13 +47,13 @@ Originally I had this deploy only to GitHub and then a pipeline to automatically
 
 ### Github Actions
 
-GitHub Actions used in this project:
+GitHub Actions utilized in this project:
 
 - [Pylint](https://pypi.org/project/pylint/)
 - [GitHub Actions Status Embed for Discord](https://github.com/marketplace/actions/github-actions-status-embed-for-discord)
 - [CodeQL Analysis](https://github.com/github/codeql-action)
 
-Pylint - Static code analysis
+**Pylint** - Static code analysis
 
     # run locally
     pylint --rcfile ./.pylintrc $(git ls-files '*.py')
@@ -64,9 +64,9 @@ Pylint - Static code analysis
     # Or generate default pylint config file:
     pylint --generate-rcfile > ./.pylintrc
 
-Discord Status Embed - Post in specified Discord channel a build's status. DISCORD_WEBHOOK_TOKEN and GITHUB_TOKEN are managed by Github.
+**Discord Status Embed** - Post in specified Discord channel a build's status. `DISCORD_WEBHOOK_TOKEN` and `GITHUB_TOKEN` are managed by Github.
 
-CodeQL Analysis - Semantic code analysis engine
+**CodeQL Analysis** - Semantic code analysis engine
 
 -----------------------
 
