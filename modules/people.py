@@ -3,7 +3,7 @@ import random
 import urllib
 from discord.ext import commands
 
-from config import ACCEPTED_HOSTS, ACCEPTED_MEDIA_TYPES, db, time
+from config import ACCEPTED_HOSTS, ACCEPTED_MEDIA_TYPES, db, TIME
 
 
 IMG_DIR = './images'  # Used in .csv method
@@ -108,7 +108,7 @@ class People(commands.Cog):
         """Add to the Lights collection"""
         if str(context.author.id) in BANNED_USERS:
             await context.send(f'I can\'t do that, {context.author.mention}')
-            return print(f'{time}: {context.author} failed to add image Banned.')
+            return print(f'{TIME}: {context.author} failed to add image Banned.')
 
         await add_image(context, 'lights')
 
@@ -125,7 +125,7 @@ class People(commands.Cog):
         """Add to the Jebrim collection"""
         if str(context.author.id) in BANNED_USERS:
             await context.send(f'I can\'t do that, {context.author.mention}')
-            return print(f'{time}: {context.author} failed to add image. Reason: Banned')
+            return print(f'{TIME}: {context.author} failed to add image. Reason: Banned')
 
         await add_image(context, 'jebrim')
 

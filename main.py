@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 from discord_slash import SlashCommand
 
-from config import PRIMARY_ACCOUNT_PREFIX, DEV_ACCOUNT_NAME, DEV_ACCOUNT_PREFIX, DISCORD_TOKEN, time
+from config import PRIMARY_ACCOUNT_PREFIX, DEV_ACCOUNT_NAME, DEV_ACCOUNT_PREFIX, DISCORD_TOKEN, TIME
 
 
 def get_prefix(message):
@@ -38,7 +38,7 @@ async def on_ready():
     print('='*34)
     print('Logged in as: ', bot.user.name)
     print('Client ID:    ', bot.user.id)
-    print('Local time:   ', time)
+    print('Local time:   ', TIME)
     print('='*34, '\n'*2)
 
 

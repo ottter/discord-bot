@@ -30,6 +30,10 @@ ON_MEMBER_SERVERLIST = {
 # Decides what the bot should show as currently being played
 DISCORD_GAME_PLAYED='Vim Tutorial'
 
+# modules/people.py: Directories containing command modules and bot data
+MODULE_SUBDIR = 'modules'
+FILES_SUBDIR = 'data'
+
 # Channel ID to send messages to bot's DMs to. INTEGER
 PRIVATE_CHANNEL = 966507830641315860
 
@@ -47,7 +51,7 @@ MONGO_TOKEN = MongoClient(f"{os.environ['MONGO_PASSWORD']}")
 db = MONGO_TOKEN.get_database('discord')
 
 # Gets a cool timestamp to use in logs or whatever
-time = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
+TIME = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
 
 # (Unsecure) way to filter additions to image db. I'll improve this later. LIST(STR)
 ACCEPTED_HOSTS = ['discord', 'imgur', 'youtube', 'gyazo']

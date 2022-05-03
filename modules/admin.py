@@ -5,11 +5,8 @@ import discord
 from discord.ext import commands
 from discord import Game
 
-from config import BOT_ADMINS, DISCORD_GAME_PLAYED
+from config import BOT_ADMINS, DISCORD_GAME_PLAYED, MODULE_SUBDIR, FILES_SUBDIR
 
-
-MODULE_SUBDIR = 'modules'
-FILES_SUBDIR = 'data'
 
 async def is_admin(context):
     """Check if the user is considered a BOT admin"""
