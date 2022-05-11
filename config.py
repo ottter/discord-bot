@@ -54,5 +54,14 @@ db = MONGO_TOKEN.get_database('discord')
 TIME = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")
 
 # (Unsecure) way to filter additions to image db. I'll improve this later. LIST(STR)
-ACCEPTED_HOSTS = ['discord', 'imgur', 'youtube', 'gyazo']
-ACCEPTED_MEDIA_TYPES = ['png', 'jpg', 'jpeg']
+ACCEPTED_HOSTS = [
+    'discord', 
+    'imgur', 
+    'youtube', 
+    'gyazo'
+    ]
+ACCEPTED_MEDIA_TYPES = [
+    'png', 
+    'jpg', 
+    'jpeg'
+    ]
