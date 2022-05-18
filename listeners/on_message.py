@@ -33,10 +33,12 @@ class OnMessage(commands.Cog):
         # Relays received DM to specified channel (based on ID)
         if context.channel.type is discord.ChannelType.private:
             priv = self.bot.get_channel(PRIVATE_CHANNEL)
+            private_message = [context.content]
             if len(context.attachments) > 0:    # Length check required to avoid IndexError
-                await priv.send(f'{context.author} sent me this:\n{context.attachments[0].url}')
-            else:
-                await priv.send(f'{context.author} sent me this:\n{context.content}')
+                for pic in context.attachments:
+                    private_message.append(pic.url)
+            private_joined = "\n".join(private_message)
+            return await priv.send(f'From {context.author}: {private_joined}')
 
         # Moderates a wordler if either of the options are True by telling them to leave
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
@@ -48,7 +50,7 @@ class OnMessage(commands.Cog):
             if square_count > 9:
                 return await context.channel.send("Not even close to avoiding my wrath")
 
-        # await self.bot.process_commands(context)
+        await self.bot.process_commands(context)
 
 def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
