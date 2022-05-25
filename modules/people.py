@@ -129,12 +129,19 @@ class People(commands.Cog):
 
         await add_image(context, 'jebrim')
 
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.command()
+    async def lathow(self, context):
+        """Shows you the best of Lathow"""
+
+        await random_image(context, 'lathow')
+
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command()
-    async def add_mars(self, context):
-        """Add to the Marianna collection"""
+    async def add_lathow(self, context):
+        """Add to the Lathow collection"""
 
-        await add_image(context, 'mars')
+        await add_image(context, 'lathow')
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
