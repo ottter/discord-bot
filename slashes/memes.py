@@ -13,6 +13,7 @@ slash_img_dict = {
     "pepe_copium"       : "https://i.imgur.com/feSABOV.jpeg",
     "pepe_bedge"        : "https://cdn.betterttv.net/emote/6049a20d306b602acc59aab5/3x",
     "no_maidens"        : "https://i.imgur.com/iqv14Bb.jpg",
+    "albinauric_mad"    : "https://i.imgur.com/lpyPPQz.png",
 }
 
 class SlashMemes(Cog):
@@ -45,6 +46,12 @@ class SlashMemes(Cog):
         description="Maidenless Behavior")
     async def _maidens(self, context:SlashContext):
         await context.send(slash_img_dict["no_maidens"])
+
+    @cog_ext.cog_slash(
+        name="frogmanMad",
+        description="Alby has never seen such bullsh*t")
+    async def _albinauric(self, context:SlashContext):
+        await context.send(slash_img_dict["albinauric_mad"])
 
     @cog_ext.cog_slash(
         name="co2",
