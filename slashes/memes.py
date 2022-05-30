@@ -52,19 +52,19 @@ class SlashMemes(Cog):
     @cog_ext.cog_slash(
         name="frogmanMad",
         description="Alby has never seen such bullsh*t")
-    async def _albinauric(self, context:SlashContext):
+    async def _albinauric_mad(self, context:SlashContext):
         await context.send(slash_img_dict["albinauric_mad"])
     
     @cog_ext.cog_slash(
         name="frogman",
         description="Made from the largely unaltered hide of a young Albinauric.")
-    async def _albinauric(self, context:SlashContext):
+    async def _albinauric_mask(self, context:SlashContext):
         await context.send(slash_img_dict["albinauric_mask"])
     
     @cog_ext.cog_slash(
         name="frogmanCursed",
         description="Made from the largely unaltered hide of a young Albinauric.")
-    async def _albinauric(self, context:SlashContext):
+    async def _albinauric_cursed(self, context:SlashContext):
         await context.send(slash_img_dict["albinauric_curse"])
 
     @cog_ext.cog_slash(
