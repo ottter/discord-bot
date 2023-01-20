@@ -11,11 +11,12 @@ PASTA_FBI = ("I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATI
 slash_img_dict = {
     "only_pretending"   : "https://i.imgur.com/6kGliTj.jpeg",
     "pepe_copium"       : "https://i.imgur.com/feSABOV.jpeg",
-    "pepe_bedge"        : "https://cdn.betterttv.net/emote/6049a20d306b602acc59aab5/3x",
+    "pepe_bedge"        : "https://i.imgur.com/IH2Svwn.png",
     "no_maidens"        : "https://i.imgur.com/iqv14Bb.jpg",
     "albinauric_mad"    : "https://i.imgur.com/lpyPPQz.png",
-    "albinauric_mask"   : "https://cdn.discordapp.com/attachments/767396798976753686/979487643236720680/unknown.png",
+    "albinauric_mask"   : "https://i.imgur.com/6i88gpz.png",
     "albinauric_curse"  : "https://i.imgur.com/SbVH8Iz.png",
+    "albinayric_happy"  : "https://i.imgur.com/doasGog.png",
 }
 
 class SlashMemes(Cog):
@@ -66,6 +67,12 @@ class SlashMemes(Cog):
         description="Made from the largely unaltered hide of a young Albinauric.")
     async def _albinauric_cursed(self, context:SlashContext):
         await context.send(slash_img_dict["albinauric_curse"])
+    
+    @cog_ext.cog_slash(
+        name="frogmanHappy",
+        description="It's not so bad.")
+    async def _albinauric_happy(self, context:SlashContext):
+        await context.send(slash_img_dict["albinauric_happy"])
 
     @cog_ext.cog_slash(
         name="co2",
