@@ -55,7 +55,7 @@ async def on_message(context):
     """Ignore messages from self"""
     if context.author == bot.user:
         return
-    await bot.process_commands(context)
+    # await bot.process_commands(context)
 
 
 def load_extensions():
