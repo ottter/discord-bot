@@ -23,7 +23,7 @@ pylint==2.13.7
 pymongo==4.1.0
 PySocks==1.7.1
 pytz-deprecation-shim==0.1.0.post0
-pywin32==227
+pywin32==301
 requests==2.25.1
 six==1.16.0
 termcolor==2.2.0
