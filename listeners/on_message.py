@@ -3,7 +3,7 @@ import re
 import emoji
 import discord
 from discord.ext import commands
-from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, PRIVATE_CHANNEL
+from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, PRIVATE_CHANNEL
 
 
 rdleverse_dict = {
@@ -39,6 +39,14 @@ class OnMessage(commands.Cog):
                     private_message.append(pic.url)
             private_joined = "\n".join(private_message)
             return await priv.send(f'From {context.author}: {private_joined}')
+
+        # if (context.channel.id in OFFICIAL_WORDLE_CHANNEL):
+        #     for key, value in rdleverse_dict.items():
+        #         if re.search(value.lower(), message) and not message.partition('\n')[0].endswith('*'):
+        #             return await context.channel.send("Consider not playing on baby mode next time, bozo")
+        if (context.channel.id in OFFICIAL_WORDLE_CHANNEL):
+            if re.search(rdleverse_dict["Wordle"].lower(), message) and not message.partition('\n')[0].endswith('*'):
+                return await context.channel.send("Consider not playing on baby mode next time, bozo")
 
         # Moderates a wordler if either of the options are True by telling them to leave
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):

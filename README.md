@@ -6,13 +6,14 @@
 
 ## How to run locally (Linux)
 
-    cd ~
     git clone https://github.com/ottter/discord-bot.git && cd "$(basename "$_" .git)"
     python3 -m venv .venv               # Create virtual environment with a title in .gitignore
     source .venv/bin/activate           # Activate virtual environment
     pip install -r requirements.txt     # Install dependencies (including discord.py)
-    ./main.py                           # 
+    tmux                                # Optional; If connecting via SSH and you want to close connection
+    python main.py                      # 
 
+    tmux attach                         # Reconnect to tmux after reestablishing SSH connection
     deactivate                          # Exit venv
 
 ## How to run via Heroku
