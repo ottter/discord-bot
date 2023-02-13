@@ -45,7 +45,7 @@ WORDLE_BAN_LIST = [
     963213566733873192,
     918187449845424158,
     ]
-# List of all official Wordle approved channel IDs (INT) 
+# List of all official Wordle approved channel IDs (INT)
 OFFICIAL_WORDLE_CHANNEL = [
     963744047380434984,     # Puzzle Meta
     963213566733873195,     # Private testdog channel
@@ -60,13 +60,13 @@ TIME = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S"
 
 # (Unsecure) way to filter additions to image db. I'll improve this later. LIST(STR)
 ACCEPTED_HOSTS = [
-    'discord', 
-    'imgur', 
-    'youtube', 
+    'discord',
+    'imgur',
+    'youtube',
     'gyazo'
     ]
 ACCEPTED_MEDIA_TYPES = [
-    'png', 
-    'jpg', 
+    'png',
+    'jpg',
     'jpeg'
     ]
