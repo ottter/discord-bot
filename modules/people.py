@@ -82,6 +82,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def people(self, context):
+        # pylint: disable=R0201
         """Stat count on People database"""
         collection = db['people']
         person_count = []
@@ -98,6 +99,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def lights(self, context):
+        # pylint: disable=R0201
         """Shows you the best of Lights473"""
 
         await random_image(context, 'lights')
@@ -105,6 +107,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command()
     async def add_lights(self, context):
+        # pylint: disable=R0201
         """Add to the Lights collection"""
         if str(context.author.id) in BANNED_USERS:
             await context.send(f'I can\'t do that, {context.author.mention}')
@@ -115,6 +118,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(aliases=['jeb'])
     async def jebrim(self, context):
+        # pylint: disable=R0201
         """Shows you the best of Jebrim"""
 
         await random_image(context, 'jebrim')
@@ -122,6 +126,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command()
     async def add_jebrim(self, context):
+        # pylint: disable=R0201
         """Add to the Jebrim collection"""
         if str(context.author.id) in BANNED_USERS:
             await context.send(f'I can\'t do that, {context.author.mention}')
@@ -132,6 +137,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def lathow(self, context):
+        # pylint: disable=R0201
         """Shows you the best of Lathow"""
 
         await random_image(context, 'lathow')
@@ -139,6 +145,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command()
     async def add_lathow(self, context):
+        # pylint: disable=R0201
         """Add to the Lathow collection"""
 
         await add_image(context, 'lathow')
@@ -146,6 +153,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def pgt(self, context):
+        # pylint: disable=R0201
         """Shows you the best of Pgt"""
 
         await random_image(context, 'pgt')
@@ -153,6 +161,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command()
     async def add_pgt(self, context):
+        # pylint: disable=R0201
         """Add to the Pgt collection"""
 
         await add_image(context, 'pgt')
@@ -160,6 +169,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def philo(self, context):
+        # pylint: disable=R0201
         """Shows you the best of PhiloChat"""
 
         await random_image(context, 'philo')
@@ -167,6 +177,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command()
     async def add_philo(self, context):
+        # pylint: disable=R0201
         """Add to the PhiloChat collection"""
         if str(context.message.author.id) in BOT_ADMINS:
             await add_image(context, 'philo')
@@ -174,6 +185,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def corona(self, context):
+        # pylint: disable=R0201
         """Shows you the best Corona quotes"""
 
         await random_image(context, 'corona')
@@ -181,6 +193,7 @@ class People(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command()
     async def add_corona(self, context):
+        # pylint: disable=R0201
         """Add to the Corona collection"""
         if str(context.message.author.id) in BOT_ADMINS:
             await add_image(context, 'corona')

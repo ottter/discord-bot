@@ -1,3 +1,4 @@
+"""Gather current GE price of Runescape (3 & Old School) items"""
 import discord
 from discord.ext import commands
 
@@ -14,7 +15,7 @@ class GrandExchange(commands.Cog):
     @commands.command()
     async def rsge(self, context):
         return
-    
+
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(aliases=['07ge'])
     async def osge(self, context):

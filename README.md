@@ -12,8 +12,9 @@
     pip install -r requirements.txt     # Install dependencies (including discord.py)
     tmux                                # Optional; If connecting via SSH and you want to close connection
     python main.py                      # 
-
+    ---
     tmux attach                         # Reconnect to tmux after reestablishing SSH connection
+    [Ctrl+b] + [x]                      # Press while in tmux to kill session
     deactivate                          # Exit venv
 
 ## How to run via Heroku
