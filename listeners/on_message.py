@@ -40,10 +40,7 @@ class OnMessage(commands.Cog):
             private_joined = "\n".join(private_message)
             return await priv.send(f'From {context.author}: {private_joined}')
 
-        # if (context.channel.id in OFFICIAL_WORDLE_CHANNEL):
-        #     for key, value in rdleverse_dict.items():
-        #         if re.search(value.lower(), message) and not message.partition('\n')[0].endswith('*'):
-        #             return await context.channel.send("Consider not playing on baby mode next time, bozo")
+        # Encourage easy mode Wordlers to try out hard mode
         if (context.channel.id in OFFICIAL_WORDLE_CHANNEL):
             if re.search(rdleverse_dict["Wordle"].lower(), message) and not message.partition('\n')[0].endswith('*'):
                 return await context.channel.send("Consider not playing on baby mode next time, bozo")
