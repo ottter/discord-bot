@@ -14,8 +14,9 @@ def import_item(game, item):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
-def search_grandexchange(item):
-    print(import_item(item))
+def search_grandexchange(context, game, item):
+    output = import_item(game, item)
+    return context.send(output)
 
 class GrandExchange(commands.Cog):
     """Provides user with random and relevant xkcd comics"""
@@ -25,12 +26,14 @@ class GrandExchange(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def rsge(self, context):
-        return search_grandexchange('rs', 'cannonball')
+        item_request = context.message.content.split(" ", 1)[1]
+        await search_grandexchange(context, 'rs', item_request)
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(aliases=['07ge'])
     async def osge(self, context):
-        return search_grandexchange('osrs', 'cannonball')
+        item_request = context.message.content.split(" ", 1)[1]
+        await search_grandexchange(context, 'osrs', item_request)
 
 
 def setup(bot):
