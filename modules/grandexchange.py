@@ -14,9 +14,28 @@ def import_item(game, item):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
-def search_grandexchange(context, game, item):
+def search_grandexchange(context, game, item, embed=True):
     output = import_item(game, item)
-    return context.send(output)
+    # Example: {'Cannonball': {'id': '2', 'timestamp': '2023-03-19T03:00:45.000Z', 'price': 160, 'volume': 20665706}}
+    item_name = list(output.keys())[0]
+    if not embed:
+        return create_text(context, output, item_name)
+    embed = create_embed(output, game, item_name)
+    return context.send(embed=embed)
+
+def create_text(context, output, item_name):
+    price = '{:,}'.format(output[item_name]['price'])
+    volume = output[item_name]['volume']
+    textblock = f"""**{item_name}**\nPrice: {price}\t Volume: {volume}"""
+    return context.send(textblock)
+
+def create_embed(output, game, item_name):
+    game = "oldschool." if game == "osrs" else ''
+    embed=discord.Embed(title=item_name, url=f"https://{game}runescape.wiki/w/{item_name.replace(' ', '_')}")
+    embed.set_thumbnail(url=f"https://{game}runescape.wiki/images/{item_name.replace(' ', '_')}.png")
+    embed.add_field(name="price", value='{:,}'.format(output[item_name]['price']), inline=True)
+    embed.add_field(name="volume", value=output[item_name]['volume'], inline=True)
+    return embed
 
 class GrandExchange(commands.Cog):
     """Provides user with random and relevant xkcd comics"""
