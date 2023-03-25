@@ -31,6 +31,7 @@ class UltimateFighing(commands.Cog):
     async def ufc(self, context):
         try:
             message = context.message.content.split(" ", 1)[1].lower()
+            message = f'event {message.split()[0]} matchups 0'
         except:
             # If no argument is passed, then default to getting info on next event
             message = 'event main matchups 0'
