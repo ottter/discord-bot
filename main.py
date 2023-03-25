@@ -7,6 +7,7 @@ import os
 import sys
 import json
 import discord
+from modules.wordle_loser import play_wordle
 from discord.ext import commands
 from discord_slash import SlashCommand
 
@@ -61,7 +62,7 @@ async def on_message(context):
 def load_extensions():
     """Load all modules/extensions/cogs from specificed directories"""
     dir_list = ['listeners', 'modules', 'slashes']
-    exclusion_list = ['help']
+    exclusion_list = ['help', 'wordle_loser']
     for dir_ in dir_list:
         print(f'=== Attempting to load all extensions in {dir_} directory ...')
         for filename in os.listdir(f'./{dir_}'):

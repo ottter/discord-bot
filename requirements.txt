@@ -6,3 +6,4 @@ emoji
 pylint==2.13.7
 pymongo==4.1.0
 requests
+nltk
