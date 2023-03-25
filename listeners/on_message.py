@@ -2,6 +2,7 @@
 import re
 import time
 import emoji
+import random
 import discord
 from discord.ext import commands
 from modules.wordle_loser import play_wordle
@@ -39,9 +40,11 @@ class OnMessage(commands.Cog):
         if context.channel.type is discord.ChannelType.private:
             priv = self.bot.get_channel(PRIVATE_CHANNEL)
             private_message = [context.content]
+
             if len(context.attachments) > 0:    # Length check required to avoid IndexError
                 for pic in context.attachments:
                     private_message.append(pic.url)
+
             private_joined = "\n".join(private_message)
             return await priv.send(f'From {context.author}: {private_joined}')
 
@@ -50,22 +53,37 @@ class OnMessage(commands.Cog):
                 # Assure that Wordle is only played once per day. After playing, wordle_day will go up one so that it
                 # won't play again until the next reset. Plays well with Eu**pe.
                 if wordle_day == play_wordle()['wordle_num']:
-                    time.sleep(3)
-                    wrdl = play_wordle(starting_word='crane', custom_list='data/wordlists/sorted-valid-wordle-words.txt')
-                    wrdl_output = f"Wordle {wrdl['wordle_num']} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
+                    await context.channel.send('alright i can beat that')
+                    time.sleep(random.randint(2, 8))
+
+                    wrdl = play_wordle(starting_word='crane', 
+                                       custom_list='data/wordlists/sorted-valid-wordle-words.txt', 
+                                       print_output=True)
+                    
+                    # For some reason the number is a few days behind, even though the word is correct. why??
+                    wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
                     wordle_day = int(wordle_day) + 1
                     await context.channel.send(wrdl_output), wordle_day, wrdl['guess_count']
+                    time.sleep(random.randint(1, 4))
+
+                    user_guess_count = int(message.partition('\n')[0][11])
+                    if user_guess_count != range(1, 6):
+                        return await context.channel.send('cheater tbh')
+
                     # Friendly banter if whoever triggers the script does worse than dogdog
-                    if int(message.partition('\n')[0][11]) > int(wrdl['guess_count']):
-                        time.sleep(1)
-                        await context.channel.send(f"<@{context.author.id}> you suck lol. i got {wrdl['guess_count']}/6")
+                    if user_guess_count > int(wrdl['guess_count']):
+                        await context.channel.send(f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6")
+                    elif user_guess_count == int(wrdl['guess_count']):
+                        await context.channel.send('close tbh')
+                    else:
+                        await context.channel.send('nvm lol')
                     return
                 
                 # Encourage easy mode Wordlers to try out hard mode
                 elif not message.partition('\n')[0].endswith('*'):
                     return await context.channel.send("Consider not playing on baby mode next time, bozo")
                 
-                else:
+                elif random.randint(1, 5) == 1:
                     return await context.channel.send("i wish i could wordle rn :(")
 
         # Moderates a wordler if either of the options are True by telling them to leave
