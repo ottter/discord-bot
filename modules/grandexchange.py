@@ -38,18 +38,18 @@ def create_embed(output, game, item_name):
     return embed
 
 class GrandExchange(commands.Cog):
-    """Provides user with random and relevant xkcd comics"""
+    """Provides user with RS3 and OSRS Grand Exchange info"""
     def __init__(self, bot):
         self.bot = bot
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command()
+    @commands.command(aliases=['rspc'])
     async def rsge(self, context):
         item_request = context.message.content.split(" ", 1)[1]
         await search_grandexchange(context, 'rs', item_request)
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(aliases=['07ge'])
+    @commands.command(aliases=['07ge', 'ospc', '07pc'])
     async def osge(self, context):
         item_request = context.message.content.split(" ", 1)[1]
         await search_grandexchange(context, 'osrs', item_request)
