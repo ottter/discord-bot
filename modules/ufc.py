@@ -21,13 +21,13 @@ def ufc_data(context, message):
     else:
         return context.send('TBD')
 
-class UltimateFighing(commands.Cog):
+class UltimateFighting(commands.Cog):
     """Provides user with UFC info"""
     def __init__(self, bot):
         self.bot = bot
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command()
+    @commands.command(aliases=['mma'])
     async def ufc(self, context):
         try:
             message = context.message.content.split(" ", 1)[1].lower()
@@ -39,4 +39,4 @@ class UltimateFighing(commands.Cog):
 
 def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
-    bot.add_cog(UltimateFighing(bot))
+    bot.add_cog(UltimateFighting(bot))

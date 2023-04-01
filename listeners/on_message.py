@@ -9,7 +9,7 @@ from modules.wordle_loser import play_wordle
 from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, PRIVATE_CHANNEL
 
 # Save the Wordle day on startup to be used to check for daily reset
-wordle_day = play_wordle()['wordle_num']
+wordle_day = int(play_wordle()['wordle_num'])
 
 rdleverse_dict = {
     "Wordle": "(Wordle \\d{1,} \\d/\\d)",                             # Wordle 298 3/6
@@ -52,7 +52,8 @@ class OnMessage(commands.Cog):
             if re.search(rdleverse_dict["Wordle"].lower(), message):
                 # Assure that Wordle is only played once per day. After playing, wordle_day will go up one so that it
                 # won't play again until the next reset. Plays well with Eu**pe.
-                if wordle_day == play_wordle()['wordle_num']:
+                message_day = int(message.split()[1])
+                if wordle_day == int(play_wordle()['wordle_num']) and wordle_day == message_day:
                     await context.channel.send('alright i can beat that')
                     time.sleep(random.randint(2, 8))
 
@@ -66,11 +67,8 @@ class OnMessage(commands.Cog):
                     await context.channel.send(wrdl_output), wordle_day, wrdl['guess_count']
                     time.sleep(random.randint(1, 4))
 
-                    user_guess_count = int(message.partition('\n')[0][11])
-                    if user_guess_count != range(1, 6):
-                        return await context.channel.send('cheater tbh')
-
                     # Friendly banter if whoever triggers the script does worse than dogdog
+                    user_guess_count = int(message.partition('\n')[0][11])
                     if user_guess_count > int(wrdl['guess_count']):
                         await context.channel.send(f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6")
                     elif user_guess_count == int(wrdl['guess_count']):
