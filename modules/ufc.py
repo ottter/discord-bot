@@ -1,6 +1,5 @@
 """Gather info about the UFC. Events, Matchups, Fighters, etc"""
 import re
-import discord
 from modules.ufc_data.events import *
 from modules.ufc_data.odds import *
 from modules.ufc_data.rankings import *
@@ -13,13 +12,12 @@ def ufc_data(context, message):
     arguments = argument.split()
 
     if re.compile(r"\bevents?\b").match(category):      # Category: Events
-        matchups = get_event(card=arguments[0], format=arguments[1], next_event=0)
+        matchups = get_event(card=arguments[0], display_format=arguments[1], next_event=0)
         odds = create_odds_matchups(card=arguments[0], mark_favorite=True, next_event=0)
         output = [l1 + "\t\t|  " + l2 for (l1, l2) in zip(matchups, odds)]
         output = "\n".join(output)
         return context.send(output)
-    else:
-        return context.send('TBD')
+    return context.send('TBD')
 
 class UltimateFighting(commands.Cog):
     """Provides user with UFC info"""
@@ -29,6 +27,7 @@ class UltimateFighting(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(aliases=['mma'])
     async def ufc(self, context):
+        """Core command for gathering UFC information"""
         try:
             message = context.message.content.split(" ", 1)[1].lower()
             message = f'event {message.split()[0]} matchups 0'

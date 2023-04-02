@@ -1,11 +1,11 @@
-""""""
-from modules.ufc_data.events import build_next_card_url, gather_all_upcoming_cards
-from discord.ext import commands
-from bs4 import BeautifulSoup
-import requests
+"""Countdown to various upcoming events"""
 import datetime
 import time
 import re
+from discord.ext import commands
+from bs4 import BeautifulSoup
+import requests
+from modules.ufc_data.events import build_next_card_url, gather_all_upcoming_cards
 
 HEADERS = {
     'User-Agent': 'goofcon 3'
@@ -13,8 +13,8 @@ HEADERS = {
 
 def unix_readable(unix_time):
     """Convert UNIX time into something more readable"""
-    dt = datetime.datetime.fromtimestamp(unix_time)
-    timestamp = dt.strftime('%Y-%m-%d %H:%M:%S')
+    convert_time = datetime.datetime.fromtimestamp(unix_time)
+    timestamp = convert_time.strftime('%Y-%m-%d %H:%M:%S')
     return timestamp
 
 def time_difference(event_time, timeline="future"):
@@ -23,11 +23,11 @@ def time_difference(event_time, timeline="future"):
     dt1 = datetime.datetime.fromtimestamp(current_time)
     dt2 = datetime.datetime.fromtimestamp(event_time)
 
-    time_difference = dt2 - dt1
+    time_diff = dt2 - dt1
     if timeline == 'past':
-        time_difference = dt1 - dt2
+        time_diff = dt1 - dt2
 
-    total_seconds = int(time_difference.total_seconds())
+    total_seconds = int(time_diff.total_seconds())
     days = total_seconds // 86400
     hours = (total_seconds % 86400) // 3600
     minutes = (total_seconds % 3600) // 60
@@ -48,7 +48,7 @@ def ufc_countdown():
     return main_output, prelim_output
 
 def f1_countdown():
-    """"""
+    """Return the next F1 race, including location"""
     f1_request = requests.get('https://lightsouts.com/formula-1', headers = HEADERS)
     if f1_request.status_code != 200:
         return print("Can't access website right now. Try again later")
@@ -73,6 +73,7 @@ class Countdown(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(aliases=['time', 'countdown', 'event', 'events'])
     async def when(self, context):
+        """Core command to decide which event info to gather"""
         message = context.message.content.split(" ", 1)[1].lower()
 
         if message in ['ufc', 'mma']:
@@ -80,11 +81,11 @@ class Countdown(commands.Cog):
             event_title = gather_all_upcoming_cards(schedule=True)[0]
             output = f"**{event_title}**\n{main_output}\n**Prelims**\n{prelim_output}"
             return await context.send(output)
-        
+
         if message == 'f1':
             output = f1_countdown()
             return await context.send(f"**{output[0]}**\nStarts in: {output[1]}")
-        
+
         else:
             return await context.send("Feature not added")
 

@@ -7,7 +7,6 @@ import os
 import sys
 import json
 import discord
-from modules.wordle_loser import play_wordle
 from discord.ext import commands
 from discord_slash import SlashCommand
 

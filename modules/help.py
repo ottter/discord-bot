@@ -34,13 +34,16 @@ class Help(commands.Cog):
                         command_desc += f'{command_call.name} - {command_call.help}\n'
 
                 # If commands are in main.py
-                # helper.add_field(name='Misc Commands', value=command_desc[0:len(command_desc) - 1], inline=False)
+                # helper.add_field(name='Misc Commands',
+                #                  value=command_desc[0:len(command_desc)-1],
+                #                  inline=False)
 
                 await context.message.author.send('', embed=helper)
                 await context.message.add_reaction(emoji='✉')
             else:
                 if len(cog) > 1:
-                    helper = discord.Embed(description='Error! Too many requests', color=discord.Color.red())
+                    helper = discord.Embed(description='Error! Too many requests',
+                                           color=discord.Color.red())
                     await context.message.author.send('', embed=helper)
 
                 else:
@@ -49,7 +52,8 @@ class Help(commands.Cog):
                     cmd_desc = self.client.cogs[cog[0]].__doc__
 
                     for _x, _y in variable:
-                        helper = discord.Embed(title=f'{cog[0]} Command Listing', description=cmd_desc)
+                        helper = discord.Embed(title=f'{cog[0]} Command Listing',
+                                               description=cmd_desc)
                         for cmd in self.client.get_cog(_y).get_commands():
                             if not cmd.hidden:
                                 helper.add_field(name=cmd.name, value=cmd.help, inline=False)

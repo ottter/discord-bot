@@ -1,9 +1,9 @@
+"""Gather odds of upcoming matchups"""
 from bs4 import BeautifulSoup
 from modules.ufc_data.events import build_next_card_url
 
 def gather_odds_matchups(next_event=0, mark_favorite=False):
     """Create list of odds for upcoming event, ordered and unlabeled.
-    
     :param int next_event:      X events in future to look up, default 0. Max range varies
     :param bool mark_favorite:  Choose whether to add betting odds favorite indicator
     """
@@ -22,7 +22,6 @@ def gather_odds_matchups(next_event=0, mark_favorite=False):
 
 def create_odds_matchups(card='main', next_event=0, mark_favorite=False):
     """Match the fighter's odds with respective opponent
-    
     :param str card:            main or prelim
     :param int next_event:      X events in future to look up, default 0. Max range varies
     :param bool mark_favorite:  Choose whether to add betting odds favorite indicator 

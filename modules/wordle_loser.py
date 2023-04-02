@@ -28,8 +28,7 @@ def sort_plurals(word):
     print(word)
     if word[-1] == 's':
         return True
-    else:
-        return False
+    return False
 
 def sort_textfile(subdir='wordlists/',
                   infile='valid-wordle-words.txt',
@@ -186,7 +185,7 @@ def play_wordle(
 
     # Since starting and goal word can be custom, they need to be validated
     if guess not in wordlist or todays_word not in wordlist:
-        return print(f'Error: Invalid word choice')
+        return print('Error: Invalid word choice')
 
     if print_output:
         print(f"{'='*40}\n\nOpening guess: {guess}\n")
@@ -232,5 +231,3 @@ def play_wordle(
         "discard_pile": discard_pile
     }
     return wordle_dictionary
-
-# play_wordle(custom_list='wordlists/sorted-valid-wordle-words.txt', print_output=True)

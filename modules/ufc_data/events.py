@@ -1,3 +1,4 @@
+"""Gather information about all scheduled upcoming UFC events"""
 from bs4 import BeautifulSoup
 import requests
 
@@ -35,7 +36,6 @@ def gather_all_upcoming_cards(schedule=False):
 
 def gather_event_info(next_event=0):
     """ Gather info about a requested upcoming event
-    
     :param int future_event: X events in future to look up, default 0. Max range varies
     """
     main_fighter_list = []
@@ -55,34 +55,33 @@ def gather_event_info(next_event=0):
     return list(dict.fromkeys(main_fighter_list)), list(dict.fromkeys(prelim_fighter_list))
 
 def create_fight_matchups(card):
-    """ Match the fighters with respective opponent (since scraper gets the fighter names and not matchups)    
-    
+    """ Match the fighters with respective opponent (since scraper gets the fighter names and not matchups)
     :param str card: 
     """
     if len(card) % 2 != 0:
         return "Error: Official website has matchups out of order. Check again later"
     matchups = []
     i = 0
-    for x in range(len(card) // 2):
+    # Merge list of fights to matchup (0 vs 1, 2 vs 3, etc)
+    for fight_count in range(len(card) // 2):
         matchups.append(f"{card[i]} vs {card[i+1]}")
         i = i + 2
     return matchups
 
-def get_event(card='main', format='matchups', next_event=0):
+def get_event(card='main', display_format='matchups', next_event=0):
     """ User friendly method of gathering info. If I wanted fast I wouldn't use Python
-
     :param str card:        main or prelim
     :param str format:      fighters or matchups
     :param int next_event:  0 for soonest event. Further out events won't have cards scheduled yet
     """
     which_card = ['main', 'prelim']
     which_format = ['matchups', 'fighters']
-    
-    if card not in which_card or format not in which_format:
+
+    if card not in which_card or display_format not in which_format:
         return "Invalid argument. card='main' or 'prelim'. format='matchups' or 'fighters'"
-    
+
     get_card = [which_card.index(i) for i in which_card if card in i][0]
-    get_format = [which_format.index(i) for i in which_format if format in i][0]
+    get_format = [which_format.index(i) for i in which_format if display_format in i][0]
 
     if get_format == 0:
         return create_fight_matchups(gather_event_info(next_event=next_event)[get_card])
