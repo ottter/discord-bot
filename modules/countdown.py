@@ -86,8 +86,7 @@ class Countdown(commands.Cog):
             output = f1_countdown()
             return await context.send(f"**{output[0]}**\nStarts in: {output[1]}")
 
-        else:
-            return await context.send("Feature not added")
+        return await context.send("Feature not added")
 
 def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""

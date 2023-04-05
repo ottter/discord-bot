@@ -61,28 +61,33 @@ class OnMessage(commands.Cog):
                                        custom_list='data/wordlists/sorted-valid-wordle-words.txt',
                                        print_output=True)
 
-                    # For some reason the number is a few days behind, even though the word is correct. why??
+                    # For some reason the number is a few days behind, even though the word is correct
                     wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
                     WORDLE_DAY = int(WORDLE_DAY) + 1
-                    await context.channel.send(wrdl_output), WORDLE_DAY, wrdl['guess_count']
+                    await context.channel.send(wrdl_output)
                     time.sleep(random.randint(1, 4))
 
                     # Friendly banter if whoever triggers the script does worse than dogdog
                     user_guess_count = int(message.partition('\n')[0][11])
                     if user_guess_count > int(wrdl['guess_count']):
-                        await context.channel.send(f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6")
+                        await context.channel.send(
+                            f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6")
                     elif user_guess_count == int(wrdl['guess_count']):
-                        await context.channel.send('close tbh')
+                        await context.channel.send(
+                            'close tbh')
                     else:
-                        await context.channel.send('nvm lol')
+                        await context.channel.send(
+                            'nvm lol')
                     return
 
                 # Encourage easy mode Wordlers to try out hard mode
                 elif not message.partition('\n')[0].endswith('*'):
-                    return await context.channel.send("Consider not playing on baby mode next time, bozo")
-                
+                    return await context.channel.send(
+                        "Consider not playing on baby mode next time, bozo")
+
                 elif random.randint(1, 5) == 1:
-                    return await context.channel.send("i wish i could wordle rn :(")
+                    return await context.channel.send(
+                        "i wish i could wordle rn :(")
 
         # Moderates a wordler if either of the options are True by telling them to leave
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
