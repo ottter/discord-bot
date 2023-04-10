@@ -11,6 +11,28 @@ from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, 
 # Save the Wordle day on startup to be used to check for daily reset
 WORDLE_DAY = int(play_wordle()['wordle_num'])
 
+def banned_server(message, context):
+    """Caught playing an -rdle in an unapproved server or channel"""
+    square_count = len(re.findall("(_square:)", emoji.demojize(message)))
+
+    for key, value in rdleverse_dict.items():
+        if re.search(value.lower(), message):
+            print(f'Put a {key}r in their place ({context.author})')
+            return f"Get lost, {key}r"
+    # Catch the possibility of something rlding without the -rdle prefix
+    return "Not even close to avoiding my wrath" if square_count > 9 else None
+
+def send_dms_to_server(context, priv):
+    """Send dms sent to the bot to a private server"""
+    private_message = [context.content]
+
+    if len(context.attachments) > 0:    # Length check required to avoid IndexError
+        for pic in context.attachments:
+            private_message.append(pic.url)
+
+    private_joined = "\n".join(private_message)
+    return priv.send(f'From {context.author}: {private_joined}')
+
 rdleverse_dict = {
     "Wordle": "(Wordle \\d{1,} \\d/\\d)",                             # Wordle 298 3/6
     "Letterle": "(Letterle \\d{1,}/26)",                              # Letterle 7/26
@@ -38,15 +60,8 @@ class OnMessage(commands.Cog):
 
         # Relays received DM to specified channel (based on ID)
         if context.channel.type is discord.ChannelType.private:
-            priv = self.bot.get_channel(PRIVATE_CHANNEL)
-            private_message = [context.content]
-
-            if len(context.attachments) > 0:    # Length check required to avoid IndexError
-                for pic in context.attachments:
-                    private_message.append(pic.url)
-
-            private_joined = "\n".join(private_message)
-            return await priv.send(f'From {context.author}: {private_joined}')
+            # Destination server can be customized in config.py
+            return await send_dms_to_server(context, self.bot.get_channel(PRIVATE_CHANNEL))
 
         if context.channel.id in OFFICIAL_WORDLE_CHANNEL:
             if re.search(rdleverse_dict["Wordle"].lower(), message):
@@ -89,15 +104,10 @@ class OnMessage(commands.Cog):
                     return await context.channel.send(
                         "i wish i could wordle rn :(")
 
-        # Moderates a wordler if either of the options are True by telling them to leave
+        # if 'Global Wordle Ban' is ON, or the message is in the channel or server banlist, do this:
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
-            square_count = len(re.findall("(_square:)", emoji.demojize(message)))
-            for key, value in rdleverse_dict.items():
-                if re.search(value.lower(), message):
-                    print(f'Put a {key}r in their place ({context.author})')
-                    return await context.channel.send(f"Get lost, {key}r")
-            if square_count > 9:
-                await context.channel.send("Not even close to avoiding my wrath")
+            banned_message = banned_server(message, context)
+            return await context.channel.send(banned_message) if banned_message else None
 
         await self.bot.process_commands(context)
 
