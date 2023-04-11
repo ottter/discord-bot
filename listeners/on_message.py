@@ -29,10 +29,10 @@ def daily_wordle(message, context):
         response = 'nvm lol'
     return wrdl_output, response
 
-def hardmode_check(message, context):
+def hardmode_check(message):
     """Check if user is playing Wordle in hardmode"""
     if not message.partition('\n')[0].endswith('*'):
-        return context.channel.send("Consider not playing on baby mode next time, bozo")
+        return "Consider not playing on baby mode next time, bozo"
 
 def banned_server(message, context):
     """Caught playing an -rdle in an unapproved server or channel"""
@@ -97,12 +97,12 @@ class OnMessage(commands.Cog):
                     time.sleep(random.randint(1, 4))
                     return await context.channel.send(response)
 
-                elif random.randint(1, 5) == 2:
+                elif roll_check == 2:
                     return await context.channel.send("i wish i could wordle rn :(")
-                
+
                 else:
-                    hardmode = hardmode_check(message, context)
-                    return await hardmode_check(message, context) if hardmode else None
+                    hardmode = hardmode_check(message)
+                    return await context.channel.send(hardmode) if hardmode else None
 
         # if 'Global Wordle Ban' is ON, or the message is in the channel or server banlist, do this:
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
