@@ -8,8 +8,31 @@ from discord.ext import commands
 from modules.wordle_loser import play_wordle
 from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, PRIVATE_CHANNEL
 
-# Save the Wordle day on startup to be used to check for daily reset
-WORDLE_DAY = int(play_wordle()['wordle_num'])
+
+def daily_wordle(message, context):
+    """Play Wordle and return the output along with a response to who set it off"""
+    wrdl = play_wordle(starting_word='crane',
+                        custom_list='data/wordlists/sorted-valid-wordle-words.txt',
+                        print_output=False)
+
+    wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
+    # For some reason the number is a few days behind, even though the word is correct
+    # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
+
+    # Friendly banter if whoever triggers the script does worse than dogdog
+    user_guess_count = int(message.partition('\n')[0][11])
+    if user_guess_count > int(wrdl['guess_count']):
+        response = f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6"
+    elif user_guess_count == int(wrdl['guess_count']):
+        response = 'ill win next time'
+    else:
+        response = 'nvm lol'
+    return wrdl_output, response
+
+def hardmode_check(message, context):
+    """Check if user is playing Wordle in hardmode"""
+    if not message.partition('\n')[0].endswith('*'):
+        return context.channel.send("Consider not playing on baby mode next time, bozo")
 
 def banned_server(message, context):
     """Caught playing an -rdle in an unapproved server or channel"""
@@ -52,7 +75,6 @@ class OnMessage(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, context):
         """Actions upon seeing any message in viewable channel"""
-        global WORDLE_DAY
         message = str(context.content.lower())
 
         if context.author == self.bot.user:
@@ -65,44 +87,22 @@ class OnMessage(commands.Cog):
 
         if context.channel.id in OFFICIAL_WORDLE_CHANNEL:
             if re.search(rdleverse_dict["Wordle"].lower(), message):
-                # Assure that Wordle is only played once per day. wordle_day will x+1 so that it
-                # won't play again until the next reset. Plays well with Eu**pe.
-                message_day = int(message.split()[1])
-                if WORDLE_DAY == int(play_wordle()['wordle_num']) and WORDLE_DAY == message_day:
+                # message_day = int(message.split()[1])   # Pull users wordle day
+                roll_check = random.randint(1, 5)
+                if roll_check == 1:
                     await context.channel.send('alright i can beat that')
-                    time.sleep(random.randint(2, 8))
-
-                    wrdl = play_wordle(starting_word='crane',
-                                       custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                                       print_output=True)
-
-                    # For some reason the number is a few days behind, even though the word is correct
-                    wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
-                    WORDLE_DAY = int(WORDLE_DAY) + 1
-                    await context.channel.send(wrdl_output)
+                    time.sleep(random.randint(2, 7))
+                    results, response = daily_wordle(message, context)
+                    await context.channel.send(results)
                     time.sleep(random.randint(1, 4))
+                    return await context.channel.send(response)
 
-                    # Friendly banter if whoever triggers the script does worse than dogdog
-                    user_guess_count = int(message.partition('\n')[0][11])
-                    if user_guess_count > int(wrdl['guess_count']):
-                        await context.channel.send(
-                            f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6")
-                    elif user_guess_count == int(wrdl['guess_count']):
-                        await context.channel.send(
-                            'close tbh')
-                    else:
-                        await context.channel.send(
-                            'nvm lol')
-                    return
-
-                # Encourage easy mode Wordlers to try out hard mode
-                elif not message.partition('\n')[0].endswith('*'):
-                    return await context.channel.send(
-                        "Consider not playing on baby mode next time, bozo")
-
-                elif random.randint(1, 5) == 1:
-                    return await context.channel.send(
-                        "i wish i could wordle rn :(")
+                elif random.randint(1, 5) == 2:
+                    return await context.channel.send("i wish i could wordle rn :(")
+                
+                else:
+                    hardmode = hardmode_check(message, context)
+                    return await hardmode_check(message, context) if hardmode else None
 
         # if 'Global Wordle Ban' is ON, or the message is in the channel or server banlist, do this:
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):

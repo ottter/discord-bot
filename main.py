@@ -78,7 +78,7 @@ def load_extensions():
 
 
 def log_in():
-    """Login function"""
+    """Boot process"""
     print('=== Initializing startup sequence ...')
     load_extensions()
     print('=== Attempting to log in to bot ...')
