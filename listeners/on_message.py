@@ -107,7 +107,7 @@ class OnMessage(commands.Cog):
         # if 'Global Wordle Ban' is ON, or the message is in the channel or server banlist, do this:
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
             banned_message = banned_server(message, context)
-            return await context.channel.send(banned_message) if banned_message else None
+            await context.channel.send(banned_message) if banned_message else None
 
         await self.bot.process_commands(context)
 

@@ -15,12 +15,24 @@ def import_item(game, item):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
+def validate_item(output):
+    """Check if the requested item is valid"""
+    try:
+        if output['success'] is False:
+            return False
+    except KeyError:
+        return True
+
 def search_grandexchange(context, game, item, embed=True):
     """Search the GE for requested item and return results to chat"""
     output = import_item(game, item)
-    # Example: {'Cannonball': {'id': '2', 'timestamp': '2023-03-19T03:00:45.000Z', 
+    # Example: {'Cannonball': {'id': '2', 'timestamp': '2023-03-19T03:00:45.000Z',
     #                          'price': 160, 'volume': 20665706}}
     item_name = list(output.keys())[0]
+    if validate_item(output) is False:
+        other_game = 'rs' if game.startswith('os') else 'os'
+        return context.send(f'Item not in the {game.upper()} DB. '
+                            f'Try `.{other_game}ge` instead or improving search request')
     if not embed:
         return create_text(context, output, item_name)
     embed = create_embed(output, game, item_name)
@@ -49,18 +61,18 @@ class GrandExchange(commands.Cog):
         self.bot = bot
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(aliases=['rspc'])
+    @commands.command(aliases=['rspc', 'rs3ge', 'rs3pc'])
     async def rsge(self, context):
         """Search RS3 GE"""
         item_request = context.message.content.split(" ", 1)[1]
-        await search_grandexchange(context, 'rs', item_request)
+        await search_grandexchange(context, 'rs', item_request, embed=True)
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(aliases=['07ge', 'ospc', '07pc'])
+    @commands.command(aliases=['ospc', '07ge', '07pc'])
     async def osge(self, context):
         """Search OSRS GE"""
         item_request = context.message.content.split(" ", 1)[1]
-        await search_grandexchange(context, 'osrs', item_request)
+        await search_grandexchange(context, 'osrs', item_request, embed=True)
 
 
 def setup(bot):
