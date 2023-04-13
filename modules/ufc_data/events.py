@@ -1,4 +1,5 @@
-"""Gather information about all scheduled upcoming UFC events"""
+"""Gather information about all scheduled upcoming UFC events 
+Any changes to this should generally be made to https://github.com/ottter/ufc_scrapper too"""
 from bs4 import BeautifulSoup
 import requests
 

@@ -68,7 +68,7 @@ class GrandExchange(commands.Cog):
         await search_grandexchange(context, 'rs', item_request, embed=True)
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(aliases=['ospc', '07ge', '07pc'])
+    @commands.command(aliases=['ospc', '07ge', '07pc', 'ge'])
     async def osge(self, context):
         """Search OSRS GE"""
         item_request = context.message.content.split(" ", 1)[1]

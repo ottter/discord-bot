@@ -7,15 +7,34 @@ from modules.ufc_data.fighters import *
 from discord.ext import commands
 
 def ufc_data(context, message):
-    """Read the user input to determine which data to fetch"""
+    """Read the user input to determine which data to fetch
+       Desired input will be something like: .ufc {category} {argument}"""
+
     category, argument = message.split(" ", 1)[0], message.split(" ", 1)[1]
     arguments = argument.split()
 
-    if re.compile(r"\bevents?\b").match(category):      # Category: Events
-        matchups = get_event(card=arguments[0], display_format=arguments[1], next_event=0)
-        odds = create_odds_matchups(card=arguments[0], mark_favorite=True, next_event=0)
+    # Category: Event(s)
+    # Match:    event, events
+    if re.compile(r"\bevents?\b").match(category):
+        matchups = get_event(card=arguments[0], 
+                             display_format=arguments[1], 
+                             next_event=0)
+        odds = create_odds_matchups(card=arguments[0], 
+                                    mark_favorite=True, 
+                                    next_event=0)
         output = [l1 + "\t\t|  " + l2 for (l1, l2) in zip(matchups, odds)]
         output = "\n".join(output)
+        return context.send(output)
+    
+    # Category: Weightclass
+    # Match:    weightclass, class, rank, ranking, rankings
+    if re.compile(r"\b(weight|)class|rank(|ings?)\b").match(category):
+        # rankings = [List of fighters for x rank, Official weightclass name]
+        rankings = weightclass_rankings(weightclass=arguments[0], 
+                                        mark_champion=True, 
+                                        numerate_fighters=True)
+        rankings[0].insert(0, f"**Current {rankings[1]} Rankings**")
+        output = "\n".join(rankings[0])
         return context.send(output)
     return context.send('TBD')
 
@@ -29,8 +48,8 @@ class UltimateFighting(commands.Cog):
     async def ufc(self, context):
         """Core command for gathering UFC information"""
         try:
+            # message = everything after the command (aka)
             message = context.message.content.split(" ", 1)[1].lower()
-            message = f'event {message.split()[0]} matchups 0'
         except:
             # If no argument is passed, then default to getting info on next event
             message = 'event main matchups 0'

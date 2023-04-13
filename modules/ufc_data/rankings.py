@@ -1,4 +1,5 @@
-"""Gather rankings information"""
+"""Gather rankings information. 
+Any changes to this should generally be made to https://github.com/ottter/ufc_scrapper too"""
 from bs4 import BeautifulSoup
 import requests
 import re
@@ -81,4 +82,5 @@ def weightclass_rankings(weightclass='pfp', mark_champion=False, numerate_fighte
         return build_rankings(mark_champion=mark_champion, numerate_fighters=numerate_fighters)[1]
     for key, value in WEIGHTCLASS_ALIAS.items():
         if weightclass.lower() in value:
-            return build_rankings(mark_champion=mark_champion, numerate_fighters=numerate_fighters)[1][key]
+            # Returning "key" to be used to label the data, the official name for weightclass
+            return build_rankings(mark_champion=mark_champion, numerate_fighters=numerate_fighters)[1][key], key

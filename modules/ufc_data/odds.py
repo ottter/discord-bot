@@ -1,4 +1,5 @@
-"""Gather odds of upcoming matchups"""
+"""Gather odds of upcoming matchups 
+Any changes to this should generally be made to https://github.com/ottter/ufc_scrapper too"""
 from bs4 import BeautifulSoup
 from modules.ufc_data.events import build_next_card_url
 
