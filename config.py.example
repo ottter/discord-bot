@@ -57,6 +57,7 @@ WORDLE_BAN_LIST = [
 OFFICIAL_WORDLE_CHANNEL = [
     96374404730434984,     # Puzzle Meta
     96321356633873195,     # Private testdog channel
+    19844544936883136      # Ahris Den
 ]
 
 # Gets a cool timestamp to use in logs or whatever

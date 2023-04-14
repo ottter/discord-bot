@@ -11,9 +11,8 @@ from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, 
 
 def daily_wordle(message, context):
     """Play Wordle and return the output along with a response to who set it off"""
-    wrdl = play_wordle(starting_word='crane',
-                        custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                        print_output=False)
+    wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
+                       print_output=False)
 
     wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
     # For some reason the number is a few days behind, even though the word is correct
