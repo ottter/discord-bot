@@ -61,7 +61,7 @@ async def on_message(context):
 def load_extensions():
     """Load all modules/extensions/cogs from specificed directories"""
     dir_list = ['listeners', 'modules', 'slashes']
-    exclusion_list = ['help', 'wordle_loser']
+    exclusion_list = ['help']
     for dir_ in dir_list:
         print(f'=== Attempting to load all extensions in {dir_} directory ...')
         for filename in os.listdir(f'./{dir_}'):

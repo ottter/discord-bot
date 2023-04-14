@@ -5,6 +5,9 @@ import requests
 import nltk
 from config import WORDLE_API_KEY
 
+import discord
+from discord.ext import commands
+
 
 def todays_wordle():
     """Send GET request to get the Wordle of the day"""
@@ -50,7 +53,7 @@ def sort_textfile(subdir='wordlists/',
 
 def first_word():
     """Select the first word to play"""
-    wordlist = ['adieu', 'media', 'crane', 'radio']
+    wordlist = ['adieu', 'media', 'crate', 'radio', 'least']
     return random.choice(wordlist)
 
 def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, guess_history):
@@ -231,3 +234,25 @@ def play_wordle(
         "discard_pile": discard_pile
     }
     return wordle_dictionary
+
+
+class WordleLoser(commands.Cog):
+    """Provides user with UFC info"""
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.command()
+    async def wordle(self, context):
+        message = context.message.content.split(" ", 1)[1].lower()
+        if message == "path":
+            wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
+                               print_output=False)
+            return await context.send(f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n"
+                                      f"||{wrdl['guess_path']}||")
+        else:
+            return await context.send("Try `.wordle path`")
+
+def setup(bot):
+    """Adds the cog (module) to startup. See main/load_extensions"""
+    bot.add_cog(WordleLoser(bot))

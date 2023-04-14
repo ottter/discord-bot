@@ -2,7 +2,6 @@
 Any changes to this should generally be made to https://github.com/ottter/ufc_scrapper too"""
 from bs4 import BeautifulSoup
 import requests
-import re
 
 HEADERS = {
     'User-Agent': 'goofcon 3'

@@ -89,7 +89,7 @@ class OnMessage(commands.Cog):
             if re.search(rdleverse_dict["Wordle"].lower(), message):
                 # message_day = int(message.split()[1])   # Pull users wordle day
                 roll_check = random.randint(1, 5)
-                if roll_check == 1:
+                if roll_check % 2 == 0:     # If even
                     await context.channel.send('alright i can beat that')
                     time.sleep(random.randint(2, 7))
                     results, response = daily_wordle(message, context)
@@ -97,7 +97,7 @@ class OnMessage(commands.Cog):
                     time.sleep(random.randint(1, 4))
                     return await context.channel.send(response)
 
-                elif roll_check == 2:
+                elif roll_check == 1:
                     return await context.channel.send("i wish i could wordle rn :(")
 
                 else:

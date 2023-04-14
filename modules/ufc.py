@@ -48,7 +48,7 @@ class UltimateFighting(commands.Cog):
     async def ufc(self, context):
         """Core command for gathering UFC information"""
         try:
-            # message = everything after the command (aka)
+            # message = everything after the command
             message = context.message.content.split(" ", 1)[1].lower()
         except:
             # If no argument is passed, then default to getting info on next event
