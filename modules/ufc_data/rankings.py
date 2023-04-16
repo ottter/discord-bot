@@ -1,4 +1,4 @@
-"""Gather rankings information. 
+"""Gather rankings information.
 Any changes to this should generally be made to https://github.com/ottter/ufc_scrapper too"""
 from bs4 import BeautifulSoup
 import requests
@@ -30,6 +30,7 @@ def build_ranking_url():
     return requests.get(base_url, headers = HEADERS)
 
 def gather_champions(mark_champion=False):
+    """Define who the champion is of ach weightclass"""
     champions = []
     is_champion = ''
     soup = BeautifulSoup(build_ranking_url().content, features="html.parser")
@@ -41,6 +42,7 @@ def gather_champions(mark_champion=False):
     return champions
 
 def build_rankings(mark_champion=False, numerate_fighters=False):
+    """Return the ranking list of each weightclass"""
     weightclass = []
     fighter_rank = []
     is_numerate = ''
@@ -82,4 +84,5 @@ def weightclass_rankings(weightclass='pfp', mark_champion=False, numerate_fighte
     for key, value in WEIGHTCLASS_ALIAS.items():
         if weightclass.lower() in value:
             # Returning "key" to be used to label the data, the official name for weightclass
-            return build_rankings(mark_champion=mark_champion, numerate_fighters=numerate_fighters)[1][key], key
+            return build_rankings(mark_champion=mark_champion, 
+                                  numerate_fighters=numerate_fighters)[1][key], key

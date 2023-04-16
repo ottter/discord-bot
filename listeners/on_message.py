@@ -5,7 +5,7 @@ import random
 import emoji
 import discord
 from discord.ext import commands
-from modules.wordle_loser import play_wordle
+from modules.wordle import play_wordle
 from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, PRIVATE_CHANNEL
 
 

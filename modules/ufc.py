@@ -47,11 +47,20 @@ class UltimateFighting(commands.Cog):
     @commands.command(aliases=['mma'])
     async def ufc(self, context):
         """Core command for gathering UFC information"""
+        accepted_subcommands = []
         try:
             # message = everything after the command
-            message = context.message.content.split(" ", 1)[1].lower()
+            user_input = context.message.content.split(" ", 1)[1].lower()
+            if user_input.split(" ")[0] in accepted_subcommands:
+                print(f'{context.author} gave a valid ufc subcommand : {context.message.content}')
+                message = user_input
+            else: 
+                # If invalid entry is given
+                print(f'{context.author} gave invalid ufc subcommand : {context.message.content}')
+                message = 'event main matchups 0'
         except:
             # If no argument is passed, then default to getting info on next event
+            print(f'{context.author} requested UFC event information')
             message = 'event main matchups 0'
         await ufc_data(context, message)
 

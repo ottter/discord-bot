@@ -1,5 +1,5 @@
-"""Gather odds of upcoming matchups 
-Any changes to this should generally be made to https://github.com/ottter/ufc_scrapper too"""
+"""Gather odds of upcoming matchups
+Any changes to this should be made to https://github.com/ottter/ufc_scrapper too"""
 from bs4 import BeautifulSoup
 from modules.ufc_data.events import build_next_card_url
 
@@ -11,14 +11,14 @@ def gather_odds_matchups(next_event=0, mark_favorite=False):
     main_odds_list = []
     prelim_odds_list = []
     soup = BeautifulSoup(build_next_card_url(next_event).content, features="html.parser")
-    for x in [[main_odds_list, 'main-card'], [prelim_odds_list, 'prelims-card']]:
-        # NOTE: Works only for soonest upcoming event. Future events use different format: div class="l-main"
-        for matchup in soup.find_all('div', {'id': x[1]}):
-            for matchup in matchup.find_all('span', {'class': "c-listing-fight__odds-amount"}):
+    for event_fighters in [[main_odds_list, 'main-card'], [prelim_odds_list, 'prelims-card']]:
+        # Works only for soonest upcoming event. Future events use different format: div class="l-main"
+        for odds_matchup in soup.find_all('div', {'id': event_fighters[1]}):
+            for matchup in odds_matchup.find_all('span', {'class': "c-listing-fight__odds-amount"}):
                 is_favorite = ''
                 if mark_favorite and "-" in matchup.text and len(matchup.text) > 1:
                     is_favorite = "*"
-                x[0].append(matchup.text + is_favorite)
+                event_fighters[0].append(matchup.text + is_favorite)
     return main_odds_list, prelim_odds_list
 
 def create_odds_matchups(card='main', next_event=0, mark_favorite=False):
@@ -33,7 +33,8 @@ def create_odds_matchups(card='main', next_event=0, mark_favorite=False):
     if card not in which_card:
         return "Invalid argument. card= 'main' or 'prelim'"
 
-    card_matchup = gather_odds_matchups(next_event=next_event, mark_favorite=mark_favorite)[get_card]
+    card_matchup = gather_odds_matchups(next_event=next_event, 
+                                        mark_favorite=mark_favorite)[get_card]
 
     if len(card_matchup) % 2 != 0:
         return "Error: Official website has matchups out of order. Check again later"
