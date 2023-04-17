@@ -3,9 +3,8 @@ import random
 from nltk.corpus import brown
 import requests
 import nltk
-from config import WORDLE_API_KEY
+from config import MODULE_SUBDIR, WORDLE_API_KEY
 
-import discord
 from discord.ext import commands
 
 
@@ -237,17 +236,21 @@ def play_wordle(
 
 
 class WordleLoser(commands.Cog):
-    """Provides user with UFC info"""
+    """Wordle themed content"""
+
     def __init__(self, bot):
         self.bot = bot
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command()
     async def wordle(self, context):
+        """More directly Wordle themed content"""
         message = context.message.content.split(" ", 1)[1].lower()
         if message == "path":
             wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
                                print_output=False)
+            self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
+            print('Reloaded Wordle module (wordle command)')
             return await context.send(f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n"
                                       f"||{wrdl['guess_path']}||")
         else:

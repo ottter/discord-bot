@@ -1,0 +1,1 @@
+print(f'{context.author} pinged the server: {server_ping}ms')

@@ -6,7 +6,8 @@ import emoji
 import discord
 from discord.ext import commands
 from modules.wordle import play_wordle
-from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL, PRIVATE_CHANNEL
+from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL
+from config import PRIVATE_CHANNEL, MODULE_SUBDIR
 
 
 def daily_wordle(message, context):
@@ -94,6 +95,8 @@ class OnMessage(commands.Cog):
                     results, response = daily_wordle(message, context)
                     await context.channel.send(results)
                     time.sleep(random.randint(1, 4))
+                    self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
+                    print('Reloaded Wordle module (on_message)')
                     return await context.channel.send(response)
 
                 elif roll_check == 1:
