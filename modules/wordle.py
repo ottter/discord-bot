@@ -3,7 +3,7 @@ import random
 from nltk.corpus import brown
 import requests
 import nltk
-from config import MODULE_SUBDIR, WORDLE_API_KEY
+from config import MODULE_SUBDIR, WORDLE_API_KEY, TIME
 
 from discord.ext import commands
 
@@ -250,7 +250,7 @@ class WordleLoser(commands.Cog):
             wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
                                print_output=False)
             self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
-            print('Reloaded Wordle module (wordle command)')
+            print(f'{TIME}: Reloaded Wordle module (wordle command)')
             return await context.send(f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n"
                                       f"||{wrdl['guess_path']}||")
         else:

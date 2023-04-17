@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from modules.wordle import play_wordle
 from config import WORDLE_GLOBAL_BAN, WORDLE_BAN_LIST, OFFICIAL_WORDLE_CHANNEL
-from config import PRIVATE_CHANNEL, MODULE_SUBDIR
+from config import PRIVATE_CHANNEL, MODULE_SUBDIR, TIME
 
 
 def daily_wordle(message, context):
@@ -20,8 +20,9 @@ def daily_wordle(message, context):
     # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
 
     # Friendly banter if whoever triggers the script does worse than dogdog
-    user_guess_count = int(message.partition('\n')[0][11])
-    if user_guess_count > int(wrdl['guess_count']):
+    user_guess_count = message.split('/', 1)[0].rsplit(' ', 1)[1]
+    # Split message by first '/' and then last ' ' to find the # of guesses required by user
+    if int(user_guess_count) > int(wrdl['guess_count']):
         response = f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6"
     elif user_guess_count == int(wrdl['guess_count']):
         response = 'ill win next time'
@@ -40,7 +41,7 @@ def banned_server(message, context):
 
     for key, value in rdleverse_dict.items():
         if re.search(value.lower(), message):
-            print(f'Put a {key}r in their place ({context.author})')
+            print(f'{TIME}: Put a {key}r in their place ({context.author})')
             return f"Get lost, {key}r"
     # Catch the possibility of something rlding without the -rdle prefix
     return "Not even close to avoiding my wrath" if square_count > 9 else None
@@ -57,7 +58,7 @@ def send_dms_to_server(context, priv):
     return priv.send(f'From {context.author}: {private_joined}')
 
 rdleverse_dict = {
-    "Wordle": "(Wordle \\d{1,} \\d/\\d)",                             # Wordle 298 3/6
+    "Wordle": "(Wordle \\d{1,} \\d|X/\\d)",                             # Wordle 298 3/6
     "Letterle": "(Letterle \\d{1,}/26)",                              # Letterle 7/26
     "Heardle": "(#Heardle #)\\d{1,}",                                 # #Heardle #47
     "Dordle": "(Daily Dordle #\\d{4} )((0-9|X)&(0-9|X)/7)",           # Daily Dordle #0078 X&X/7
@@ -87,16 +88,22 @@ class OnMessage(commands.Cog):
 
         if context.channel.id in OFFICIAL_WORDLE_CHANNEL:
             if re.search(rdleverse_dict["Wordle"].lower(), message):
-                # message_day = int(message.split()[1])   # Pull users wordle day
                 roll_check = random.randint(1, 5)
-                if roll_check % 2 == 0:     # If even
-                    await context.channel.send('alright i can beat that')
-                    time.sleep(random.randint(2, 7))
+
+                if "⬜" in message:
+                    await context.channel.send(f"Remember to change to dark theme next time <@{context.author.id}>")
+
+                if message.split('/', 1)[0].rsplit(' ', 1)[1] == 'x':
+                    return await context.channel.send("LMAO")
+
+                elif roll_check % 2 == 0:     # If even
+                    print(f"{TIME}: Playing Wordle against {context.author}")
+                    time.sleep(random.randint(1, 6))
                     results, response = daily_wordle(message, context)
                     await context.channel.send(results)
                     time.sleep(random.randint(1, 4))
                     self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
-                    print('Reloaded Wordle module (on_message)')
+                    print(f'{TIME}: Reloaded Wordle module (on_message)')
                     return await context.channel.send(response)
 
                 elif roll_check == 1:
@@ -105,6 +112,7 @@ class OnMessage(commands.Cog):
                 else:
                     hardmode = hardmode_check(message)
                     return await context.channel.send(hardmode) if hardmode else None
+            return
 
         # if 'Global Wordle Ban' is ON, or the message is in the channel or server banlist, do this:
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):
