@@ -19,15 +19,17 @@ def daily_wordle(message, context):
     # For some reason the number is a few days behind, even though the word is correct
     # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
 
+    print(f"{TIME}: Wordle {int(wrdl['wordle_num'])+3} path: {wrdl['guess_path']}")
+
     # Friendly banter if whoever triggers the script does worse than dogdog
     user_guess_count = message.split('/', 1)[0].rsplit(' ', 1)[1]
     # Split message by first '/' and then last ' ' to find the # of guesses required by user
     if int(user_guess_count) > int(wrdl['guess_count']):
-        response = f"<@{context.author.id}> you suck lol. nice {user_guess_count}/6"
+        response = f'<@{context.author.id}> bozo. nice {user_guess_count}/6'
     elif user_guess_count == int(wrdl['guess_count']):
         response = 'ill win next time'
     else:
-        response = 'nvm lol'
+        response = 'sadge'
     return wrdl_output, response
 
 def hardmode_check(message):
@@ -38,10 +40,10 @@ def hardmode_check(message):
 def banned_server(message, context):
     """Caught playing an -rdle in an unapproved server or channel"""
     square_count = len(re.findall("(_square:)", emoji.demojize(message)))
+    print(f'{TIME}: Put a {key}r in their place ({context.author})')
 
     for key, value in rdleverse_dict.items():
         if re.search(value.lower(), message):
-            print(f'{TIME}: Put a {key}r in their place ({context.author})')
             return f"Get lost, {key}r"
     # Catch the possibility of something rlding without the -rdle prefix
     return "Not even close to avoiding my wrath" if square_count > 9 else None
