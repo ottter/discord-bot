@@ -43,13 +43,10 @@ def banned_server(message, context):
 
     for key, value in rdleverse_dict.items():
         if re.search(value.lower(), message):
-            reply = f"Get lost, {key}r"
+            print(f'Put a {key}r in their place ({context.author})')
+            return f"Get lost, {key}r"
     # Catch the possibility of something rlding without the -rdle prefix
-    if square_count > 9 and reply is None:
-        reply = "Not even close to avoiding my wrath"
-
-    print(f'{TIME}: Put a {key}r in their place ({context.author})')
-    return reply if True else None
+    return "Not even close to avoiding my wrath" if square_count > 9 else None
 
 def send_dms_to_server(context, priv):
     """Send dms sent to the bot to a private server"""
