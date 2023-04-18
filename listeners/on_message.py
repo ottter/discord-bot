@@ -40,13 +40,16 @@ def hardmode_check(message):
 def banned_server(message, context):
     """Caught playing an -rdle in an unapproved server or channel"""
     square_count = len(re.findall("(_square:)", emoji.demojize(message)))
-    print(f'{TIME}: Put a {key}r in their place ({context.author})')
 
     for key, value in rdleverse_dict.items():
         if re.search(value.lower(), message):
-            return f"Get lost, {key}r"
+            reply = f"Get lost, {key}r"
     # Catch the possibility of something rlding without the -rdle prefix
-    return "Not even close to avoiding my wrath" if square_count > 9 else None
+    if square_count > 9 and reply is None:
+        reply = "Not even close to avoiding my wrath"
+
+    print(f'{TIME}: Put a {key}r in their place ({context.author})')
+    return reply if True else None
 
 def send_dms_to_server(context, priv):
     """Send dms sent to the bot to a private server"""
@@ -60,7 +63,6 @@ def send_dms_to_server(context, priv):
     return priv.send(f'From {context.author}: {private_joined}')
 
 rdleverse_dict = {
-    "Wordle": "(Wordle \\d{1,} \\d|X/\\d)",                             # Wordle 298 3/6
     "Letterle": "(Letterle \\d{1,}/26)",                              # Letterle 7/26
     "Heardle": "(#Heardle #)\\d{1,}",                                 # #Heardle #47
     "Dordle": "(Daily Dordle #\\d{4} )((0-9|X)&(0-9|X)/7)",           # Daily Dordle #0078 X&X/7
@@ -68,6 +70,7 @@ rdleverse_dict = {
     "Quordle": "(Daily Quordle \\d{2,})",                             # Daily Quordle 78
     "Duotrigordle": "(Daily Duotrigordle #\\d{2,})",                  # Daily Duotrigordle #42
     "Lewdle": "(Lewdle 🍆💦 \\d{2,})( (\\d{1}|X)(/6))",              # Lewdle 🍆💦 83 5/6
+    "Wordle": "(Wordle \\d{1,} \\d|X/\\d)",                           # Wordle 298 3/6
     }
 
 class OnMessage(commands.Cog):
