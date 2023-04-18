@@ -67,7 +67,7 @@ rdleverse_dict = {
     "Quordle": "(Daily Quordle \\d{2,})",                             # Daily Quordle 78
     "Duotrigordle": "(Daily Duotrigordle #\\d{2,})",                  # Daily Duotrigordle #42
     "Lewdle": "(Lewdle 🍆💦 \\d{2,})( (\\d{1}|X)(/6))",              # Lewdle 🍆💦 83 5/6
-    "Wordle": "(Wordle \\d{1,} \\d|X/\\d)",                           # Wordle 298 3/6
+    "Wordle": "(Wordle \\d{1,} (\\d|X)/\\d)",                         # Wordle 298 3/6
     }
 
 class OnMessage(commands.Cog):
