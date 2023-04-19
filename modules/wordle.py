@@ -277,15 +277,26 @@ class WordleLoser(commands.Cog):
     async def wordle(self, context):
         """More directly Wordle themed content"""
         message = context.message.content.split(" ", 1)[1].lower()
+
+        wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
+                       print_output=False)
+        
         if message == "path":
-            wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                               print_output=False)
-            self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
-            print(f'{TIME}: Reloaded Wordle module (wordle command)')
-            return await context.send(f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n"
-                                      f"||{wrdl['guess_path']}||")
+            path_output = f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n||{wrdl['guess_path']}||"
+            await context.send(path_output)
+            
+        elif message == "play":
+            # For some reason the number is a few days behind, even though the word is correct
+            # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
+            wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
+            await context.send(wrdl_output)
+
         else:
-            return await context.send("Try `.wordle path`")
+            return await context.send("Accepted `wordle` subcommands: `path`, `play`")
+        
+        self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
+        print(f"{TIME}: Wordle {int(wrdl['wordle_num'])+3} path: {wrdl['guess_path']}")
+        print(f'{TIME}: Reloaded Wordle module (wordle command)')
 
 def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""

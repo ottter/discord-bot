@@ -82,6 +82,12 @@ class OnMessage(commands.Cog):
 
         if context.author == self.bot.user:
             return
+        
+        # dogdog is tired of being bullied for user error
+        dumb_bot = r'(dumb|(?:ass)|idiot)(?:\s+\w+)?\s+(bot|dog)'
+        if re.search(dumb_bot, message):
+            dumb_response = message.replace('bot', 'human')
+            return await context.channel.send(dumb_response)
 
         # Relays received DM to specified channel (based on ID)
         if context.channel.type is discord.ChannelType.private:
@@ -114,7 +120,6 @@ class OnMessage(commands.Cog):
                 else:
                     hardmode = hardmode_check(message)
                     return await context.channel.send(hardmode) if hardmode else None
-            return
 
         # if 'Global Wordle Ban' is ON, or the message is in the channel or server banlist, do this:
         if (WORDLE_GLOBAL_BAN) or (context.channel.id in WORDLE_BAN_LIST) or (context.guild.id in WORDLE_BAN_LIST):

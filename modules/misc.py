@@ -1,6 +1,7 @@
 """Module for random commands that don't have a better place"""
 from random import choice, randint
 from discord.ext import commands
+from config import TIME
 
 eightball_responses = [
             'It is certain', 'It is decidedly so', 'Without a doubt', 'Yes definitely',
@@ -20,6 +21,7 @@ class Misc(commands.Cog):
     @commands.command(name='8ball', pass_context=True)
     async def eight_ball(self, context):
         """Ask the magic 8 ball any question"""
+        print(f"{TIME}: {context.author} received their fortune (8ball)")
         await context.send(f"🎱 {choice(eightball_responses)}, {context.message.author.mention} 🎱")
 
     @commands.cooldown(1, 2, commands.BucketType.user)
