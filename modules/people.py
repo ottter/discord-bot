@@ -10,7 +10,7 @@ IMG_DIR = './images'  # Used in .csv method
 
 BANNED_USERS = [
     '635226170698235925',   # jebbers
-    '899543527682367518',   # mort
+    '941144178136600647',   # mort
 ]
 
 BOT_ADMINS = [

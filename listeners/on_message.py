@@ -84,7 +84,7 @@ class OnMessage(commands.Cog):
             return
         
         # dogdog is tired of being bullied for user error
-        dumb_bot = r'(dumb|(?:ass)|idiot)(?:\s+\w+)?\s+(bot|dog)'
+        dumb_bot = r'(dumb|(?:ass)|idiot)(?:\s+\w+)?\s+((ro)?bot|dog)'
         if re.search(dumb_bot, message):
             dumb_response = message.replace('bot', 'human')
             return await context.channel.send(dumb_response)
@@ -101,8 +101,8 @@ class OnMessage(commands.Cog):
                 if "⬜" in message:
                     await context.channel.send(f"Remember to change to dark theme next time <@{context.author.id}>")
 
-                if message.split('/', 1)[0].rsplit(' ', 1)[1] == 'x':
-                    return await context.channel.send("LMAO")
+                if message.split('/', 1)[0].rsplit(' ', 1)[1] in ['x', '6']:
+                    return await context.channel.send("Loooooooool")
 
                 elif roll_check % 2 == 0:     # If even
                     print(f"{TIME}: Playing Wordle against {context.author}")
