@@ -27,7 +27,7 @@ def download_wordlist():
 
 def first_word():
     """Select the first word to play"""
-    wordlist = ['adieu', 'media', 'crate', 'radio', 'least']
+    wordlist = ['adieu', 'media', 'crane', 'radio']
     return random.choice(wordlist)
 
 def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, guess_history):
@@ -61,9 +61,8 @@ def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, 
             if i not in word:
                 five_letter_words.remove(word)
                 break
-    # for word in five_letter_words:
-    #     print('✔️  ', word)
-    # print(f"Possible words remaining: {len(five_letter_words)}")
+    
+    print(f"{TIME} Wordle: Possible words remaining: {len(five_letter_words)}")
     return five_letter_words
 
 def compare_words(todays_word, wordle_guess, close_history):
@@ -106,16 +105,32 @@ def green_letter_check(word, green_letters):
             return False
     return True
 
-def yellow_letter_check(word, green_letters, yellow_letters):
-    """Filter the wordlist through known yellow letters"""
-    # Enumeration of unmatched letters
+def yellow_letter_check(word, green_letters, yellow_letters, guess_history):
+    """Filter the wordlist through known yellow letters
+    word:          word guessed letters being compared to
+    green_letters: list of green letters so far
+    yellow_lettrs: list of yellow letters so far"""
+    # Enumeration of unmatched letters. List of positions NOT green
     open_spots = [i for i, x in enumerate(green_letters) if x is None]
     # List of each letter in the word being tested
     current_word = [char for char in word]
 
-    if any(current_word[i] in yellow_letters for i in open_spots):
-        return True
-    return False
+    # For each current yellow letter
+    for letter in yellow_letters:
+        position_list = []      # index values of current yellow letter
+        # For each word in history, index position of current yellow letters
+        for guess_word in guess_history:
+            if letter in guess_word:
+                position_list.append(guess_word.index(letter))
+        position_list = list(set(position_list))
+        for x in position_list:
+            if current_word[x] == letter:
+                return False
+
+    # print(word, green_letters, yellow_letters, guess_history, current_word)
+    is_valid_guess = any(current_word[i] in yellow_letters for i in open_spots)     # is Boolean
+
+    return is_valid_guess
 
 def next_word(wordlist, green_letters, yellow_letters,
               discard_pile, guess_history, method):
@@ -127,12 +142,13 @@ def next_word(wordlist, green_letters, yellow_letters,
     for word in generated_wordlist:
         # Compare current matched letters to generated list of five letter words
         if green_letter_check(word, green_letters):
-            if yellow_letter_check(word, green_letters, yellow_letters):
+            # Returns true if it passes green_letter_check
+            if yellow_letter_check(word, green_letters, yellow_letters, guess_history):
+                # Returns true if it passes yellow_letter_check
                 next_guess = word
-            else:
-                if next_guess is None:
-                    next_guess = word
-        wordlist_sorted.append(next_guess)
+    if next_guess is None:
+        next_guess = generated_wordlist[0]
+    wordlist_sorted.append(next_guess)
 
     if method == 'brown':
         frequency = nltk.FreqDist([w.lower() for w in brown.words()])
@@ -149,11 +165,10 @@ def play_wordle(
 
     discard_pile, guess_history, close_history = [], [], []
 
+    wordlist = download_wordlist()
     if custom_list:
         with open(custom_list, "r", encoding="utf-8") as my_infile:
             wordlist = my_infile.read().split("\n")
-    else:
-        wordlist = download_wordlist()
 
     todays_word = wordle.lower()
     wordle_num = todays_wordle()['num']
@@ -162,7 +177,7 @@ def play_wordle(
 
     # Since starting and goal word can be custom, they need to be validated
     if guess not in wordlist or todays_word not in wordlist:
-        return print('Error: Invalid word choice')
+        return print(f'Error: Invalid word choice')
 
     if print_output:
         print(f"{'='*40}\n\nOpening guess: {guess}\n")
