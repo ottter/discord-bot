@@ -20,7 +20,7 @@ class SlashWordle(Cog):
         """More directly Wordle themed content"""
 
         wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                       print_output=False)
+                       print_output=False, starting_word='stole')
         
         # For some reason the number is a few days behind, even though the word is correct
         # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day

@@ -279,7 +279,7 @@ class WordleLoser(commands.Cog):
         message = context.message.content.split(" ", 1)[1].lower()
 
         wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                       print_output=False)
+                       print_output=False, starting_word='stole')
         
         if message == "path":
             path_output = f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n||{wrdl['guess_path']}||"

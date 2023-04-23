@@ -13,7 +13,7 @@ from config import PRIVATE_CHANNEL, MODULE_SUBDIR, TIME
 def daily_wordle(message, context):
     """Play Wordle and return the output along with a response to who set it off"""
     wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                       print_output=False)
+                       print_output=False, starting_word='stole')
 
     wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
     # For some reason the number is a few days behind, even though the word is correct
