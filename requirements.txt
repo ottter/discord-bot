@@ -1,9 +1,9 @@
-discord-py-slash-command==3.0.3
-discord.py==1.7.3
-dnspython==2.2.1
-docker==5.0.3
+discord-py-slash-command
+discord.py
+dnspython>=2.2
+docker>=5.0
 emoji
-pylint==2.13.7
-pymongo==4.1.0
+pylint>=2.13
+pymongo>=4.1
 requests
 nltk
