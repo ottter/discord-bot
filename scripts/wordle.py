@@ -3,7 +3,8 @@ import random
 from nltk.corpus import brown
 import requests
 import nltk
-from config import MODULE_SUBDIR, WORDLE_API_KEY, TIME
+from config import WORDLE_API_KEY
+from config import timestamp as TIME
 
 from discord.ext import commands
 
@@ -62,7 +63,7 @@ def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, 
                 five_letter_words.remove(word)
                 break
     
-    print(f"{TIME} Wordle: Possible words remaining: {len(five_letter_words)}")
+    print(f"{TIME()} Wordle: Possible words remaining: {len(five_letter_words)}")
     return five_letter_words
 
 def compare_words(todays_word, wordle_guess, close_history):
@@ -165,10 +166,11 @@ def play_wordle(
 
     discard_pile, guess_history, close_history = [], [], []
 
-    wordlist = download_wordlist()
     if custom_list:
         with open(custom_list, "r", encoding="utf-8") as my_infile:
             wordlist = my_infile.read().split("\n")
+    else:
+        wordlist = download_wordlist()
 
     todays_word = wordle.lower()
     wordle_num = todays_wordle()['num']
@@ -223,40 +225,3 @@ def play_wordle(
         "discard_pile": discard_pile
     }
     return wordle_dictionary
-
-
-class WordleLoser(commands.Cog):
-    """Wordle themed content"""
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command()
-    async def wordle(self, context):
-        """More directly Wordle themed content"""
-        message = context.message.content.split(" ", 1)[1].lower()
-
-        wrdl = play_wordle(custom_list='data/wordlists/sorted-valid-wordle-words.txt',
-                       print_output=False, starting_word='stole')
-        
-        if message == "path":
-            path_output = f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n||{wrdl['guess_path']}||"
-            await context.send(path_output)
-            
-        elif message == "play":
-            # For some reason the number is a few days behind, even though the word is correct
-            # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
-            wrdl_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
-            await context.send(wrdl_output)
-
-        else:
-            return await context.send("Accepted `wordle` subcommands: `path`, `play`")
-        
-        self.bot.reload_extension(f'{MODULE_SUBDIR}.wordle')
-        print(f"{TIME}: Wordle {int(wrdl['wordle_num'])+3} path: {wrdl['guess_path']}")
-        print(f'{TIME}: Reloaded Wordle module (wordle command)')
-
-def setup(bot):
-    """Adds the cog (module) to startup. See main/load_extensions"""
-    bot.add_cog(WordleLoser(bot))

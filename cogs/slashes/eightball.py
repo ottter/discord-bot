@@ -1,9 +1,11 @@
-"""Meme SLASH commands go here"""
+"""Magic 8ball SLASH command"""
+import discord
+from discord.ext import commands
+from discord import app_commands
 from discord.ext.commands import Cog
-from discord_slash import cog_ext, SlashContext
 
 from random import choice
-from config import TIME
+from config import timestamp as TIME
 
 eightball_responses = [
             'It is certain', 'It is decidedly so', 'Without a doubt', 'Yes definitely',
@@ -13,21 +15,17 @@ eightball_responses = [
             'Don\'t count on it', 'My reply is no', 'My sources say no', 'Outlook not so good',
             'Very doubtful']
 
-class SlashMemes(Cog):
-    """All slash commands.
-    Bot MUST be invited with 'applications.commands' permission for use"""
-
+class EightBallSlash(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(
-        name="8ball",
-        description="Ask the magic 8ball any question")
-    async def _eight_ball(self, context:SlashContext):
+    @app_commands.command(name="8ball", description="Ask the magic 8ball anything")
+    async def eightball(self, interaction: discord.Interaction, question:str):
         """Ask the magic 8ball any question"""
-        print(f"{TIME}: {context.author} received their fortune (8ball)")
-        await context.send(f"🎱 {choice(eightball_responses)}, <@{context.author.id}> 🎱")
+        print(f"{TIME()}: (8ball): {interaction.user.name} asked {question}")
+        response = f"Question: {question}\n🎱 {choice(eightball_responses)} 🎱"
+        await interaction.response.send_message(response)
 
-def setup(bot):
+async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
-    bot.add_cog(SlashMemes(bot))
+    await bot.add_cog(EightBallSlash(bot))

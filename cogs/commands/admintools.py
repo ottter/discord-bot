@@ -1,21 +1,20 @@
 """BOT admin commands. Not to be confused with SERVER admins"""
 import os
-import json
 import discord
 from discord.ext import commands
-from discord import Game
 
-from config import BOT_ADMINS, DISCORD_GAME_PLAYED, MODULE_SUBDIR, FILES_SUBDIR
+from config import BOT_ADMINS, DEFAULT_ACTIVITY, MODULE_SUBDIR
+from config import timestamp as TIME
 
 
-async def is_admin(context):
+def is_admin(context):
     """Check if the user is considered a BOT admin"""
     if str(context.author.id) not in BOT_ADMINS:
-        print(f'{context.author} tried to use an admin command.')
-        await context.send('You don\'t have permission to do that.')
+        print(f'{TIME()}: {context.author} tried to use an admin command and failed.')
         return False
+    return True
 
-async def select_all_modules(context, action, action_str):
+def select_all_modules(context, action, action_str):
     """Use * to perform action across all modules"""
     for filename in os.listdir('./modules'):
         module = filename[:-3]
@@ -24,39 +23,21 @@ async def select_all_modules(context, action, action_str):
                 action(f'modules.{module}')
             except Exception as err:
                 exc = f'{type(err).__name__}: {err}'
-                print(f'Failed to {action_str} extension:  {module}\n\t{exc}')
+                print(f'{TIME()}: Failed to {action_str} extension:  {module}\n\t{exc}')
 
     print(f'{context.author} {action_str}ed all extensions')
-    return await context.send(f'{action_str.capitalize()}ed all modules.')
+    return context.send(f'{action_str.capitalize()}ed all modules.')
 
-class Admin(commands.Cog):
+class AdminToolsCmd(commands.Cog):
     """Basic bot admin-level controls"""
 
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def change_prefix(self, context, prefix):
-        """Custom prefixes on a per-server basis in order to prevent command overlap"""
-        if await is_admin(context) is False:
-            return
-
-        if len(prefix) == 1:
-            with open(f'./{FILES_SUBDIR}/prefixes.json', 'r', encoding="utf-8") as file:
-                prefixes = json.load(file)
-            prefixes[str(context.guild.id)] = prefix
-            with open(f'./{FILES_SUBDIR}/prefixes.json', 'w', encoding="utf-8") as file:
-                json.dump(prefixes, file, indent=4)
-            await context.send(f'Prefix changed to: {prefix}')
-        else:
-            await context.send('Entry is not a valid prefix')
-
-    @commands.command(pass_context=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.command(alias='refresh', pass_context=True)
     async def reload(self, context, module: str):
         """Reload the specified cog [off then on]"""
-        if await is_admin(context) is False:
-            return
-
         if module == '*':
             return await select_all_modules(context, self.bot.reload_extension, 'reload')
 
@@ -71,18 +52,18 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True)
     async def load(self, context, module: str):
         """Loads the specified cog [on]"""
-        if await is_admin(context) is False:
-            return
+        if is_admin(context) is False:
+            return context.send("I'm afraid that is something I can not allow to happen")
 
         if module == '*':
             return await select_all_modules(context, self.bot.load_extension, 'load')
 
         try:
             self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
-            await context.send(f'Reloaded: {module}')
+            return await context.send(f'Reloaded: {module}')
         except Exception as err:
             print(f'{type(err).__name__}: {err}')
-            await context.send(err)
+            return await context.send(err)
 
     @commands.command(pass_context=True)
     async def unload(self, context, module: str):
@@ -101,15 +82,15 @@ class Admin(commands.Cog):
             await context.send('Error unloading cog')
 
     @commands.command(pass_context=True)
-    async def game(self, context):
-        """Changes the 'game played' status message"""
+    async def discord_status(self, context):
+        """Changes the current status message"""
         if not await is_admin(context):
             return
 
         user_input = context.message.content.split(' ', 1)
         if user_input[1] == 'default'.lower():
-            return await self.bot.change_presence(activity=Game(name=DISCORD_GAME_PLAYED))
-        await self.bot.change_presence(activity=Game(name=user_input[1]))
+            return await self.bot.change_presence(activity=discord.Game(DEFAULT_ACTIVITY))
+        await self.bot.change_presence(activity=discord.Game(user_input[1]))
 
     @commands.command(pass_context=True)
     async def admin(self, context):
@@ -137,6 +118,6 @@ class Admin(commands.Cog):
         await self.bot.logout()
 
 
-def setup(bot):
+async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
-    bot.add_cog(Admin(bot))
+    await bot.add_cog(AdminToolsCmd(bot))

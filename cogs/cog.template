@@ -1,0 +1,19 @@
+import discord
+from discord.ext import commands
+from config import TIME
+
+
+class CLASSNAME(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command()
+    async def ping(self, context):
+        """Describe command"""
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """Describe listener"""
+
+async def setup(bot):
+    await bot.add_cog(CLASSNAME(bot))

@@ -55,7 +55,7 @@ def create_embed(output, game, item_name):
     embed.add_field(name="volume", value=output[item_name]['volume'], inline=True)
     return embed
 
-class GrandExchange(commands.Cog):
+class GrandExchangeCmd(commands.Cog):
     """Provides user with RS3 and OSRS Grand Exchange info"""
     def __init__(self, bot):
         self.bot = bot
@@ -75,6 +75,6 @@ class GrandExchange(commands.Cog):
         await search_grandexchange(context, 'osrs', item_request, embed=True)
 
 
-def setup(bot):
+async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
-    bot.add_cog(GrandExchange(bot))
+    await bot.add_cog(GrandExchangeCmd(bot))
