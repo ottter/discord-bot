@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from config import DEV_ACCOUNT_NAME, DEV_ACCOUNT_PREFIX, DEFAULT_ACTIVITY
+from config import DEV_ACCOUNT_NAME, DEV_ACCOUNT_PREFIX
+from config import DEFAULT_ACTIVITY, PRIMARY_ACCOUNT_PREFIX
 from config import timestamp as TIME
 
 
@@ -25,6 +26,7 @@ class OnReadyListen(commands.Cog):
             print(f"Client ID   : {self.bot.user.id}")
             print(f"Local time  : {TIME()}")
             print(f"Synced /CMD : {len(synced)}")
+            print(f"Cmd Prefix  : {PRIMARY_ACCOUNT_PREFIX}")
             print(f"{'='*34}\n")
 
         except Exception as e:
