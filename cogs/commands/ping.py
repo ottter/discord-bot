@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from config import TIME
+from config import timestamp as TIME
 
 
 class PingCmd(commands.Cog):
@@ -11,7 +11,7 @@ class PingCmd(commands.Cog):
     async def ping(self, context):
         """Test latency to server"""
         server_ping = round(self.bot.latency * 1000)
-        print(f"{TIME}: {context.author} pinged the server: {server_ping}ms")
+        print(f"{TIME()}: {context.author} pinged the server: {server_ping}ms")
         await context.send(f"Ping: {server_ping}ms")
 
 async def setup(bot):

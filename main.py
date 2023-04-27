@@ -10,6 +10,7 @@ import discord
 from discord.ext import commands
 
 from config import PRIMARY_ACCOUNT_PREFIX, DISCORD_TOKEN
+from config import timestamp as TIME
 
 
 intents = discord.Intents.all()
@@ -37,7 +38,7 @@ async def load_extensions():
 
 async def log_in():
     """Boot process"""
-    print('=== Initializing startup sequence ...')
+    print('\n=== Initializing startup sequence ...')
     await load_extensions()
     print('=== Attempting to log in to bot ...')
     try:

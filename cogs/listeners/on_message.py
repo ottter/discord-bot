@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from config import DEV_ACCOUNT_NAME, DEV_ACCOUNT_PREFIX, TIME
+from config import timestamp as TIME
 
 
 class OnMessageListen(commands.Cog):
