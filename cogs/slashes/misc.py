@@ -6,6 +6,9 @@ from discord.ext.commands import Cog
 
 from config import timestamp as TIME
 
+PASTA_FBI = ("I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE."
+    " I DO NOT CONDONE NOR SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM.")
+
 
 class MiscSlash(commands.Cog):
     def __init__(self, bot):
@@ -16,6 +19,12 @@ class MiscSlash(commands.Cog):
         """Say hello to the chatbot"""
         print(f"{TIME()}: {interaction.user.name} said hello to me")
         await interaction.response.send_message(f"Hey {interaction.user.mention}!", ephemeral=True)
+
+    @app_commands.command(name="fbi", description="FBI disclaimer")
+    async def fbi_pasta(self, interaction: discord.Interaction):
+        """Say hello to the FBI"""
+        print(f"{TIME()}: {interaction.user.name} used /fbi")
+        await interaction.response.send_message(PASTA_FBI)
 
 async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
