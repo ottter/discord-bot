@@ -1,6 +1,7 @@
 """Gather current GE price of Runescape (3 & Old School) items"""
 import discord
 from discord.ext import commands
+from discord import app_commands
 import requests
 
 # https://runescape.wiki/w/RuneScape:Grand_Exchange_Market_Watch/Usage_and_APIs
@@ -36,7 +37,7 @@ def search_grandexchange(context, game, item, embed=True):
     if not embed:
         return create_text(context, output, item_name)
     embed = create_embed(output, game, item_name)
-    return context.send(embed=embed)
+    return embed
 
 def create_text(context, output, item_name):
     """Create the textblock for output, if embed argument is false"""
@@ -60,15 +61,17 @@ class GrandExchangeSlash(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="rsgee", description="RS3 Grand Exchange", guild=discord.Object(id=963213566733873195))
-    async def self(interation: discord.Interaction, item:str, context):
-        """Search RS3 GE"""
-        await search_grandexchange(context, 'rs', item, embed=True)
+    # @app_commands.command(name="rsge", description="RS3 Grand Exchange", guild=discord.Object(id=963213566733873195))
+    # async def rsge(interaction: discord.Interaction, item:str):
+    #     """Search RS3 GE"""
+    #     response = search_grandexchange(item, 'rs', item, embed=True)
+    #     await interaction.response.send_message(embed=response)
 
-    @commands.command(name="osgee", description="OSRS Grand Exchange")
-    async def osge(interation: discord.Interaction, item:str, context):
+    @app_commands.command(name="osge", description="OSRS Grand Exchange")
+    async def osge(self, interaction: discord.Interaction, item:str, guild=discord.Object(id=963213566733873195)):
         """Search OSRS GE"""
-        await search_grandexchange(context, 'osrs', item, embed=True)
+        response = search_grandexchange(item, 'osrs', item, embed=True)
+        await interaction.response.send_message(embed=response)
 
 
 async def setup(bot):

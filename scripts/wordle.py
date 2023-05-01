@@ -223,5 +223,5 @@ def play_wordle(
         "discard_pile": discard_pile
     }
 
-    print(f"{TIME()}: Wordle {int(wrdl['wordle_num'])+3} path::{wrdl['guess_path']}")
+    print(f"{TIME()}: Wordle {int(wrdl['wordle_num'])+3} path:\t{wrdl['guess_path']}")
     return wrdl
