@@ -27,14 +27,16 @@ class WordleCmd(commands.Cog):
     @commands.command()
     async def wordle(self, context):
         """More directly Wordle themed content"""
+
+        await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
+        print(f"{TIME()}: Reloaded Wordle module (via WordleCmd)")
+
         try: 
             message = context.message.content.split(" ", 1)[1].lower()
         except: 
             message = "play"
 
         if message in ["play", "path"] or message is False:
-            await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
-            print(f"{TIME()}: Reloaded Wordle module (wordle command)")
 
             wrdl = play_wordle(custom_list=f"{FILES_SUBDIR}/wordlists/{wordlist}",
                         print_output=False, starting_word='stole')

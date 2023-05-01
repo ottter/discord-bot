@@ -6,8 +6,6 @@ import nltk
 from config import WORDLE_API_KEY
 from config import timestamp as TIME
 
-from discord.ext import commands
-
 
 def todays_wordle():
     """Send GET request to get the Wordle of the day"""
@@ -28,7 +26,7 @@ def download_wordlist():
 
 def first_word():
     """Select the first word to play"""
-    wordlist = ['adieu', 'media', 'crane', 'radio']
+    wordlist = ['adieu', 'media', 'crane', 'radio', 'stole']
     return random.choice(wordlist)
 
 def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, guess_history):
@@ -63,7 +61,7 @@ def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, 
                 five_letter_words.remove(word)
                 break
     
-    print(f"{TIME()} Wordle: Possible words remaining: {len(five_letter_words)}")
+    # print(f"{TIME()} Wordle: Possible words remaining: {len(five_letter_words)}")
     return five_letter_words
 
 def compare_words(todays_word, wordle_guess, close_history):
@@ -215,7 +213,7 @@ def play_wordle(
                 f"Guess history:  {guess_history}\n"
                 f"{emoji_block}\n")
 
-    wordle_dictionary = {
+    wrdl = {
         "wordle": wordle,
         "wordle_num": wordle_num,
         "emoji_block": emoji_block,
@@ -224,4 +222,6 @@ def play_wordle(
         "guess_path": " > ".join(guess_history),
         "discard_pile": discard_pile
     }
-    return wordle_dictionary
+
+    print(f"{TIME()}: Wordle {int(wrdl['wordle_num'])+3} path::{wrdl['guess_path']}")
+    return wrdl
