@@ -1,0 +1,66 @@
+from discord.ui import Button, View
+import discord
+import requests
+from discord import ButtonStyle, Embed
+
+from config import timestamp as TIME
+
+def import_item(game, item):
+    """Contact API to gather item information"""
+    base_url = f"https://api.weirdgloop.org/exchange/history/{game}/latest?name={item}"
+    headers = {
+        # Owners of API request for a custom user-agent
+        'User-Agent': 'github/ottter-discord-bot' }
+    response = requests.get(url=base_url, headers=headers).json()
+    return response
+
+def create_embed(pressed_button, game):
+    """Create the embed from the selected item via class:GrandExchangeView"""
+    game_url = "oldschool." if game == "osrs" else ''
+    core_url = f"https://{game_url}runescape.wiki"
+
+    output = import_item(game, pressed_button)
+    embed = GrandExchangeEmbed(title=pressed_button, 
+                               url=f"{core_url}/w/{pressed_button.replace(' ', '_')}",
+                               description=pressed_button)
+    embed.set_thumbnail(url=f"{core_url}/images/{pressed_button.replace(' ', '_')}.png")
+    embed.add_field(name="Price", value='{:,}'.format(output[pressed_button]['price']), inline=True)
+    embed.add_field(name="Trade Volume", value=output[pressed_button]['volume'], inline=True)
+    return embed
+
+class GrandExchangeEmbed(Embed):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.color = discord.Color.purple()
+
+
+class GrandExchangeView(View):
+    def __init__(self, message_author, closest_items, game):
+        super().__init__(timeout=15)
+
+        self.buttons = []
+
+        for value in closest_items:
+            button = Button(label=value, style=ButtonStyle.blurple, custom_id=value)
+            self.buttons.append(button)
+        
+        for button in self.buttons:
+            self.add_item(button)
+        
+        self.message_author = message_author
+        self.game = game
+
+        for x in range(len(closest_items)):
+            self.buttons[x].callback = self.callback
+
+    async def callback(self, interaction: discord.Interaction):
+        """Actions to take when button is pressed"""
+        pressed_button = interaction.data['custom_id']
+        embed = create_embed(pressed_button, self.game)
+
+        print(f"{TIME()}: {interaction.user} pressed the '{pressed_button}' button called by {self.message_author}")
+
+        if interaction.user != self.message_author:
+            return
+    
+        await interaction.response.edit_message(content=None, embed=embed, view=None)

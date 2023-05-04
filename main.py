@@ -15,6 +15,7 @@ from config import timestamp as TIME
 
 intents = discord.Intents.all()
 intents.members = True
+intents.reactions = True
 bot = commands.Bot(command_prefix=PRIMARY_ACCOUNT_PREFIX, intents=intents, help_command=None)
 
 async def load_extensions():

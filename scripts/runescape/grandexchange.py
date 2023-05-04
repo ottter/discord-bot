@@ -6,10 +6,12 @@ import difflib
 # https://runescape.wiki/w/RuneScape:Grand_Exchange_Market_Watch/Usage_and_APIs
 # https://api.weirdgloop.org/
 
-def import_item(game, item):
-    """Contact API to gather item information
+def import_item(game, item="santa hat"):
+    """
+    Contact API to gather item information
     game= 'osrs' or 'rs3'
-    item= string that should be the item name"""
+    item= string that should be the item name
+    """
     base_url = f"https://api.weirdgloop.org/exchange/history/{game}/latest?name={item}"
     headers = {
         # Owners of API request for a custom user-agent
@@ -22,8 +24,15 @@ def find_rs3_item(search_string, file_path='data/rs3items.tsv', num_matches=5):
     names = []
     with open(file_path, 'r') as f:
         reader = csv.DictReader(f, delimiter='\t')
-        for row in reader:
-            names.append(row['name'])
+        names = [row['name'] for row in reader]
+        # for row in reader:
+        #     names.append(row['name'])
+
+    # If an exact* match is entered, return that. Else, get closest match
+    search_string = search_string.lower().strip(".,-")
+    for name in names:
+        if search_string == name.lower().strip(".,-"):
+            return [name]
 
     # Find the top N closest matches to the search string
     closest_matches = difflib.get_close_matches(search_string, names, n=num_matches, cutoff=0.5)
