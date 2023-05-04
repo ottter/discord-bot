@@ -82,9 +82,9 @@ class OnMessageListen(commands.Cog):
             return
 
         # # dogdog is tired of being bullied for user error
-        dumb_bot = r'(dumb|(?:ass)|idiot)(?:\s+\w+)?\s+((ro)?bot|dog)'
+        dumb_bot = r'(dumb|(?:ass)|idiot|stupid)(?:\s+\w+)?\s+((ro)?bot|(dog)?dog)'
         if re.search(dumb_bot, message.content):
-            dumb_response = message.content.replace('bot', 'human')
+            dumb_response = re.sub(r'\b(bot|(dog)?dog)\b', 'human', message.content)
             return await message.channel.send(dumb_response)
 
         # Relays received DM to specified channel (based on ID)

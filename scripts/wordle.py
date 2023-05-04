@@ -61,7 +61,7 @@ def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, 
                 five_letter_words.remove(word)
                 break
     
-    # print(f"{TIME()} Wordle: Possible words remaining: {len(five_letter_words)}")
+    # print(f"Possible words remaining: {len(five_letter_words)}")
     return five_letter_words
 
 def compare_words(todays_word, wordle_guess, close_history):
@@ -92,7 +92,7 @@ def compare_words(todays_word, wordle_guess, close_history):
         else:
             result.append(None)
             wrong_letters.append(wordle_guess[i])
-            emoji_output = emoji_output + "⬛"
+            emoji_output = emoji_output + "⬜"
     wrong_letters = [*set(wrong_letters)]           # Remove repeats from the discard pile
     return result, close_letters, wrong_letters, wordle_guess, emoji_output
 
@@ -131,27 +131,48 @@ def yellow_letter_check(word, green_letters, yellow_letters, guess_history):
 
     return is_valid_guess
 
+def unique_vowels(word):
+    """Would be nice to get all the vowels out early"""
+    vowels = ['a', 'e', 'i', 'o', 'u']
+    unique_vowels = set()
+    for letter in word:
+        if letter in vowels:
+            unique_vowels.add(letter)
+    if len(unique_vowels) >= 2:
+        return len(unique_vowels)
+    return 0
+
 def next_word(wordlist, green_letters, yellow_letters,
               discard_pile, guess_history, method):
     """Choose the next best word from remaining wordlist"""
-    next_guess = None
     wordlist_sorted = []
     generated_wordlist = generate_five_letter(wordlist, green_letters, yellow_letters,
                                               discard_pile, guess_history)
+
+    # Catch incase first guess has no green or yellow
+    # if green_letters.count(None) == 5 and len(yellow_letters) == 0:
+    #     return generated_wordlist[0], generated_wordlist
+    
     for word in generated_wordlist:
         # Compare current matched letters to generated list of five letter words
-        if green_letter_check(word, green_letters):
-            # Returns true if it passes green_letter_check
-            if yellow_letter_check(word, green_letters, yellow_letters, guess_history):
-                # Returns true if it passes yellow_letter_check
-                next_guess = word
-    if next_guess is None:
-        next_guess = generated_wordlist[0]
-    wordlist_sorted.append(next_guess)
+        if green_letter_check(word, green_letters) and yellow_letter_check(word, green_letters, yellow_letters, guess_history):
+            wordlist_sorted.append(word)
+    # print(wordlist_sorted, guess_history)
 
-    if method == 'brown':
+    if method == 'brown' and len(guess_history) >= 4:
         frequency = nltk.FreqDist([w.lower() for w in brown.words()])
         wordlist_sorted = sorted(wordlist_sorted, key=lambda x: frequency[x.lower()], reverse=True)
+
+    if not wordlist_sorted:
+        wordlist_sorted = generated_wordlist
+
+    # Check viable wordlist and return best rated word with multiple vowels, if possible
+    unique_vowel_list = [word for word in wordlist_sorted if unique_vowels(word) > 1]
+    unique_vowel_list = sorted(wordlist_sorted, key=unique_vowels, reverse=True)
+    if unique_vowel_list:
+        wordlist_sorted = unique_vowel_list
+
+    # Otherwise return next best viable word
     return wordlist_sorted[0], generated_wordlist
 
 def play_wordle(
