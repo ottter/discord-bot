@@ -1,4 +1,5 @@
 """One off functions that are used for the Grand Exchange function"""
+import csv
 
 def remove_column(file_path, column_name):
     # Steps:
@@ -20,4 +21,16 @@ def remove_column(file_path, column_name):
         for row in data:
             f.write('\t'.join(row) + '\n')
 
+def osrs_txt_to_csv(in_path='osrsitems.txt', out_path='osrsitems.csv'):
+    with open(in_path, 'r') as f:
+        lines = f.readlines()
+    
+    with open(out_path, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['name']) # Write header row
+        for line in lines:
+            name = line.split('\t', 1)[1].strip() # Get name field and remove leading/trailing spaces
+            writer.writerow([name]) # Write name to CSV
+
+osrs_txt_to_csv(in_path='data/osrsitems.txt', out_path='data/osrsitems.csv')
 # remove_column('data/rs3items.tsv', 'tradeable')
