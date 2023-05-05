@@ -73,6 +73,7 @@ class GrandExchangeView(View):
 
         print(f"{TIME()}: {interaction.user} pressed the '{pressed_button}' button called by {self.message_author}")
 
+        # Only user to initiated the buttons can activate them
         if interaction.user != self.message_author:
             return
     

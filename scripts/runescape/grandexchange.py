@@ -1,12 +1,29 @@
 import requests
 import csv
 import difflib
+from config import timestamp as TIME
+from scripts.runescape.ui_subclass import GrandExchangeView, create_embed, preselect_embed
 
 
 # https://runescape.wiki/w/RuneScape:Grand_Exchange_Market_Watch/Usage_and_APIs
 # https://api.weirdgloop.org/
 
-def import_item(game, item="santa hat"):
+def grandexchange_builder(author, game, file_path, item):
+    """Build the opening embed that user is prompted with with the buttons"""
+    closest_items = find_item(item, file_path=file_path)
+
+    print(f"{TIME()}: {author} requests for {game.upper()} [{item}] returned: {closest_items}")
+    content, embed, view = None, None, None
+    if len(closest_items) == 0:
+        content="Try again"
+    if len(closest_items) == 1:
+        embed = create_embed(closest_items[0], game)
+    if len(closest_items) > 1:
+        view = GrandExchangeView(author, closest_items, game)
+        embed = preselect_embed(game)
+    return content, embed, view
+
+def import_item(game, item):
     """
     Contact API to gather item information
     game= 'osrs' or 'rs3'
