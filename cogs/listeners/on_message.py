@@ -99,7 +99,7 @@ class OnMessageListen(commands.Cog):
                 await self.bot.reload_extension(f'{MODULE_SUBDIR}.commands.wordle')
                 print(f'{TIME()}: Reloaded Wordle module (on_message)')
 
-                if "⬜" in message.content:
+                if "⬛" in message.content:
                     await message.channel.send(f"Remember to change to dark theme next time {message.author.mention}")
 
                 if message.content.split('/', 1)[0].rsplit(' ', 1)[1] in ['x', '6']:
