@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from config import timestamp as TIME
-from scripts.runescape.grandexchange import find_rs3_item
+from scripts.runescape.grandexchange import find_item
 from scripts.runescape.ui_subclass import GrandExchangeView
 
 # https://www.youtube.com/watch?v=82d9s8D6XE4
@@ -19,7 +19,7 @@ class GrandExchangeSlash(commands.Cog):
     @app_commands.command(name="rsge", description="RS3 Grand Exchange")
     async def rsge(self, interaction: discord.Interaction, item:str):
         """Search RS3 GE"""
-        closest_items = find_rs3_item(item)
+        closest_items = find_item(item, file_path='data/rs3items.tsv')
         view = GrandExchangeView(interaction.author, closest_items)
         content = "RS3 Grand Exchange\n Pick your item or refine your search"
         await self.context.send(content=content, view=view)

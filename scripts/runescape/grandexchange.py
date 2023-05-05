@@ -19,14 +19,12 @@ def import_item(game, item="santa hat"):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
-def find_rs3_item(search_string, file_path='data/rs3items.tsv', num_matches=5):
+def find_item(search_string, file_path='data/rs3items.tsv', num_matches=4):
     """Read the TSV file and extract the 'name' column"""
     names = []
     with open(file_path, 'r') as f:
         reader = csv.DictReader(f, delimiter='\t')
         names = [row['name'] for row in reader]
-        # for row in reader:
-        #     names.append(row['name'])
 
     # If an exact* match is entered, return that. Else, get closest match
     search_string = search_string.lower().strip(".,-")
@@ -36,8 +34,8 @@ def find_rs3_item(search_string, file_path='data/rs3items.tsv', num_matches=5):
 
     # Find the top N closest matches to the search string
     closest_matches = difflib.get_close_matches(search_string, names, n=num_matches, cutoff=0.5)
-    # Return a list of (up to) 5 items that closely match the search_string
+    # Return a list of (up to) num_matches items that closely match the search_string
     return closest_matches
 
-# closest_match = find_rs3_item(search_string='shadow of tum')
+# closest_match = find_item(search_string='shadow of tum')
 # print(closest_match)  # Output: "John"

@@ -25,12 +25,17 @@ def osrs_txt_to_csv(in_path='osrsitems.txt', out_path='osrsitems.csv'):
     with open(in_path, 'r') as f:
         lines = f.readlines()
     
+    names = []
+    for line in lines:
+        name = line.split('\t', 1)[1].strip() # Get name field and remove leading/trailing spaces
+        if name not in names:
+            names.append(name)
+
     with open(out_path, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['name']) # Write header row
-        for line in lines:
-            name = line.split('\t', 1)[1].strip() # Get name field and remove leading/trailing spaces
-            writer.writerow([name]) # Write name to CSV
+        for name in names:
+            writer.writerow([name])
 
 osrs_txt_to_csv(in_path='data/osrsitems.txt', out_path='data/osrsitems.csv')
 # remove_column('data/rs3items.tsv', 'tradeable')
