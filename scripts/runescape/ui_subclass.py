@@ -5,6 +5,7 @@ from discord import ButtonStyle, Embed
 
 from config import timestamp as TIME
 
+
 def import_item(game, item):
     """Contact API to gather item information"""
     base_url = f"https://api.weirdgloop.org/exchange/history/{game}/latest?name={item}"
@@ -14,9 +15,17 @@ def import_item(game, item):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
+def preselect_embed(game):
+    game_full = "Old School Runescape" if game == "osrs" else "Runescape 3"
+    embed = GrandExchangeEmbed(title=f"{game_full} Grand Exchange", 
+                               description="Click on the button or try to refine your search")
+    embed.set_thumbnail(url=f"attachment://data/runescape/icon-{game}.png")
+    return embed
+
 def create_embed(pressed_button, game):
     """Create the embed from the selected item via class:GrandExchangeView"""
     game_url = "oldschool." if game == "osrs" else ''
+    game_full = "Old School Runescape" if game == "osrs" else "Runescape 3"
     core_url = f"https://{game_url}runescape.wiki"
 
     output = import_item(game, pressed_button)
@@ -26,6 +35,7 @@ def create_embed(pressed_button, game):
     embed.set_thumbnail(url=f"{core_url}/images/{pressed_button.replace(' ', '_')}.png")
     embed.add_field(name="Price", value='{:,}'.format(output[pressed_button]['price']), inline=True)
     embed.add_field(name="Trade Volume", value=output[pressed_button]['volume'], inline=True)
+    embed.set_footer(text=f"{game_full} Grand Exchange")
     return embed
 
 class GrandExchangeEmbed(Embed):
@@ -63,4 +73,4 @@ class GrandExchangeView(View):
         if interaction.user != self.message_author:
             return
     
-        await interaction.response.edit_message(content=None, embed=embed, view=None)
+        await interaction.response.edit_message(embed=embed, view=None)

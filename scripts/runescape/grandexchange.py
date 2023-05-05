@@ -19,7 +19,7 @@ def import_item(game, item="santa hat"):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
-def find_item(search_string, file_path='data/rs3items.tsv', num_matches=4):
+def find_item(search_string, file_path='data/runescape/rs3items.tsv', num_matches=4):
     """Read the TSV file and extract the 'name' column"""
     names = []
     with open(file_path, 'r') as f:
