@@ -23,12 +23,12 @@ def daily_wordle(message):
     # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
 
     # Friendly banter if whoever triggers the script does worse than dogdog
-    user_guess_count = message.split('/', 1)[0].rsplit(' ', 1)[1]
+    user_guess_count = message.content.split('/', 1)[0].rsplit(' ', 1)[1]
     # Split message by first '/' and then last ' ' to find the # of guesses required by user
     if int(user_guess_count) > int(wrdl['guess_count']):
-        response = f'<@{message.author.id}> bozo. nice {user_guess_count}/6'
+        response = f'{message.author.mention} nice one bozo. only a {user_guess_count}/6?'
     elif user_guess_count == int(wrdl['guess_count']):
-        response = 'ill win next time'
+        response = 'youre just as dumb as me'
     else:
         response = 'sadge'
     return wrdl_output, response
@@ -99,7 +99,7 @@ class OnMessageListen(commands.Cog):
                 await self.bot.reload_extension(f'{MODULE_SUBDIR}.commands.wordle')
                 print(f'{TIME()}: Reloaded Wordle module (on_message)')
 
-                if "⬛" in message.content:
+                if "⬜" in message.content:
                     await message.channel.send(f"Remember to change to dark theme next time {message.author.mention}")
 
                 if message.content.split('/', 1)[0].rsplit(' ', 1)[1] in ['x', '6']:
@@ -108,9 +108,9 @@ class OnMessageListen(commands.Cog):
                 elif roll_check % 2 == 0:     # If even
                     print(f"{TIME()}: Playing Wordle against {message.author}")
                     time.sleep(random.randint(1, 4))
-                    results, reaction = daily_wordle(message.content)
+                    results, reaction = daily_wordle(message)
                     await message.channel.send(results)
-                    time.sleep(random.randint(1, 3))
+                    time.sleep(random.randint(0, 2))
                     return await message.channel.send(reaction)
 
                 elif roll_check == 1:

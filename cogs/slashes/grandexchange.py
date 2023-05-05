@@ -20,13 +20,13 @@ class GrandExchangeSlash(commands.Cog):
     async def rsge(self, interaction: discord.Interaction, item:str):
         """Search RS3 GE"""
         content, embed, view = grandexchange_builder(author=interaction.user, 
-                                                     game="osrs", 
+                                                     game="rs", 
                                                      item=item, 
                                                      file_path="data/runescape/rs3items.tsv")
         await interaction.response.send_message(content=content, embed=embed, view=view)
 
     @app_commands.command(name="osge", description="Search items on the OSRS Grand Exchange")
-    async def rsge(self, interaction: discord.Interaction, item:str):
+    async def osge(self, interaction: discord.Interaction, item:str):
         """Search OSRS GE"""
         content, embed, view = grandexchange_builder(author=interaction.user, 
                                                      game="osrs", 

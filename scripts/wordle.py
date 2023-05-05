@@ -92,7 +92,7 @@ def compare_words(todays_word, wordle_guess, close_history):
         else:
             result.append(None)
             wrong_letters.append(wordle_guess[i])
-            emoji_output = emoji_output + "⬜"
+            emoji_output = emoji_output + "⬛"
     wrong_letters = [*set(wrong_letters)]           # Remove repeats from the discard pile
     return result, close_letters, wrong_letters, wordle_guess, emoji_output
 

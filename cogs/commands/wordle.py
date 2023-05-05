@@ -8,14 +8,10 @@ from scripts.wordle import play_wordle
 wordlist = "sorted-valid-wordle-words.txt"
 
 def path_output(wrdl):
-    path_output = f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n||{wrdl['guess_path']}||"
-    return path_output
+    return f"Here's how I got **Wordle {int(wrdl['wordle_num'])+3}**:\n||{wrdl['guess_path']}||"
 
 def play_output(wrdl):
-    # For some reason the number is a few days behind, even though the word is correct
-    # wrdl_day = int(wrdl['wordle_num']) + 3      # Current Wordle day
-    play_output = f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
-    return play_output
+    return f"Wordle {int(wrdl['wordle_num'])+3} {wrdl['guess_count']}/6*\n{wrdl['emoji_block']}"
 
 class WordleCmd(commands.Cog):
     """Wordle themed content"""
@@ -27,10 +23,6 @@ class WordleCmd(commands.Cog):
     @commands.command()
     async def wordle(self, context):
         """More directly Wordle themed content"""
-
-        await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
-        print(f"{TIME()}: Reloaded Wordle module (via WordleCmd)")
-
         try: 
             message = context.message.content.split(" ", 1)[1].lower()
         except: 
@@ -42,12 +34,16 @@ class WordleCmd(commands.Cog):
                         print_output=False, starting_word='stole')
         
             if message == "path":
-                await context.send(path_output(wrdl))
+                return await context.send(path_output(wrdl))
             
             else:
-                await context.send(play_output(wrdl))
-
-        await context.send("Accepted `wordle` subcommands: `path`, `play`")
+                return await context.send(play_output(wrdl))
+        
+        else:
+            await context.send("Accepted `wordle` subcommands: `path`, `play`")
+        
+        await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
+        print(f"{TIME()}: Reloaded Wordle module (via WordleCmd)")
         print(f"{TIME()}: Wordle {int(wrdl['wordle_num'])+3} path: {wrdl['guess_path']}")
 
 async def setup(bot):
