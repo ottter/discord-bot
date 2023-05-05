@@ -22,6 +22,7 @@ class MiscCmd(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.command()
     async def ping(self, context):
         """Test latency to server"""
