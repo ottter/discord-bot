@@ -15,11 +15,12 @@ def import_item(game, item):
     response = requests.get(url=base_url, headers=headers).json()
     return response
 
-def preselect_embed(game):
+def preselect_embed(item, game):
     game_full = "Old School Runescape" if game == "osrs" else "Runescape 3"
     thumb_url = "https://raw.githubusercontent.com/ottter/discord-bot/main/data/runescape/"
     embed = GrandExchangeEmbed(title=f"{game_full} Grand Exchange", 
-                               description="Click on the button or try to refine your search")
+                               description=f"Search Request: **{item}**\n"
+                               "Click on the button or try to refine your search")
     if game == "osrs":
         embed.set_footer(text="OSRS database contains untradeable entities. Those buttons won't work")
     embed.set_thumbnail(url=f"{thumb_url}icon-{game}.png")

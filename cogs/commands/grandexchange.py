@@ -31,7 +31,6 @@ class GrandExchangeCmd(commands.Cog):
                                                      game="osrs", 
                                                      item=item, 
                                                      file_path="data/runescape/osrsitems.csv")
-        print(content, embed, view)
         await context.reply(view=view, embed=embed, content=content)
 
 async def setup(bot):

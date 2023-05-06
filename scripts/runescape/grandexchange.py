@@ -20,7 +20,7 @@ def grandexchange_builder(author, game, file_path, item):
         embed = create_embed(closest_items[0], game)
     if len(closest_items) > 1:
         view = GrandExchangeView(author, closest_items, game)
-        embed = preselect_embed(game)
+        embed = preselect_embed(item=item, game=game)
     return content, embed, view
 
 def import_item(game, item):
@@ -38,19 +38,20 @@ def import_item(game, item):
 
 def find_item(search_string, file_path='data/runescape/rs3items.tsv', num_matches=4):
     """Read the TSV file and extract the 'name' column"""
-    names = []
+    # NOTE: Ill move this to pandas eventually
+    item_list = []
     with open(file_path, 'r') as f:
         reader = csv.DictReader(f, delimiter='\t')
-        names = [row['name'] for row in reader]
+        item_list = [row['name'] for row in reader]
 
     # If an exact* match is entered, return that. Else, get closest match
     search_string = search_string.lower().strip(".,-")
-    for name in names:
-        if search_string == name.lower().strip(".,-"):
-            return [name]
+    for item in item_list:
+        if search_string == item.lower().strip(".,-"):
+            return [item]
 
     # Find the top N closest matches to the search string
-    closest_matches = difflib.get_close_matches(search_string, names, n=num_matches, cutoff=0.5)
+    closest_matches = difflib.get_close_matches(search_string, item_list, n=num_matches, cutoff=0.5)
     # Return a list of (up to) num_matches items that closely match the search_string
     return closest_matches
 

@@ -9,25 +9,20 @@ class MemberEventsListen(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # NOTE: I think there is a new way to do this in 2.0
+    @commands.Cog.listener()
+    async def on_member_join(member):
+        """Actions upon new member joining server"""
 
-    # @commands.Cog.listener()
-    # async def on_member_join(self, member):
-    #     """Actions upon new member joining server"""
-    #     for server in ON_MEMBER_SERVERLIST:
-    #         if member.guild.id in server:
-    #             welcome_channel = self.bot.get_channel(ON_MEMBER_SERVERLIST[member.guild.id])
-    #             print(f"{TIME()}: {member.mention} has joined the server {server}")
-    #             await welcome_channel.send(f'Welcome {member.mention}, I think?')
+        welcome_channel = member.guild.system_channel
+        print(f"{TIME()}: {member.mention} has joined the server {member.guild.id}")
+        await welcome_channel.send(f'Welcome {member.mention}, I think?')
 
-    # @commands.Cog.listener()
-    # async def on_member_remove(self, member):
-    #     """Actions upon channel member being removed"""
-    #     for server in ON_MEMBER_SERVERLIST:
-    #         if member.guild.id in server:
-    #             welcome_channel = self.bot.get_channel(ON_MEMBER_SERVERLIST[member.guild.id])
-    #             print(f"{TIME()}: {member.mention} has left the server {server}")
-    #             await welcome_channel.send(f'Cya {member.mention} you dummy')
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        """Actions upon channel member being removed"""
+        welcome_channel = member.guild.system_channel
+        print(f"{TIME()}: {member.mention} has left the server {member.guild.id}")
+        await welcome_channel.send(f'Cya {member.mention} you dummy')
 
 async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""

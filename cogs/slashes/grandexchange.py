@@ -4,8 +4,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from config import timestamp as TIME
-from scripts.runescape.grandexchange import find_item, grandexchange_builder
-from scripts.runescape.ui_subclass import GrandExchangeView
+from scripts.runescape.grandexchange import grandexchange_builder
 
 # https://www.youtube.com/watch?v=82d9s8D6XE4
 # HERE https://www.youtube.com/watch?v=kNUuYEWGOxA&t=903s 

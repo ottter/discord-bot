@@ -27,8 +27,8 @@ def daily_wordle(message):
     # Split message by first '/' and then last ' ' to find the # of guesses required by user
     if int(user_guess_count) > int(wrdl['guess_count']):
         response = f'{message.author.mention} nice one bozo. only a {user_guess_count}/6?'
-    elif user_guess_count == int(wrdl['guess_count']):
-        response = 'youre just as dumb as me'
+    elif int(user_guess_count) == int(wrdl['guess_count']):
+        response = f'{message.author.mention} youre just as dumb as me'
     else:
         response = 'sadge'
     return wrdl_output, response
