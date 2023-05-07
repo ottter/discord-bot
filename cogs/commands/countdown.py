@@ -1,4 +1,7 @@
 """Countdown to various upcoming events"""
+import re
+from datetime import datetime
+import pytz
 from discord.ext import commands
 from scripts.countdown import ufc_countdown, f1_countdown
 from scripts.mma.events import gather_all_upcoming_cards
@@ -25,6 +28,12 @@ class CountdownCmd(commands.Cog):
         elif message in ['f1', 'motor']:
             output = f1_countdown()
             await context.send(f"**{output[0]}**\nStarts in: {output[1]}")
+
+        elif re.match(r'^raq(|uel)?$', message):
+            tz = pytz.timezone('Europe/Stockholm')
+            when = datetime.now(tz)
+            time_and_day = when.strftime("%H:%M:%S on %A")
+            await context.send(f"It is currently {time_and_day} for raquel")
         
         else:
             await context.send("Feature not added")

@@ -2,7 +2,6 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from discord.ext.commands import Cog
 
 from config import timestamp as TIME
 
@@ -17,13 +16,13 @@ class MiscSlash(commands.Cog):
     @app_commands.command(name="hello", description="Say hello to dogdog")
     async def hello(self, interaction: discord.Interaction):
         """Say hello to the chatbot"""
-        print(f"{TIME()}: {interaction.user.name} said hello to me")
+        print(f"{TIME()}: {interaction.user} said hello to me")
         await interaction.response.send_message(f"Hey {interaction.user.mention}!", ephemeral=True)
 
     @app_commands.command(name="fbi", description="FBI disclaimer")
     async def fbi_pasta(self, interaction: discord.Interaction):
         """Say hello to the FBI"""
-        print(f"{TIME()}: {interaction.user.name} used /fbi")
+        print(f"{TIME()}: {interaction.user} used /fbi")
         await interaction.response.send_message(PASTA_FBI)
 
 async def setup(bot):

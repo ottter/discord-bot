@@ -22,7 +22,7 @@ class EightBallSlash(commands.Cog):
     @app_commands.command(name="8ball", description="Ask the magic 8ball anything")
     async def eightball(self, interaction: discord.Interaction, question:str):
         """Ask the magic 8ball any question"""
-        print(f"{TIME()}: (8ball): {interaction.user.name} asked {question}")
+        print(f"{TIME()}: (8ball): {interaction.user} asked {question}")
         response = f"Question: {question}\n🎱 {choice(eightball_responses)} 🎱"
         await interaction.response.send_message(response)
 
