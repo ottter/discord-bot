@@ -14,19 +14,24 @@ def is_admin(context):
         return False
     return True
 
-def select_all_modules(context, action, action_str):
+async def select_all_modules(context, action, action_str):
     """Use * to perform action across all modules"""
-    for filename in os.listdir('./modules'):
-        module = filename[:-3]
-        if filename.endswith('.py'):
-            try:
-                action(f'modules.{module}')
-            except Exception as err:
-                exc = f'{type(err).__name__}: {err}'
-                print(f'{TIME()}: Failed to {action_str} extension:  {module}\n\t{exc}')
+    cog_subdirs = ['commands', 'listeners', 'slashes']
+
+    for folder in cog_subdirs:
+        path = ".".join([MODULE_SUBDIR, folder])
+        for filename in os.listdir(f'{MODULE_SUBDIR}./{folder}'):
+            module = filename[:-3]
+            if filename.endswith('.py'):
+                try:
+                    path = ".".join([path, module])
+                    await action(path)
+                except Exception as err:
+                    exc = f'{type(err).__name__}: {err}'
+                    print(f'{TIME()}: Failed to {action_str} extension:  {module}\n\t{exc}')
 
     print(f'{context.author} {action_str}ed all extensions')
-    return context.send(f'{action_str.capitalize()}ed all modules.')
+    await context.send(f'{action_str.capitalize()}ed all modules.')
 
 class AdminToolsCmd(commands.Cog):
     """Basic bot admin-level controls"""
@@ -38,16 +43,25 @@ class AdminToolsCmd(commands.Cog):
     @commands.command(alias='refresh', pass_context=True)
     async def reload(self, context, module: str):
         """Reload the specified cog [off then on]"""
+        cog_subdirs = ['commands', 'listeners', 'slashes']
+
         if module == '*':
             return await select_all_modules(context, self.bot.reload_extension, 'reload')
 
-        try:
-            self.bot.reload_extension(f'{MODULE_SUBDIR}.{module}')
-            await context.send(f'Reloaded module: {module}')
-
-        except Exception as err:
-            print(f'{type(err).__name__}: {err}')
-            await context.send(f'Could not reload: {module}')
+        for folder in cog_subdirs:
+            try:
+                path = ".".join([MODULE_SUBDIR, folder, module])
+                await self.bot.reload_extension(path)
+                await context.send(f'Reloaded module: {folder}.{module}')
+                print(f"{TIME()}: {context.author} reloaded {folder}.{module}")
+                break
+            except commands.ExtensionNotLoaded:
+                pass  # not loaded in this folder
+            except commands.ExtensionNotFound:
+                pass  # not found in this folder
+            except commands.ExtensionFailed:
+                await context.send(f'Could not reload: {module}')
+                break
 
     @commands.command(pass_context=True)
     async def load(self, context, module: str):
