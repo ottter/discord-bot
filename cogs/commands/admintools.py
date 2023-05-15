@@ -1,8 +1,8 @@
 """BOT admin commands. Not to be confused with SERVER admins"""
-import os
 import discord
 from discord.ext import commands
 
+from main import load_extensions
 from config import BOT_ADMINS, DEFAULT_ACTIVITY, MODULE_SUBDIR
 from config import timestamp as TIME
 
@@ -14,24 +14,6 @@ def is_admin(context):
         return False
     return True
 
-async def select_all_modules(context, action, action_str):
-    """Use * to perform action across all modules"""
-    cog_subdirs = ['commands', 'listeners', 'slashes']
-
-    for folder in cog_subdirs:
-        path = ".".join([MODULE_SUBDIR, folder])
-        for filename in os.listdir(f'{MODULE_SUBDIR}./{folder}'):
-            module = filename[:-3]
-            if filename.endswith('.py'):
-                try:
-                    path = ".".join([path, module])
-                    await action(path)
-                except Exception as err:
-                    exc = f'{type(err).__name__}: {err}'
-                    print(f'{TIME()}: Failed to {action_str} extension:  {module}\n\t{exc}')
-
-    print(f'{context.author} {action_str}ed all extensions')
-    await context.send(f'{action_str.capitalize()}ed all modules.')
 
 class AdminToolsCmd(commands.Cog):
     """Basic bot admin-level controls"""
@@ -46,7 +28,8 @@ class AdminToolsCmd(commands.Cog):
         cog_subdirs = ['commands', 'listeners', 'slashes']
 
         if module == '*':
-            return await select_all_modules(context, self.bot.reload_extension, 'reload')
+            print(f"{TIME()}: {context.author} reloaded ALL modules")
+            return await load_extensions(action=self.bot.reload_extension, prnt=False)
 
         for folder in cog_subdirs:
             try:
@@ -70,7 +53,8 @@ class AdminToolsCmd(commands.Cog):
             return context.send("I'm afraid that is something I can not allow to happen")
 
         if module == '*':
-            return await select_all_modules(context, self.bot.load_extension, 'load')
+            print(f"{TIME()}: {context.author} loaded ALL modules")
+            return await load_extensions(action=self.bot.load_extension, prnt=False)
 
         try:
             self.bot.load_extension(f'{MODULE_SUBDIR}.{module}')
@@ -86,7 +70,8 @@ class AdminToolsCmd(commands.Cog):
             return
 
         if module == '*':
-            return await select_all_modules(context, self.bot.unload_extension, 'unload')
+            print(f"{TIME()}: {context.author} unloaded ALL modules")
+            return await load_extensions(action=self.bot.unload_extension, prnt=False)
 
         try:
             self.bot.unload_extension(f'{MODULE_SUBDIR}.{module}')
