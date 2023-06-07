@@ -23,6 +23,9 @@ class WordleCmd(commands.Cog):
     @commands.command()
     async def wordle(self, context):
         """More directly Wordle themed content"""
+        await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
+        print(f"{TIME()}: Reloaded Wordle module (via WordleCmd)")
+
         try: 
             message = context.message.content.split(" ", 1)[1].lower()
         except: 
@@ -42,8 +45,8 @@ class WordleCmd(commands.Cog):
         else:
             await context.send("Accepted `wordle` subcommands: `path`, `play`")
         
-        await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
-        print(f"{TIME()}: Reloaded Wordle module (via WordleCmd)")
+        # await self.bot.reload_extension(f"{MODULE_SUBDIR}.commands.wordle")
+        # print(f"{TIME()}: Reloaded Wordle module (via WordleCmd)")
         print(f"{TIME()}: Wordle {int(wrdl['wordle_num'])+3} path: {wrdl['guess_path']}")
 
 async def setup(bot):

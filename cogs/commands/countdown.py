@@ -32,13 +32,13 @@ class CountdownCmd(commands.Cog):
         elif re.match(r'^raq(|uel)?$', message):
             tz = pytz.timezone('Europe/Stockholm')
             when = datetime.now(tz)
-            time_and_day = when.strftime("%H:%M:%S on %A")
+            time_and_day = when.strftime("%H:%M on %A")
             await context.send(f"It is currently {time_and_day} for raquel")
         
         else:
             await context.send("Feature not added")
 
-        return print(f"{TIME()} {context.author} requested the next {message.upper()} event")
+        return print(f"{TIME()}: {context.author} requested the next {message.upper()} event")
 
 async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""
