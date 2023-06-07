@@ -96,6 +96,7 @@ class OnMessageListen(commands.Cog):
             if re.search(rdleverse_dict["Wordle"], message.content):
                 roll_check = random.randint(1, 5)
 
+                # Reload the command helps with getting the updated Wordle 
                 await self.bot.reload_extension(f'{MODULE_SUBDIR}.commands.wordle')
                 print(f'{TIME()}: Reloaded Wordle module (on_message)')
 
@@ -113,8 +114,8 @@ class OnMessageListen(commands.Cog):
                     time.sleep(random.randint(0, 2))
                     return await message.channel.send(reaction)
 
-                elif roll_check == 1:
-                    return await message.channel.send("i wish i could wordle rn :(")
+                # elif roll_check == 1:
+                #     return await message.channel.send("i wish i could wordle rn :(")
 
                 is_hardmode = hardmode_check(message.content)
                 return await message.channel.send(is_hardmode) if is_hardmode else None

@@ -30,8 +30,10 @@ Originally I had this deploy only to GitHub and then a pipeline to automatically
 
     # getting started
     git clone https://github.com/ottter/discord-bot.git && cd "$(basename "$_" .git)"
-    docker build --tag discord-bot .    # Build the image from a Dockerfile
-    docker run --detach discord-bot     # Run the container in background
+    docker build --tag discord-bot .                    # Build the image from a Dockerfile
+    docker run -d --name {CONTAINER_NAME} discord-bot   # Run the container in background
+    ---
+    docker logs
     ---
     # docker container management
     docker ps -a                        # List ALL containers
