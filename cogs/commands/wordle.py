@@ -31,7 +31,7 @@ class WordleCmd(commands.Cog):
         except: 
             message = "play"
 
-        if message in ["play", "path"] or message is False:
+        if message in ["play", "path"]:
 
             wrdl = play_wordle(custom_list=f"{FILES_SUBDIR}/wordlists/{wordlist}",
                         print_output=False, starting_word='stole')

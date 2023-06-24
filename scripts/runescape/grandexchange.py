@@ -1,6 +1,7 @@
-import requests
+"""Grand Exhange search"""
 import csv
 import difflib
+import requests
 from config import timestamp as TIME
 from scripts.runescape.ui_subclass import GrandExchangeView, create_embed, preselect_embed
 
@@ -33,14 +34,14 @@ def import_item(game, item):
     headers = {
         # Owners of API request for a custom user-agent
         'User-Agent': 'github/ottter-discord-bot' }
-    response = requests.get(url=base_url, headers=headers).json()
+    response = requests.get(url=base_url, headers=headers, timeout=10).json()
     return response
 
 def find_item(search_string, file_path='data/runescape/rs3items.tsv', num_matches=4):
     """Read the TSV file and extract the 'name' column"""
-    # NOTE: Ill move this to pandas eventually
+    # NOTE: I'll move this to pandas eventually
     item_list = []
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='UTF-8') as f:
         reader = csv.DictReader(f, delimiter='\t')
         item_list = [row['name'] for row in reader]
 

@@ -10,13 +10,13 @@ HEADERS = {
 def build_events_url():
     """Send request to the UFC events page"""
     base_url = "https://www.ufc.com/events"
-    return requests.get(base_url, headers = HEADERS)
+    return requests.get(base_url, headers = HEADERS, timeout=10)
 
 def build_next_card_url(event):
     """Send request to the event page of upcoming card"""
     base_url = "https://www.ufc.com"
     next_card = gather_all_upcoming_cards()[event]
-    return requests.get(base_url + next_card, headers = HEADERS)
+    return requests.get(base_url + next_card, headers = HEADERS, timeout=10)
 
 def gather_all_upcoming_cards(schedule=False):
     """Return a list of all upcoming cards"""
@@ -24,8 +24,9 @@ def gather_all_upcoming_cards(schedule=False):
     soup = BeautifulSoup(build_events_url().content, features="html.parser")
     for link in soup.find_all('details', {'id': 'events-list-upcoming'}):
         for href in link.find_all('a', href=True):
-            if href.has_attr('href') and href['href'].startswith('/event/') and "#" not in href['href']:
-                upcoming_cards.append(href['href'])
+            if href.has_attr('href'):
+                if href['href'].startswith('/event/') and "#" not in href['href']:
+                    upcoming_cards.append(href['href'])
     if schedule:
         upcoming_cards = [str(i)
                           .replace( '/event/', '')
@@ -45,7 +46,7 @@ def gather_event_info(next_event=0):
         return "Requested event is not in range of scheduled events"
     soup = BeautifulSoup(build_next_card_url(next_event).content, features="html.parser")
     for x in [[main_fighter_list, 'main-card'], [prelim_fighter_list, 'prelims-card']]:
-        # NOTE: Works only for soonest upcoming event. Future events use different format: div class="l-main"
+        # NOTE: Works only for soonest upcoming event. Future events use: div class="l-main"
         for matchup in soup.find_all('div', {'id': x[1]}):
             for matchup in matchup.find_all('a', href=True):
                 if '/athlete/' in matchup['href']:
@@ -56,7 +57,8 @@ def gather_event_info(next_event=0):
     return list(dict.fromkeys(main_fighter_list)), list(dict.fromkeys(prelim_fighter_list))
 
 def create_fight_matchups(card):
-    """ Match the fighters with respective opponent (since scraper gets the fighter names and not matchups)
+    """ Match the fighters with respective opponent 
+    (since scraper gets the fighter names and not matchups)
     :param str card: 
     """
     if len(card) % 2 != 0:
@@ -86,5 +88,6 @@ def get_event(card='main', display_format='matchups', next_event=0):
 
     if get_format == 0:
         return create_fight_matchups(gather_event_info(next_event=next_event)[get_card])
-    elif get_format == 1:
+    else:
+        # if get_format == 1
         return gather_event_info(next_event=next_event)[get_card]

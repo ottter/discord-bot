@@ -15,7 +15,7 @@ def todays_wordle():
         "X-RapidAPI-Host": "wordle-answers-solutions.p.rapidapi.com"
     }
 
-    response = requests.request("GET", url, headers=headers)
+    response = requests.request("GET", url, headers=headers, timeout=10)
     return response.json().get('data')[0]
 
 def download_wordlist():
@@ -60,7 +60,7 @@ def generate_five_letter(wordlist, green_letters, yellow_letters, discard_pile, 
             if i not in word:
                 five_letter_words.remove(word)
                 break
-    
+
     # print(f"Possible words remaining: {len(five_letter_words)}")
     return five_letter_words
 
@@ -152,11 +152,12 @@ def next_word(wordlist, green_letters, yellow_letters,
     # Catch incase first guess has no green or yellow
     # if green_letters.count(None) == 5 and len(yellow_letters) == 0:
     #     return generated_wordlist[0], generated_wordlist
-    
+
     for word in generated_wordlist:
         # Compare current matched letters to generated list of five letter words
-        if green_letter_check(word, green_letters) and yellow_letter_check(word, green_letters, yellow_letters, guess_history):
-            wordlist_sorted.append(word)
+        if green_letter_check(word, green_letters):
+            if yellow_letter_check(word, green_letters, yellow_letters, guess_history):
+                wordlist_sorted.append(word)
     # print(wordlist_sorted, guess_history)
 
     if method == 'brown' and len(guess_history) >= 4:
@@ -198,7 +199,7 @@ def play_wordle(
 
     # Since starting and goal word can be custom, they need to be validated
     if guess not in wordlist or todays_word not in wordlist:
-        return print(f'Error: Invalid word choice')
+        return print('Error: Invalid word choice')
 
     if print_output:
         print(f"{'='*40}\n\nOpening guess: {guess}\n")

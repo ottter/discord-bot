@@ -48,7 +48,7 @@ def ufc_countdown():
 
 def f1_countdown():
     """Return the next F1 race, including location"""
-    f1_request = requests.get('https://lightsouts.com/formula-1', headers = HEADERS)
+    f1_request = requests.get('https://lightsouts.com/formula-1', headers = HEADERS, timeout=10)
     if f1_request.status_code != 200:
         return print("Can't access website right now. Try again later")
     time_until = []

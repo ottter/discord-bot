@@ -27,7 +27,7 @@ WEIGHTCLASS_ALIAS = {
 def build_ranking_url():
     """Send request to the UFC events page"""
     base_url = "https://www.ufc.com/rankings"
-    return requests.get(base_url, headers = HEADERS)
+    return requests.get(base_url, headers = HEADERS, timeout=10)
 
 def gather_champions(mark_champion=False):
     """Define who the champion is of ach weightclass"""
@@ -84,5 +84,5 @@ def weightclass_rankings(weightclass='pfp', mark_champion=False, numerate_fighte
     for key, value in WEIGHTCLASS_ALIAS.items():
         if weightclass.lower() in value:
             # Returning "key" to be used to label the data, the official name for weightclass
-            return build_rankings(mark_champion=mark_champion, 
+            return build_rankings(mark_champion=mark_champion,
                                   numerate_fighters=numerate_fighters)[1][key], key
