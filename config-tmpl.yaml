@@ -1,0 +1,13 @@
+# Configuration settings
+
+# Discord token should be added to your path. Keep this extra secure.
+DISCORD_TOKEN: "TOKEN"
+
+PRIMARY_ACCOUNT_PREFIX: "/"
+
+# Local dev account used for testing. Use a different prefix than live. STRINGS
+DEV_ACCOUNT_NAME: "dogdog"
+DEV_ACCOUNT_PREFIX: ","
+
+# Decides what the bot should show as currently being played
+DEFAULT_ACTIVITY: "Vim Tutorial"
