@@ -80,6 +80,10 @@ class OnMessageListen(commands.Cog):
         """This requires Intents.messages to be enabled."""
         if message.author == self.bot.user:
             return
+        
+        if message.author.id == 843431091665633290:
+            await message.delete()
+            print(f"Deleted message from {message.author.name}: {message.content}")
 
         # # dogdog is tired of being bullied for user error
         dumb_bot = r'(dumb|(?:ass)|idiot|stupid)(?:\s+\w+)?\s+((ro)?bot|(dog)?dog)'
