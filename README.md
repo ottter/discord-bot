@@ -17,37 +17,14 @@
     [Ctrl+b] + [x]                      # Press while in tmux to kill session
     deactivate                          # Exit venv
 
-## How to run via Heroku
-
-Originally I had this deploy only to GitHub and then a pipeline to automatically deploy from there. Since the [breach](https://thehackernews.com/2022/04/github-notifies-victims-whose-private.html) with disabled GitHub authentication, I just use Heroku CLI to push out changes.
-
-    heroku login
-    (existing) heroku git:remote -a {app-name}     # Will require authorized app owner/developer
-    (or clone) heroku git:clone -a {app-name}      # Which one depends if repo is on system already
-    git push heroku main
-
 ## How to run via Docker
 
-    # getting started
-    git clone https://github.com/ottter/discord-bot.git && cd "$(basename "$_" .git)"
-    docker build --tag discord-bot .                    # Build the image from a Dockerfile
-    docker run -d --name {CONTAINER_NAME} discord-bot   # Run the container in background
-    ---
-    docker logs
-    ---
-    # docker container management
-    docker ps -a                        # List ALL containers
-    docker kill {container-id}          # kill select container
-    docker rm {container-id}            # remove select container
-
-    docker kill $(docker ps -q)         # Stop ALL containers
-    docker rm $(docker ps -a -q)        # Remove ALL containers
-    ---
-    # docker image management
-    docker image ls                     # List ALL images
-    docker rmi {image-id}               # Remove select image
-    
-    docker rmi $(docker images -q)      # Remove ALL images
+    sudo apt install docker.io
+    # Create a PAT with  `write:packages`, `read:packages`, and `delete:packages`
+    export GHCR_PAT="{TOKEN}"
+    echo $GHCR_PAT | docker login ghcr.io -u ottter --password-stdin
+    docker build -t ghcr.io/ottter/discord-bot:latest .
+    docker push ghcr.io/ottter/discord-bot:latest
 
 -----------------------
 

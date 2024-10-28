@@ -1,3 +1,11 @@
-# Ignore __pycache__
-__pycache__
-**/*.pyc
+*.md
+*.git
+*.gitignore
+__pycache__/
+*.pyc
+*.pyo
+.pylintrc
+discord.log
+.venv/
+archive/
+.github/
