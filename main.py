@@ -47,11 +47,6 @@ def setup_logging():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-@bot.event
-async def on_ready():
-    """Confirm successful login when the bot is ready."""
-    print(f"\nSuccessfully logged in as {bot.user} at {time.strftime('%Y-%m-%d %H:%M:%S')}")
-
 async def load_extensions(action):
     """Load all bot modules/extensions from specified directories."""
     dir_list = ['commands', 'listeners', 'slashes']
