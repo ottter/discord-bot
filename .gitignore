@@ -2,6 +2,8 @@ config.py
 config.yaml
 tempCodeRunnerFile.py
 
+archive/
+
 # Byte-compiled / optimized / DLL data
 __pycache__/
 *.py[cod]
