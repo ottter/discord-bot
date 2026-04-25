@@ -1,11 +1,14 @@
-"""Misc SLASH commands that aren't enough for their own file"""
+"""Misc slash commands that aren't enough for their own file"""
 import discord
-from main import timestamp
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
+from utils import timestamp
 
-PASTA_FBI = ("I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE."
-    " I DO NOT CONDONE NOR SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM.")
+
+PASTA_FBI = (
+    "I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE."
+    " I DO NOT CONDONE NOR SUPPORT ANY OF THE OPINIONS EXPRESSED ON THIS CHATROOM."
+)
 
 
 class MiscSlash(commands.Cog):
@@ -20,9 +23,10 @@ class MiscSlash(commands.Cog):
 
     @app_commands.command(name="fbi", description="FBI disclaimer")
     async def fbi_pasta(self, interaction: discord.Interaction):
-        """Say hello to the FBI"""
+        """FBI disclaimer copypasta"""
         print(f"{timestamp()}: {interaction.user} used /fbi")
         await interaction.response.send_message(PASTA_FBI)
+
 
 async def setup(bot):
     """Adds the cog (module) to startup. See main/load_extensions"""

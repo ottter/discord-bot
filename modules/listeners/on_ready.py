@@ -1,13 +1,6 @@
-import yaml
-import discord
-from main import timestamp
 from discord.ext import commands
+from utils import timestamp
 
-
-with open("config.yaml", "r") as config_file:
-    config = yaml.safe_load(config_file)
-
-PRIMARY_ACCOUNT_PREFIX = config["PRIMARY_ACCOUNT_PREFIX"]
 
 class OnReadyListen(commands.Cog):
     def __init__(self, bot):
@@ -16,13 +9,15 @@ class OnReadyListen(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         """Confirm successful login when the bot is ready."""
-
+        prefix = self.bot.command_prefix
         print(f"\n{'='*34}")
         print(f"Username   : {self.bot.user.name}")
         print(f"Client ID  : {self.bot.user.id}")
         print(f"Local time : {timestamp()}")
-        print(f"Cmd Prefix : {PRIMARY_ACCOUNT_PREFIX}")
+        print(f"Cmd Prefix : {prefix}")
         print(f"{'='*34}\n")
+
+        await self.bot.tree.sync()
 
 
 async def setup(bot):

@@ -1,0 +1,49 @@
+# Configuration settings — copy this to config.yaml and fill in your values.
+# config.yaml is gitignored; never commit real tokens.
+
+DISCORD_TOKEN: "YOUR_BOT_TOKEN_HERE"
+
+PRIMARY_ACCOUNT_PREFIX: ','
+
+DEV_ACCOUNT_NAME: 'yourdevbotname'
+DEV_ACCOUNT_PREFIX: ','
+
+# User IDs granted bot admin access (list of strings)
+BOT_ADMINS:
+  - "YOUR_USER_ID_HERE"
+
+# {SERVER_ID: WELCOME_CHANNEL_ID} — servers to send member join/leave messages
+ON_MEMBER_SERVERLIST:
+  123456789012345678: 123456789012345679
+
+DEFAULT_ACTIVITY: "Vim Tutorial"
+
+MODULE_SUBDIR: "cogs"
+FILES_SUBDIR: "data"
+
+# Channel ID to forward DMs to (integer)
+PRIVATE_CHANNEL: 0
+
+# Set true to enforce Wordle rules globally across all servers
+WORDLE_GLOBAL_BAN: false
+
+# Server IDs to moderate for Wordle (list of integers)
+WORDLE_BAN_LIST:
+  - 123456789012345678
+
+# Channel IDs where Wordle posts are permitted (list of integers)
+OFFICIAL_WORDLE_CHANNEL:
+  - 123456789012345678
+
+# Allowed image hostnames for image DB submissions (list of strings)
+ACCEPTED_HOSTS:
+  - "discord"
+  - "imgur"
+  - "youtube"
+  - "gyazo"
+
+# Allowed image file extensions (list of strings)
+ACCEPTED_MEDIA_TYPES:
+  - "png"
+  - "jpg"
+  - "jpeg"

@@ -9,3 +9,5 @@ discord.log
 .venv/
 archive/
 .github/
+config.yaml
+.env

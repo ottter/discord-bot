@@ -11,40 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install pylint -r requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pylint --rcfile ./.pylintrc $(git ls-files '*.py')
-    # python -m pylint  --rcfile ./.pylintrc $(git ls-files '*.py')
+        python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
 
-    # Prepare the Pull Request Payload artifact. If this fails, we
-    # we fail silently using the `continue-on-error` option. It's
-    # nice if this succeeds, but if it fails for any reason, it
-    # does not mean that our lint-test checks failed.
     - name: Prepare Pull Request Payload artifact
       id: prepare-artifact
       if: always() && github.event_name == 'pull_request'
       continue-on-error: true
       run: cat $GITHUB_EVENT_PATH | jq '.pull_request' > pull_request_payload.json
 
-    # This only makes sense if the previous step succeeded. To
-    # get the original outcome of the previous step before the
-    # `continue-on-error` conclusion is applied, we use the
-    # `.outcome` value. This step also fails silently.
     - name: Upload a Build Artifact
       if: always() && steps.prepare-artifact.outcome == 'success'
       continue-on-error: true
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pull-request-payload
         path: pull_request_payload.json
