@@ -1,9 +1,10 @@
 """Misc slash commands that aren't enough for their own file"""
+import logging
 import discord
 from discord import app_commands
 from discord.ext import commands
-from utils import timestamp
 
+log = logging.getLogger('discord.bot')
 
 PASTA_FBI = (
     "I DECLARE THAT EVERY POST I HAVE EVER MADE ON THIS DISCORD IS SATIRE."
@@ -17,14 +18,12 @@ class MiscSlash(commands.Cog):
 
     @app_commands.command(name="hello", description="Say hello to dogdog")
     async def hello(self, interaction: discord.Interaction):
-        """Say hello to the chatbot"""
-        print(f"{timestamp()}: {interaction.user} said hello to me")
+        log.info('%s used /hello', interaction.user)
         await interaction.response.send_message(f"Hey {interaction.user.mention}!", ephemeral=True)
 
     @app_commands.command(name="fbi", description="FBI disclaimer")
     async def fbi_pasta(self, interaction: discord.Interaction):
-        """FBI disclaimer copypasta"""
-        print(f"{timestamp()}: {interaction.user} used /fbi")
+        log.info('%s used /fbi', interaction.user)
         await interaction.response.send_message(PASTA_FBI)
 
 

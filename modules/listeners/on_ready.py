@@ -1,5 +1,8 @@
+import logging
+
 from discord.ext import commands
-from utils import timestamp
+
+log = logging.getLogger('discord.bot')
 
 
 class OnReadyListen(commands.Cog):
@@ -8,16 +11,17 @@ class OnReadyListen(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        """Confirm successful login when the bot is ready."""
-        prefix = self.bot.command_prefix
-        print(f"\n{'='*34}")
-        print(f"Username   : {self.bot.user.name}")
-        print(f"Client ID  : {self.bot.user.id}")
-        print(f"Local time : {timestamp()}")
-        print(f"Cmd Prefix : {prefix}")
-        print(f"{'='*34}\n")
+        log.info('=== Bot ready ===')
+        log.info('Username   : %s', self.bot.user.name)
+        log.info('Client ID  : %s', self.bot.user.id)
+        log.info('Cmd Prefix : %s', self.bot.command_prefix)
+        log.info('=================')
 
-        await self.bot.tree.sync()
+        try:
+            await self.bot.tree.sync()
+            log.info('Command tree synced successfully.')
+        except Exception as err:
+            log.error('Failed to sync command tree: %s', err)
 
 
 async def setup(bot):

@@ -1,10 +1,12 @@
 """Magic 8ball slash command"""
 import random
+import logging
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-from utils import timestamp
 
+log = logging.getLogger('discord.bot')
 
 EIGHTBALL_RESPONSES = [
     'It is certain', 'It is decidedly so', 'Without a doubt', 'Yes definitely',
@@ -23,9 +25,8 @@ class EightBallSlash(commands.Cog):
     @app_commands.command(name="8ball", description="Ask the magic 8ball anything")
     @app_commands.describe(question="The question you want to ask")
     async def eightball(self, interaction: discord.Interaction, question: str):
-        """Ask the magic 8ball any question"""
-        print(f"{timestamp()}: (8ball): {interaction.user} asked {question}")
-        response = f"Question: {question}\n\U0001f3b1 {random.choice(EIGHTBALL_RESPONSES)} \U0001f3b1"
+        log.info('%s used /8ball', interaction.user)
+        response = f"Question: {question}\n🎱 {random.choice(EIGHTBALL_RESPONSES)} 🎱"
         await interaction.response.send_message(response)
 
 

@@ -11,7 +11,6 @@ import logging.handlers
 import discord
 from pathlib import Path
 from discord.ext import commands
-from utils import timestamp
 
 REQUIRED_CONFIG_KEYS = {"DISCORD_TOKEN", "PRIMARY_ACCOUNT_PREFIX"}
 
@@ -79,8 +78,8 @@ async def load_extensions(bot, action):
             except commands.ExtensionFailed as err:
                 log.error('Extension failed to load: %s — %s: %s', filename.stem, type(err.original).__name__, err.original)
 
-    for excl_module in exclusion_list:
-        log.info('Excluding extension: %s', excl_module)
+    if exclusion_list:
+        log.info('Excluded extensions: %s', ', '.join(exclusion_list))
 
 
 async def main():
