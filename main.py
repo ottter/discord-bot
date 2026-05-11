@@ -91,7 +91,6 @@ async def main():
 
     intents = discord.Intents.default()
     intents.members = True
-    intents.reactions = True
     intents.message_content = True
 
     bot = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
@@ -104,9 +103,6 @@ async def main():
         await bot.start(token)
     except discord.LoginFailure as error:
         log.critical('Discord login failed: %s', error)
-        sys.exit("Login Unsuccessful\n")
-    except asyncio.TimeoutError:
-        log.critical('Login timed out. Please check token and network connection.')
         sys.exit("Login Unsuccessful\n")
 
 

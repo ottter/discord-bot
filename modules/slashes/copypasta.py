@@ -1,5 +1,6 @@
 """Misc slash commands that aren't enough for their own file"""
 import logging
+
 import discord
 from discord import app_commands
 from discord.ext import commands

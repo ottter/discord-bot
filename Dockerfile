@@ -1,19 +1,16 @@
-FROM python:3.13-slim AS builder
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 RUN useradd --create-home --no-log-init appuser
 
 WORKDIR /app
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY . .
+COPY --chown=appuser:appuser requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN chown -R appuser:appuser /app
+COPY --chown=appuser:appuser . .
+
 USER appuser
 
 CMD ["python3", "main.py"]

@@ -1,5 +1,6 @@
 import logging
 
+import discord
 from discord.ext import commands
 
 log = logging.getLogger('discord.bot')
@@ -20,7 +21,7 @@ class OnReadyListen(commands.Cog):
         try:
             await self.bot.tree.sync()
             log.info('Command tree synced successfully.')
-        except Exception as err:
+        except discord.HTTPException as err:
             log.error('Failed to sync command tree: %s', err)
 
 
