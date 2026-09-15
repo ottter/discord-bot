@@ -95,8 +95,9 @@ shell history:
 
 ### Build and push a new image
 
-Only for publishing your own build. This needs `write:packages` in addition to
-`read:packages`; `delete:packages` is not required.
+GitHub Actions builds and publishes the image on every push to main, and tags a release
+when you push a `v*` tag — see [docs/WORKFLOWS.md](docs/WORKFLOWS.md). To do it by hand
+instead, use a PAT with `write:packages` in addition to `read:packages`:
 
     docker build -t ghcr.io/ottter/discord-bot:latest .
     docker push ghcr.io/ottter/discord-bot:latest

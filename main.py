@@ -14,23 +14,18 @@ import discord
 import yaml
 from discord.ext import commands
 
-REQUIRED_CONFIG_KEYS = {"DISCORD_TOKEN", "PRIMARY_ACCOUNT_PREFIX"}
-
+CONFIG_FILE = Path(__file__).parent / 'config.yaml'
+REQUIRED_KEYS = ('DISCORD_TOKEN', 'PRIMARY_ACCOUNT_PREFIX')
 DEFAULT_PREFIX = ','
 
-# Any DISCORD_BOT_* variable becomes a config key with the prefix stripped, so
-# DISCORD_BOT_WELCOME_CHANNEL sets WELCOME_CHANNEL. New settings need no change here.
+# DISCORD_BOT_WELCOME_CHANNEL sets WELCOME_CHANNEL, so new settings work without
+# touching this file. DISCORD_TOKEN is also read bare, for injected secrets.
 ENV_PREFIX = 'DISCORD_BOT_'
-
-# Aliases accepted without the prefix, for secrets wired up by name elsewhere
-# (Kubernetes secretKeyRef, --env-file, CI). Kept deliberately short.
 ENV_ALIASES = ('DISCORD_TOKEN',)
 
-# Never YAML-parsed: a token is an opaque string, and a prefix like '!' or '>'
-# is valid YAML syntax that would parse to something other than itself.
-VERBATIM_KEYS = frozenset({
-    'DISCORD_TOKEN', 'PRIMARY_ACCOUNT_PREFIX', 'DEV_ACCOUNT_PREFIX',
-})
+# Tokens and prefixes are opaque strings: '!' and 'no' are valid YAML that would
+# parse to something other than themselves.
+VERBATIM_KEYS = frozenset({'DISCORD_TOKEN', 'PRIMARY_ACCOUNT_PREFIX', 'DEV_ACCOUNT_PREFIX'})
 
 EXTENSION_DIRS = ('commands', 'listeners', 'slashes')
 EXTENSION_EXCLUSIONS = ('help',)
@@ -38,103 +33,81 @@ EXTENSION_EXCLUSIONS = ('help',)
 log = logging.getLogger('discord.bot')
 
 
-def parse_env_value(key: str, raw: str):
-    """Coerce an environment string into the type config.yaml would have produced.
-
-    Lists, numbers and booleans are written as YAML so they behave the same from
-    either source. Keys in VERBATIM_KEYS, and anything YAML reads as empty, keep
-    the original string — that is what saves a '!' prefix or a token from being
-    reinterpreted.
-    """
-    if key in VERBATIM_KEYS:
-        return raw
-    try:
-        parsed = yaml.safe_load(raw)
-    except yaml.YAMLError:
-        return raw
-    return raw if parsed is None and raw.strip() else parsed
-
-
 def config_from_env(environ) -> dict:
-    """Collect config keys from DISCORD_BOT_* variables and the bare aliases."""
+    """Pull config keys out of DISCORD_BOT_* variables and the bare aliases."""
+    def value(key, raw):
+        if key in VERBATIM_KEYS:
+            return raw
+        try:
+            parsed = yaml.safe_load(raw)
+        except yaml.YAMLError:
+            return raw
+        # YAML reads a bare '!' as empty; keep the original so prefixes survive.
+        return raw if parsed is None and raw.strip() else parsed
+
     found = {}
     for name, raw in environ.items():
-        if name.startswith(ENV_PREFIX):
-            key = name[len(ENV_PREFIX):]
-            if key:
-                found[key] = parse_env_value(key, raw)
-    # Bare aliases lose to the prefixed form, which is unambiguous.
+        key = name[len(ENV_PREFIX):] if name.startswith(ENV_PREFIX) else None
+        if key:
+            found[key] = value(key, raw)
     for name in ENV_ALIASES:
         if name in environ and name not in found:
-            found[name] = parse_env_value(name, environ[name])
+            found[name] = value(name, environ[name])
     return found
 
 
 def load_config() -> dict:
-    """Build config from config.yaml and the environment.
+    """Read config.yaml, then let the environment override it.
 
-    Either source alone is enough. Environment variables win over the file, so a
-    container can supply DISCORD_TOKEN from a secret without shipping a config file,
-    while local runs keep using config.yaml.
+    Either source alone is enough, so a container can supply the token from a
+    secret with no config file while local runs keep using config.yaml.
     """
-    config_path = Path(__file__).parent / "config.yaml"
     config = {}
-
-    if config_path.is_file():
+    if CONFIG_FILE.is_file():
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                config = yaml.safe_load(f) or {}
+            config = yaml.safe_load(CONFIG_FILE.read_text(encoding='utf-8')) or {}
         except yaml.YAMLError as err:
-            sys.exit(f"Could not parse {config_path.name}: {err}\n")
+            sys.exit(f"Could not parse {CONFIG_FILE.name}: {err}\n")
         if not isinstance(config, dict):
-            sys.exit(f"{config_path.name} must contain a mapping of keys to values.\n")
+            sys.exit(f"{CONFIG_FILE.name} must contain a mapping of keys to values.\n")
 
     config.update(config_from_env(os.environ))
+    config.setdefault('PRIMARY_ACCOUNT_PREFIX', DEFAULT_PREFIX)
 
-    config.setdefault("PRIMARY_ACCOUNT_PREFIX", DEFAULT_PREFIX)
-
-    missing = sorted(k for k in REQUIRED_CONFIG_KEYS if not config.get(k))
+    missing = [k for k in REQUIRED_KEYS if not config.get(k)]
     if missing:
-        sys.exit(
-            "Missing required config: " + ", ".join(missing) + "\n"
-            f"Set them as {ENV_PREFIX}* environment variables, or copy "
-            "config.example.yaml to config.yaml and fill them in.\n"
-        )
+        sys.exit(f"Missing required config: {', '.join(missing)}\n"
+                 f"Set them as {ENV_PREFIX}* environment variables, or copy "
+                 "config.example.yaml to config.yaml and fill them in.\n")
     return config
 
 
 def setup_logging():
-    """Set up rotating file logger for Discord bot."""
+    """Log to stdout, and to a rotating file unless LOG_FILE is empty."""
     logger = logging.getLogger('discord')
+    # discord.py installs a NullHandler on import; that doesn't count as configured.
     if any(not isinstance(h, logging.NullHandler) for h in logger.handlers):
         return
     logger.setLevel(logging.INFO)
-    dt_fmt = '%Y-%m-%d %H:%M:%S'
     formatter = logging.Formatter(
-        '[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+        '[{asctime}] [{levelname:<8}] {name}: {message}', '%Y-%m-%d %H:%M:%S', style='{')
 
-    # LOG_FILE='' disables file logging (containers log to stdout, and the root
-    # filesystem may be read-only). Any other value is used as the path.
+    def add(handler):
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+    # Containers log to stdout and may have a read-only filesystem.
     log_file = os.environ.get('LOG_FILE', str(Path(__file__).parent / 'discord.log'))
     if log_file:
         try:
-            file_handler = logging.handlers.RotatingFileHandler(
-                filename=log_file,
-                encoding='utf-8',
-                maxBytes=32 * 1024 * 1024,  # 32 MiB
-                backupCount=5,
-            )
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
+            add(logging.handlers.RotatingFileHandler(
+                log_file, encoding='utf-8', maxBytes=32 * 1024 * 1024, backupCount=5))
         except OSError as err:
             print(f'File logging disabled ({log_file}): {err}', file=sys.stderr)
 
-    if hasattr(sys.stdout, 'reconfigure'):
+    if hasattr(sys.stdout, 'reconfigure'):  # Windows consoles default to cp1252
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
+    add(logging.StreamHandler(sys.stdout))
 
 
 class DiscordBot(commands.Bot):
@@ -145,33 +118,29 @@ class DiscordBot(commands.Bot):
         await self.load_extensions()
 
     async def load_extensions(self) -> None:
-        """Load all bot modules/extensions from specified directories."""
-        for dir_ in EXTENSION_DIRS:
-            log.info('Attempting to load all extensions in %s directory ...', dir_.upper())
+        """Load every module under modules/<dir>, skipping the exclusion list."""
+        loaded, failed = [], []
 
+        for dir_ in EXTENSION_DIRS:
             dir_path = Path(__file__).parent / 'modules' / dir_
             if not dir_path.is_dir():
-                log.warning('Directory %s does not exist.', dir_path)
                 continue
 
-            for filename in sorted(dir_path.iterdir()):
-                if filename.suffix != '.py' or filename.stem in EXTENSION_EXCLUSIONS:
+            for file in sorted(dir_path.glob('*.py')):
+                if file.stem in EXTENSION_EXCLUSIONS:
                     continue
                 try:
-                    await self.load_extension(f'modules.{dir_}.{filename.stem}')
-                    log.info('Successfully loaded extension: %s', filename.stem)
-                except commands.ExtensionAlreadyLoaded:
-                    log.warning('Extension already loaded: %s', filename.stem)
-                except commands.ExtensionNotFound:
-                    log.error('Extension not found: %s', filename.stem)
-                except commands.NoEntryPointError:
-                    log.error('Extension missing setup(): %s', filename.stem)
-                except commands.ExtensionFailed as err:
-                    log.error('Extension failed to load: %s — %s: %s',
-                              filename.stem, type(err.original).__name__, err.original)
+                    await self.load_extension(f'modules.{dir_}.{file.stem}')
+                    loaded.append(file.stem)
+                except commands.ExtensionError as err:
+                    cause = getattr(err, 'original', err)
+                    failed.append(file.stem)
+                    log.error('Could not load %s: %s: %s',
+                              file.stem, type(cause).__name__, cause)
 
-        if EXTENSION_EXCLUSIONS:
-            log.info('Excluded extensions: %s', ', '.join(EXTENSION_EXCLUSIONS))
+        log.info('Loaded %s extension(s): %s', len(loaded), ', '.join(loaded) or 'none')
+        if failed:
+            log.warning('Failed to load: %s', ', '.join(failed))
 
 
 async def main():

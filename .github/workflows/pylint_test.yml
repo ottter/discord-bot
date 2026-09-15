@@ -26,6 +26,9 @@ jobs:
       run: |
         python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
 
+    - name: Verify every extension loads
+      run: python scripts/check_extensions.py
+
     - name: Prepare Pull Request Payload artifact
       id: prepare-artifact
       if: always() && github.event_name == 'pull_request'
