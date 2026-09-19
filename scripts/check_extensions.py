@@ -1,9 +1,7 @@
-"""Verify every extension loads and registers. Needs no token or network.
+"""Check that every extension loads. No token needed — setup_hook() is all local.
 
-setup_hook() does all the local work — importing cogs and building the command
-tree — while bot.start() is the only part that authenticates, so CI can run this
-without credentials. main.load_extensions logs failures rather than raising, so
-this asserts on the result instead of relying on an exception.
+load_extensions logs a bad cog and moves on, so check what registered rather than
+waiting for an exception.
 """
 import asyncio
 import sys
@@ -18,7 +16,7 @@ from main import (  # pylint: disable=wrong-import-position
 
 
 def expected_extensions() -> set:
-    """Every module main.load_extensions should have picked up."""
+    """The modules load_extensions should have found."""
     modules = Path(__file__).resolve().parent.parent / 'modules'
     return {
         f.stem
@@ -30,7 +28,7 @@ def expected_extensions() -> set:
 
 
 async def main() -> None:
-    """Load everything, then report what did and did not register."""
+    """Load everything, then report what made it."""
     print('discord.py', discord.__version__)
     bot = DiscordBot(command_prefix=',', intents=discord.Intents.default(),
                      help_command=None)

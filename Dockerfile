@@ -10,7 +10,7 @@ RUN useradd --create-home --no-log-init appuser
 
 WORKDIR /app
 
-# Dependencies first so code edits don't invalidate the install layer
+# Dependencies first, so editing code doesn't rebuild the install layer
 COPY --chown=appuser:appuser requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

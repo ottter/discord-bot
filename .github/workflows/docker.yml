@@ -1,7 +1,7 @@
 name: Docker
 
-# Pull requests build only, to catch a broken Dockerfile before it merges.
-# Pushing to main or tagging a release also publishes to GHCR.
+# PRs build only, so a broken Dockerfile fails before it merges.
+# Pushes to main and version tags also publish to GHCR.
 on:
   push:
     branches:
@@ -25,15 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write          # needed only for the push on main/tags
+      packages: write          # only used by the push on main/tags
       attestations: write      # records what built the image
-      id-token: write          # OIDC, so no PAT is stored anywhere
+      id-token: write          # OIDC instead of a stored PAT
     steps:
       - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@v4
 
-      # No credentials on pull requests: those builds never push.
+      # PRs never push, so they get no credentials.
       - name: Log in to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v4
@@ -42,8 +42,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # :latest follows main, :v1.2.3 and :1.2 come from tags, and every build
-      # gets an immutable :sha- tag so a deployment can pin and roll back.
+      # latest follows main, semver comes from tags, and every build gets an
+      # immutable sha- tag worth pinning to if you want to roll back.
       - name: Work out tags
         id: meta
         uses: docker/metadata-action@v6

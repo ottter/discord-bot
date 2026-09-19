@@ -1,11 +1,8 @@
-# Configuration settings — copy this to config.yaml and fill in your values.
-# config.yaml is gitignored; never commit real tokens.
+# Copy to config.yaml and fill in. config.yaml is gitignored — never commit a real token.
 #
-# Any key here can also be set as a DISCORD_BOT_* environment variable, which
-# takes precedence over this file: DISCORD_BOT_PRIMARY_ACCOUNT_PREFIX sets
-# PRIMARY_ACCOUNT_PREFIX. That works for new settings too, without code changes.
-# DISCORD_TOKEN is also accepted bare, for secrets injected by name.
-# With the token in the environment, no config.yaml is needed at all.
+# Any key here can also be set as a DISCORD_BOT_* environment variable, which wins over
+# this file: DISCORD_BOT_PRIMARY_ACCOUNT_PREFIX sets PRIMARY_ACCOUNT_PREFIX. DISCORD_TOKEN
+# is accepted bare too, so with it set in the environment you don't need this file at all.
 
 DISCORD_TOKEN: "YOUR_BOT_TOKEN_HERE"
 

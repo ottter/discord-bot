@@ -1,4 +1,4 @@
-"""Startup banner and one-time slash command sync."""
+"""Logs the startup banner and syncs slash commands once."""
 import logging
 
 import discord
@@ -8,7 +8,7 @@ log = logging.getLogger('discord.bot')
 
 
 class OnReadyListen(commands.Cog):
-    """Reports connection details once the gateway is ready."""
+    """Handles what happens once the gateway connects."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -16,14 +16,14 @@ class OnReadyListen(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        """Fires on every connect, including reconnects."""
+        """Also fires on reconnects, not just startup."""
         guilds = self.bot.guilds
         log.info('Online as %s (%s) | prefix %s | %.0f ms | %s guild(s): %s',
                  self.bot.user, self.bot.user.id, self.bot.command_prefix,
                  self.bot.latency * 1000, len(guilds),
                  ', '.join(g.name for g in guilds) or 'none')
 
-        # Syncing is rate limited, so only do it on the first connect.
+        # Syncing is rate limited; once per process is enough.
         if self.synced:
             return
         try:
