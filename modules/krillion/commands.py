@@ -7,7 +7,6 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 from modules.krillion.parser import GAME_TZ, date_for_day, today_day_number
-from modules.krillion.storage import KrillionDB
 
 log = logging.getLogger('discord.bot')
 
@@ -40,9 +39,9 @@ class KrillionBoard(commands.Cog):
     group = app_commands.Group(name='krillion', description='Krillion daily dive scores',
                                guild_only=True)
 
-    def __init__(self, bot):
+    def __init__(self, bot, db):
         self.bot = bot
-        self.db = KrillionDB(bot.config.get('KRILLION_DB'))
+        self.db = db
         self.post_results.start()
 
     async def cog_unload(self):
