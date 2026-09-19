@@ -1,6 +1,6 @@
 version: 2
 
-# discord.py is pinned exactly, so without this it goes stale silently.
+# discord.py is pinned, so without this it goes stale without telling us.
 updates:
   - package-ecosystem: pip
     directory: /

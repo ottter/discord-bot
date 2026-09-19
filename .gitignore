@@ -189,3 +189,8 @@ fabric.properties
 # modules.xml
 # .idea/misc.xml 
 # *.ipr 
+# Bot data (SQLite scores etc) - never commit
+data/*
+!data/.gitkeep
+*.db
+*.sqlite3

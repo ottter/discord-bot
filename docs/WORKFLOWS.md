@@ -1,37 +1,34 @@
 # Workflows
 
-What runs in GitHub Actions, and why it's there.
+What runs in GitHub Actions, and why.
 
 ## Pylint & Test
 
-`.github/workflows/pylint_test.yml` — runs on every push to main and every PR.
+`.github/workflows/pylint_test.yml` — every push to main and every PR, on Python 3.11,
+3.12 and 3.13.
 
-Two checks, across Python 3.11, 3.12 and 3.13:
-
-**Pylint** scores the code against `.pylintrc`. The job fails below `fail-under=8.0`,
-so a stray warning won't block a merge but a real mess will. To run it yourself:
+**Pylint** scores against `.pylintrc` and fails below 8.0, so a stray warning won't
+block a merge but a real mess will:
 
     python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
 
-**Extension check** (`scripts/check_extensions.py`) builds the bot, runs its
-`setup_hook()`, and fails if any cog didn't load. Pylint only reads the code — this
-actually imports every module and registers the slash commands, so it catches import
-errors, bad decorators, duplicate command names, and discord.py breaking changes on an
-upgrade.
-
-It needs no token. `setup_hook()` does all the local work; `bot.start()` is the only
-part that logs in, and this never calls it. That also means it can't test anything
-requiring a live connection — permissions, or whether a command actually replies.
-
-Worth knowing: `main.load_extensions` logs a failed cog and keeps going, so the bot
-still starts with a broken module and just quietly drops its commands. The script
-asserts that every file it expected actually loaded, rather than trusting the exit code.
+**Extension check** imports every cog and registers the slash commands, which pylint
+can't do by reading the code. It catches import errors, bad decorators, duplicate
+command names, and discord.py breaking on an upgrade:
 
     python scripts/check_extensions.py
 
+No token needed — `setup_hook()` is all local, and `bot.start()` is the only part that
+logs in. So it can't test anything needing a live connection, like permissions or
+whether a command actually replies.
+
+It checks what registered rather than watching for a crash, because `load_extensions`
+logs a broken cog and keeps going — the bot starts fine and just quietly drops those
+commands.
+
 ## Docker
 
-`.github/workflows/docker.yml` — builds the image, and publishes it when appropriate.
+`.github/workflows/docker.yml` — builds the image, publishes it when it should.
 
 | Trigger | Builds | Pushes |
 | --- | --- | --- |
@@ -39,34 +36,29 @@ asserts that every file it expected actually loaded, rather than trusting the ex
 | Push to main | yes | `latest`, `sha-<commit>` |
 | Tag `v1.2.3` | yes | `1.2.3`, `1.2`, `sha-<commit>` |
 
-Pull requests build without logging in, so a broken Dockerfile gets caught before it
-merges and no credentials exist in that run. PRs only trigger it when something that
-affects the image changes — the Dockerfile, requirements, or the bot source.
+PRs build without logging in, so a broken Dockerfile fails before it merges and no
+credentials exist in that run. They only trigger on changes that affect the image.
 
-There's no PAT to manage. It authenticates with the `GITHUB_TOKEN` that Actions issues
-per run, which is why the job asks for `packages: write`. It also attaches build
-provenance, so an image can be traced back to the commit and run that produced it.
+No PAT to manage: it uses the `GITHUB_TOKEN` Actions issues per run, which is what the
+`packages: write` permission is for. Builds also get provenance attestation, so an image
+traces back to the commit that produced it.
 
-Every build gets an immutable `sha-<commit>` tag. That's the one to pin to in a
-deployment if you want to be able to roll back — `latest` moves under you.
+Pin deployments to `sha-<commit>` if you want to roll back. `latest` moves under you.
 
-To cut a release:
+To release:
 
     git tag v1.2.3 && git push origin v1.2.3
 
 ## CodeQL
 
-`.github/workflows/codeql_analysis.yml` — GitHub's static analysis for security bugs.
-Runs on pushes to main, on PRs, and on a schedule (Thursdays, 00:38 UTC) so newly
-published vulnerability patterns get applied to code that hasn't changed.
-
-Results land in the repo's Security tab.
+`.github/workflows/codeql_analysis.yml` — GitHub's security scanner. Pushes to main,
+PRs, and Thursdays at 00:38 UTC, so new vulnerability patterns reach code that hasn't
+changed. Results show up under the Security tab.
 
 ## Dependabot
 
 `.github/dependabot.yml` — not a workflow, but it opens PRs like one.
 
-Weekly checks for pip packages, GitHub Actions, and the Docker base image. `discord.py`
-is pinned exactly, which is the right call for reproducible deploys but means it goes
-stale silently — this is what surfaces a new release. Those PRs run through the checks
-above like any other, so an update that breaks a cog fails before you merge it.
+Weekly checks on pip packages, Actions, and the Docker base image. Pinning `discord.py`
+is right for reproducible deploys but hides new releases; this surfaces them. The PRs
+run the checks above, so an update that breaks a cog fails before you merge it.
