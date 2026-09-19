@@ -17,6 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --chown=appuser:appuser main.py ./
 COPY --chown=appuser:appuser modules ./modules
 
+# Default location for the Krillion database. Mount a volume here to keep
+# scores across restarts; without one they last as long as the container.
+RUN mkdir -p /app/data && chown appuser:appuser /app/data
+VOLUME ["/app/data"]
+
 USER appuser
 
 CMD ["python3", "main.py"]

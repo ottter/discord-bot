@@ -39,6 +39,10 @@ the file is optional — with the token set, the bot runs without one.
 | `DISCORD_TOKEN` | — | **Required. Secret.** From the Discord Developer Portal. |
 | `DISCORD_BOT_PRIMARY_ACCOUNT_PREFIX` | `,` | Prefix for text commands. |
 | `LOG_FILE` | `discord.log` | Set to `""` to log only to stdout. The image does this. |
+| `LOG_LEVEL` | `INFO` | Set to `DEBUG` for verbose bot logging while testing. |
+| `DISCORD_BOT_KRILLION_DB` | `data/krillion.db` | SQLite file for Krillion scores. Mount a volume here to keep them across restarts. |
+| `DISCORD_BOT_KRILLION_SUBMIT_CHANNEL` | unset | Channel id where scores count. Unset means any channel. |
+| `DISCORD_BOT_KRILLION_COOLDOWN` | `60` | Seconds between stored scores, per user. |
 
 Any `DISCORD_BOT_*` variable becomes a config key with the prefix stripped, so
 `DISCORD_BOT_WELCOME_CHANNEL` sets `WELCOME_CHANNEL`. Settings added later work the same
@@ -104,6 +108,64 @@ Actions does this on every push to main, and on `v*` tags — see
     docker logs -f discord-bot          # Stream logs
     docker exec -it discord-bot sh      # Shell into running container (no bash in slim)
     docker ps                           # Check container status
+
+-----------------------
+
+## Layout
+
+    main.py                  entry point: config, logging, startup
+    modules/
+      base/                  small always-on cogs (on_ready, test commands)
+      krillion/              the Krillion feature, loaded as one extension
+        parser.py            share text -> day, score, tiles
+        storage.py           SQLite
+        listener.py          reads pasted shares
+        commands.py          slash commands and the daily post
+
+Anything under `modules/` loads automatically. A directory with an `__init__.py` loads
+as a single extension, so a feature can spread across files and register from one
+`setup()`; loose `.py` files in a subdirectory each load on their own.
+
+-----------------------
+
+## Krillion
+
+Paste a [krillion.io](https://krillion.io) daily share into any channel and the bot
+records it:
+
+    Krillion #66 🦐
+    300
+
+    🦑🐟🐟🐟🦑🦑🐟
+
+It reacts ✅ when a score is saved and ❌ with a reason when it won't count.
+Re-submitting the same day quietly replaces your previous score.
+
+Shares are read in every channel. Set `DISCORD_BOT_KRILLION_SUBMIT_CHANNEL` to a channel
+id to make scores count only there — pasting elsewhere gets a reply pointing at the right
+channel.
+
+Only the current day counts — archive (⟲) and unlimited (∞) runs are rejected, as are
+yesterday's shares after the midnight Eastern reset.
+
+Each person can store one score a minute; the limit is per user, so everyone posting at
+once is fine. Anything past that is ignored without comment. A rejected paste doesn't
+count against the limit, so fixing a bad one is free.
+
+Leaderboards are per server, with ties broken by who submitted first.
+
+| Command | |
+| --- | --- |
+| `/krillion today` | Standings so far today |
+| `/krillion results [day]` | Render a day's results on demand |
+| `/krillion stats [member]` | Dives, average, best, streak |
+| `/krillion channel [#channel]` | Where daily results post. Needs Manage Server |
+| `/krillion reset confirm:True [day]` | Delete this server's scores. Needs Manage Server |
+
+Results post automatically just after the daily reset, but only once a server runs
+`/krillion channel` — there is no default channel, so nothing posts until you set one.
+Scores live in a SQLite file — see `DISCORD_BOT_KRILLION_DB` above. To start over,
+delete that file and restart, or use `/krillion reset`.
 
 -----------------------
 

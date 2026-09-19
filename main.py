@@ -25,10 +25,35 @@ ENV_ALIASES = ('DISCORD_TOKEN',)   # also read bare, for injected secrets
 # '!' and 'no' are valid YAML that parses to something else entirely.
 VERBATIM_KEYS = frozenset({'DISCORD_TOKEN', 'PRIMARY_ACCOUNT_PREFIX', 'DEV_ACCOUNT_PREFIX'})
 
-EXTENSION_DIRS = ('commands', 'listeners', 'slashes')
 EXTENSION_EXCLUSIONS = ('help',)
 
 log = logging.getLogger('discord.bot')
+
+
+def find_extensions() -> list:
+    """Every loadable extension under modules/, as dotted import paths.
+
+    A package (directory with __init__.py) loads as one extension, so a feature
+    can split itself across files and still register from one setup(). Loose
+    .py files in a subdirectory each load on their own.
+    """
+    root = Path(__file__).parent / 'modules'
+    found = []
+
+    for path in sorted(root.iterdir()):
+        if path.name.startswith(('_', '.')) or path.stem in EXTENSION_EXCLUSIONS:
+            continue
+
+        if path.is_dir():
+            if (path / '__init__.py').is_file():
+                found.append(f'modules.{path.name}')
+                continue
+            found += [f'modules.{path.name}.{file.stem}'
+                      for file in sorted(path.glob('*.py'))
+                      if not file.stem.startswith('_')
+                      and file.stem not in EXTENSION_EXCLUSIONS]
+
+    return found
 
 
 def config_from_env(environ) -> dict:
@@ -86,6 +111,13 @@ def setup_logging():
     if any(not isinstance(h, logging.NullHandler) for h in logger.handlers):
         return
     logger.setLevel(logging.INFO)
+    # LOG_LEVEL only turns up our own logging; discord.py at DEBUG dumps every
+    # HTTP payload. A typo shouldn't stop the bot booting, so fall back to INFO.
+    level = os.environ.get('LOG_LEVEL', '').upper() or 'INFO'
+    try:
+        logging.getLogger('discord.bot').setLevel(level)
+    except ValueError:
+        print(f'Unknown LOG_LEVEL {level!r}, using INFO', file=sys.stderr)
     formatter = logging.Formatter(
         '[{asctime}] [{levelname:<8}] {name}: {message}', '%Y-%m-%d %H:%M:%S', style='{')
 
@@ -110,30 +142,28 @@ def setup_logging():
 class DiscordBot(commands.Bot):
     """Loads extensions in setup_hook, the way discord.py 2.x wants it."""
 
+    def __init__(self, *args, config=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Cogs read their settings off this rather than the environment.
+        self.config = config or {}
+
     async def setup_hook(self) -> None:
         """Runs after login, before the gateway connects."""
         await self.load_extensions()
 
     async def load_extensions(self) -> None:
-        """Load every module under modules/, minus the exclusions."""
+        """Load every extension under modules/, minus the exclusions."""
         loaded, failed = [], []
 
-        for dir_ in EXTENSION_DIRS:
-            dir_path = Path(__file__).parent / 'modules' / dir_
-            if not dir_path.is_dir():
-                continue
-
-            for file in sorted(dir_path.glob('*.py')):
-                if file.stem in EXTENSION_EXCLUSIONS:
-                    continue
-                try:
-                    await self.load_extension(f'modules.{dir_}.{file.stem}')
-                    loaded.append(file.stem)
-                except commands.ExtensionError as err:
-                    cause = getattr(err, 'original', err)
-                    failed.append(file.stem)
-                    log.error('Could not load %s: %s: %s',
-                              file.stem, type(cause).__name__, cause)
+        for name in find_extensions():
+            try:
+                await self.load_extension(name)
+                loaded.append(name.rsplit('.', 1)[-1])
+            except commands.ExtensionError as err:
+                cause = getattr(err, 'original', err)
+                failed.append(name.rsplit('.', 1)[-1])
+                log.error('Could not load %s: %s: %s',
+                          name, type(cause).__name__, cause)
 
         log.info('Loaded %s extension(s): %s', len(loaded), ', '.join(loaded) or 'none')
         if failed:
@@ -153,7 +183,8 @@ async def main():
     intents.message_content = True
 
     # The context manager closes the HTTP session and gateway on the way out.
-    async with DiscordBot(command_prefix=prefix, intents=intents, help_command=None) as bot:
+    async with DiscordBot(command_prefix=prefix, intents=intents, help_command=None,
+                          config=config) as bot:
         log.info('Starting up ...')
         try:
             await bot.start(token)
