@@ -1,6 +1,6 @@
 discord.py==2.7.1
-pyyaml>=6.0.2
-tzdata>=2026.4        # zoneinfo data, needed on Windows/slim images
+pyyaml>=6.0.3
+tzdata>=2026.4
 # pylint>=3.2.7
 # nltk>=3.9.1
 # pytz>=2024.2
