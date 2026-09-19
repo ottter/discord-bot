@@ -8,7 +8,6 @@ import discord
 from discord.ext import commands
 
 from modules.krillion.parser import GAME_TZ, ParseError, parse_share, today_day_number
-from modules.krillion.storage import KrillionDB
 
 log = logging.getLogger('discord.bot')
 
@@ -24,9 +23,9 @@ SUBMIT_PER = 60.0
 class KrillionSubmit(commands.Cog):
     """Accepts share text posted in chat, no command needed."""
 
-    def __init__(self, bot):
+    def __init__(self, bot, db):
         self.bot = bot
-        self.db = KrillionDB(bot.config.get('KRILLION_DB'))
+        self.db = db
         # Scores only count in this channel. Unset means anywhere.
         channel = (bot.config.get('KRILLION_SUBMIT_CHANNEL')
                    or os.environ.get('DISCORD_BOT_KRILLION_SUBMIT_CHANNEL'))

@@ -162,6 +162,9 @@ Leaderboards are per server, with ties broken by who submitted first.
 | `/krillion channel [#channel]` | Where daily results post. Needs Manage Server |
 | `/krillion reset confirm:True [day]` | Delete this server's scores. Needs Manage Server |
 
+Running in Kubernetes? See [docs/kubernetes.md](docs/kubernetes.md) for the volume the
+database needs.
+
 Results post automatically just after the daily reset, but only once a server runs
 `/krillion channel` — there is no default channel, so nothing posts until you set one.
 Scores live in a SQLite file — see `DISCORD_BOT_KRILLION_DB` above. To start over,
