@@ -1,7 +1,7 @@
 """
 Remastered version of my original Discord bot, which I used to "learn" Python
-This is the main setup file that is used to run the entire bot
-Reference ./README.md for instructions and useful information
+Entry point: loads config, sets up logging, and starts the bot
+See ./README.md for setup and configuration
 """
 import asyncio
 import logging
@@ -18,23 +18,46 @@ CONFIG_FILE = Path(__file__).parent / 'config.yaml'
 REQUIRED_KEYS = ('DISCORD_TOKEN', 'PRIMARY_ACCOUNT_PREFIX')
 DEFAULT_PREFIX = ','
 
-# DISCORD_BOT_WELCOME_CHANNEL sets WELCOME_CHANNEL, so new settings work without
-# touching this file. DISCORD_TOKEN is also read bare, for injected secrets.
+# DISCORD_BOT_WELCOME_CHANNEL sets WELCOME_CHANNEL, so new settings need no code.
 ENV_PREFIX = 'DISCORD_BOT_'
-ENV_ALIASES = ('DISCORD_TOKEN',)
+ENV_ALIASES = ('DISCORD_TOKEN',)   # also read bare, for injected secrets
 
-# Tokens and prefixes are opaque strings: '!' and 'no' are valid YAML that would
-# parse to something other than themselves.
+# '!' and 'no' are valid YAML that parses to something else entirely.
 VERBATIM_KEYS = frozenset({'DISCORD_TOKEN', 'PRIMARY_ACCOUNT_PREFIX', 'DEV_ACCOUNT_PREFIX'})
 
-EXTENSION_DIRS = ('commands', 'listeners', 'slashes')
 EXTENSION_EXCLUSIONS = ('help',)
 
 log = logging.getLogger('discord.bot')
 
 
+def find_extensions() -> list:
+    """Every loadable extension under modules/, as dotted import paths.
+
+    A package (directory with __init__.py) loads as one extension, so a feature
+    can split itself across files and still register from one setup(). Loose
+    .py files in a subdirectory each load on their own.
+    """
+    root = Path(__file__).parent / 'modules'
+    found = []
+
+    for path in sorted(root.iterdir()):
+        if path.name.startswith(('_', '.')) or path.stem in EXTENSION_EXCLUSIONS:
+            continue
+
+        if path.is_dir():
+            if (path / '__init__.py').is_file():
+                found.append(f'modules.{path.name}')
+                continue
+            found += [f'modules.{path.name}.{file.stem}'
+                      for file in sorted(path.glob('*.py'))
+                      if not file.stem.startswith('_')
+                      and file.stem not in EXTENSION_EXCLUSIONS]
+
+    return found
+
+
 def config_from_env(environ) -> dict:
-    """Pull config keys out of DISCORD_BOT_* variables and the bare aliases."""
+    """Pull config out of DISCORD_BOT_* variables and the bare aliases."""
     def value(key, raw):
         if key in VERBATIM_KEYS:
             return raw
@@ -42,7 +65,7 @@ def config_from_env(environ) -> dict:
             parsed = yaml.safe_load(raw)
         except yaml.YAMLError:
             return raw
-        # YAML reads a bare '!' as empty; keep the original so prefixes survive.
+        # YAML reads a bare '!' as empty, so keep the original.
         return raw if parsed is None and raw.strip() else parsed
 
     found = {}
@@ -59,8 +82,7 @@ def config_from_env(environ) -> dict:
 def load_config() -> dict:
     """Read config.yaml, then let the environment override it.
 
-    Either source alone is enough, so a container can supply the token from a
-    secret with no config file while local runs keep using config.yaml.
+    Either source alone works, so a container can run on env vars with no file.
     """
     config = {}
     if CONFIG_FILE.is_file():
@@ -85,10 +107,17 @@ def load_config() -> dict:
 def setup_logging():
     """Log to stdout, and to a rotating file unless LOG_FILE is empty."""
     logger = logging.getLogger('discord')
-    # discord.py installs a NullHandler on import; that doesn't count as configured.
+    # discord.py adds a NullHandler on import, which doesn't count.
     if any(not isinstance(h, logging.NullHandler) for h in logger.handlers):
         return
     logger.setLevel(logging.INFO)
+    # LOG_LEVEL only turns up our own logging; discord.py at DEBUG dumps every
+    # HTTP payload. A typo shouldn't stop the bot booting, so fall back to INFO.
+    level = os.environ.get('LOG_LEVEL', '').upper() or 'INFO'
+    try:
+        logging.getLogger('discord.bot').setLevel(level)
+    except ValueError:
+        print(f'Unknown LOG_LEVEL {level!r}, using INFO', file=sys.stderr)
     formatter = logging.Formatter(
         '[{asctime}] [{levelname:<8}] {name}: {message}', '%Y-%m-%d %H:%M:%S', style='{')
 
@@ -111,32 +140,30 @@ def setup_logging():
 
 
 class DiscordBot(commands.Bot):
-    """Bot subclass so extensions load in setup_hook, as discord.py 2.x expects."""
+    """Loads extensions in setup_hook, the way discord.py 2.x wants it."""
+
+    def __init__(self, *args, config=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Cogs read their settings off this rather than the environment.
+        self.config = config or {}
 
     async def setup_hook(self) -> None:
-        """Runs after login but before the gateway connects."""
+        """Runs after login, before the gateway connects."""
         await self.load_extensions()
 
     async def load_extensions(self) -> None:
-        """Load every module under modules/<dir>, skipping the exclusion list."""
+        """Load every extension under modules/, minus the exclusions."""
         loaded, failed = [], []
 
-        for dir_ in EXTENSION_DIRS:
-            dir_path = Path(__file__).parent / 'modules' / dir_
-            if not dir_path.is_dir():
-                continue
-
-            for file in sorted(dir_path.glob('*.py')):
-                if file.stem in EXTENSION_EXCLUSIONS:
-                    continue
-                try:
-                    await self.load_extension(f'modules.{dir_}.{file.stem}')
-                    loaded.append(file.stem)
-                except commands.ExtensionError as err:
-                    cause = getattr(err, 'original', err)
-                    failed.append(file.stem)
-                    log.error('Could not load %s: %s: %s',
-                              file.stem, type(cause).__name__, cause)
+        for name in find_extensions():
+            try:
+                await self.load_extension(name)
+                loaded.append(name.rsplit('.', 1)[-1])
+            except commands.ExtensionError as err:
+                cause = getattr(err, 'original', err)
+                failed.append(name.rsplit('.', 1)[-1])
+                log.error('Could not load %s: %s: %s',
+                          name, type(cause).__name__, cause)
 
         log.info('Loaded %s extension(s): %s', len(loaded), ', '.join(loaded) or 'none')
         if failed:
@@ -144,7 +171,7 @@ class DiscordBot(commands.Bot):
 
 
 async def main():
-    """Configure logging, build the bot, and run it until disconnect."""
+    """Set up logging, build the bot, run until it disconnects."""
     setup_logging()
 
     config = load_config()
@@ -155,18 +182,17 @@ async def main():
     intents.members = True
     intents.message_content = True
 
-    log.info('Initializing startup sequence ...')
-
-    # Async context manager closes the HTTP session and gateway cleanly on exit
-    async with DiscordBot(command_prefix=prefix, intents=intents, help_command=None) as bot:
-        log.info('Attempting to log in to bot ...')
+    # The context manager closes the HTTP session and gateway on the way out.
+    async with DiscordBot(command_prefix=prefix, intents=intents, help_command=None,
+                          config=config) as bot:
+        log.info('Starting up ...')
         try:
             await bot.start(token)
         except discord.LoginFailure as error:
             log.critical('Discord login failed: %s', error)
             sys.exit("Login Unsuccessful\n")
         except discord.PrivilegedIntentsRequired as error:
-            log.critical('Privileged intents are not enabled in the Developer Portal: %s', error)
+            log.critical('Privileged intents are off in the Developer Portal: %s', error)
             sys.exit("Enable the Members and Message Content intents for this bot\n")
 
 
@@ -174,4 +200,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        log.info('Shutdown requested — exiting.')
+        log.info('Shutting down.')
