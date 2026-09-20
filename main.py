@@ -93,8 +93,16 @@ def load_config() -> dict:
         if not isinstance(config, dict):
             sys.exit(f"{CONFIG_FILE.name} must contain a mapping of keys to values.\n")
 
-    config.update(config_from_env(os.environ))
+    from_env = config_from_env(os.environ)
+    config.update(from_env)
     config.setdefault('PRIMARY_ACCOUNT_PREFIX', DEFAULT_PREFIX)
+
+    sources = []
+    if CONFIG_FILE.is_file():
+        sources.append(CONFIG_FILE.name)
+    if from_env:
+        sources.append(f'{len(from_env)} environment variable(s)')
+    log.info('Config loaded from %s', ' and '.join(sources) or 'nothing')
 
     missing = [k for k in REQUIRED_KEYS if not config.get(k)]
     if missing:
@@ -185,7 +193,7 @@ async def main():
     # The context manager closes the HTTP session and gateway on the way out.
     async with DiscordBot(command_prefix=prefix, intents=intents, help_command=None,
                           config=config) as bot:
-        log.info('Starting up ...')
+        log.info('Starting up version %s ...', os.environ.get('BOT_VERSION') or 'dev')
         try:
             await bot.start(token)
         except discord.LoginFailure as error:

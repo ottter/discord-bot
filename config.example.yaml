@@ -5,5 +5,5 @@
 # is accepted bare too, so with it set in the environment you don't need this file at all.
 
 DISCORD_TOKEN: "YOUR_BOT_TOKEN_HERE"
-
 PRIMARY_ACCOUNT_PREFIX: ','
+LOG_LEVEL: INFO

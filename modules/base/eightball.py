@@ -19,12 +19,15 @@ EIGHTBALL_RESPONSES = [
 
 
 class EightBallSlash(commands.Cog):
+    """The magic 8ball, answering whatever it is asked."""
+
     def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(name="8ball", description="Ask the magic 8ball anything")
     @app_commands.describe(question="The question you want to ask")
     async def eightball(self, interaction: discord.Interaction, question: str):
+        """Echoes the question back with one of the twenty stock answers."""
         log.info('%s used /8ball', interaction.user)
         response = f"Question: {question}\n🎱 {random.choice(EIGHTBALL_RESPONSES)} 🎱"
         await interaction.response.send_message(response)

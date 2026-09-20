@@ -12,22 +12,35 @@ log = logging.getLogger('discord.bot')
 
 MEDALS = ('🥇', '🥈', '🥉')
 BOARD_LIMIT = 25
+GAME_URL = 'https://krillion.io'
 
 
 def format_board(rows, guild, day, title=None) -> discord.Embed:
     """Render one day's scores. Ties keep their order: earliest submission first."""
-    lines = []
+    podium, rest = [], []
     for position, row in enumerate(rows[:BOARD_LIMIT]):
+        # Someone who left the server is no longer a member, so fall back to a
+        # mention, which Discord resolves to their name on its own.
         member = guild.get_member(row['user_id'])
-        # Nicknames are user-controlled; markdown in one would render here.
         name = (discord.utils.escape_markdown(member.display_name[:32])
-                if member else f'user {row["user_id"]}')
-        rank = MEDALS[position] if position < len(MEDALS) else f'`{position + 1}.`'
-        lines.append(f"{rank} **{name}** — {row['score']}\n{row['emoji']}")
+                if member else f"<@{row['user_id']}>")
+        # One line each, so the tiles never sit directly under a medal and read
+        # as a rank of their own. The top three keep bold names and a gap.
+        if position < len(MEDALS):
+            podium.append(f"{MEDALS[position]}  **{name}** — `{row['score']}`  {row['emoji']}")
+        else:
+            rest.append(f"`{position + 1}.` {name} — `{row['score']}`  {row['emoji']}")
+
+    body = '\n\n'.join(podium)
+    if rest:
+        body += '\n\n' + '\n'.join(rest)
 
     embed = discord.Embed(
         title=title or f'Krillion #{day}',
-        description='\n'.join(lines) or 'Nobody dived today.',
+        # Makes the title a link to the game. Discord renders no preview card
+        # for it, so the board stays the only thing in the message.
+        url=GAME_URL,
+        description=body or 'Nobody dived today.',
         colour=discord.Colour.dark_teal())
     embed.set_footer(text=f'{date_for_day(day)} · {len(rows)} diver(s)')
     return embed
@@ -99,25 +112,8 @@ class KrillionBoard(commands.Cog):
         where = channel.mention if channel else 'nowhere — daily results are off'
         log.info('Guild %s set Krillion results channel to %s',
                  interaction.guild.id, channel.id if channel else None)
-        await interaction.response.send_message(f'Daily results will post to {where}.')
-
-    @group.command(name='reset', description='Delete this server\'s scores')
-    @app_commands.describe(day='Only clear this puzzle number. Defaults to everything.',
-                           confirm='Required, to avoid accidents.')
-    @app_commands.default_permissions(manage_guild=True)
-    async def reset(self, interaction: discord.Interaction, confirm: bool,
-                    day: int = None):
-        """Testing aid. Scoped to the calling guild, never global."""
-        if not confirm:
-            await interaction.response.send_message(
-                'Nothing deleted — pass `confirm: True` if you meant it.', ephemeral=True)
-            return
-
-        removed = self.db.clear(interaction.guild.id, day)
-        scope = f'day #{day}' if day else 'every day'
-        log.warning('Guild %s cleared %s Krillion score(s) for %s',
-                    interaction.guild.id, removed, scope)
-        await interaction.response.send_message(f'Deleted {removed} score(s) for {scope}.')
+        await interaction.response.send_message(f'Daily results will post to {where}.',
+                                                ephemeral=True)
 
     # -- daily post --------------------------------------------------------
 

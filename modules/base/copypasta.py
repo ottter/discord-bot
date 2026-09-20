@@ -14,16 +14,20 @@ PASTA_FBI = (
 
 
 class MiscSlash(commands.Cog):
+    """Odds and ends too small to deserve their own file."""
+
     def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(name="hello", description="Say hello to dogdog")
     async def hello(self, interaction: discord.Interaction):
+        """Says hello back, only to the person who asked."""
         log.info('%s used /hello', interaction.user)
         await interaction.response.send_message(f"Hey {interaction.user.mention}!", ephemeral=True)
 
     @app_commands.command(name="fbi", description="FBI disclaimer")
     async def fbi_pasta(self, interaction: discord.Interaction):
+        """Posts the satire disclaimer copypasta."""
         log.info('%s used /fbi', interaction.user)
         await interaction.response.send_message(PASTA_FBI)
 

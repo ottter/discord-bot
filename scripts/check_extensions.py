@@ -1,4 +1,4 @@
-"""Check that every extension loads. No token needed — setup_hook() is all local.
+"""Check that every extension loads.
 
 load_extensions logs a bad cog and moves on, so check what registered rather than
 waiting for an exception.

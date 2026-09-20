@@ -21,7 +21,24 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
+  # Publishing a broken image is worse than publishing nothing, so the build
+  # waits on the same checks the Pylint workflow runs.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: pip install pylint -r requirements.txt
+      - name: Lint
+        run: python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
+      - name: Verify every extension loads
+        run: python scripts/check_extensions.py
+
   docker:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -55,6 +72,17 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=sha-
 
+      # What /version reports. A release build says "1.1.0"; anything else
+      # says "main-6b20b25", so a running bot is always identifiable.
+      - name: Work out the version string
+        id: version
+        run: |
+          if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ]; then
+            echo "value=${{ steps.meta.outputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ steps.meta.outputs.version }}-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build and push
         id: build
         uses: docker/build-push-action@v7
@@ -63,6 +91,10 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # What /version reports: the git tag on a release, the branch and
+          # short SHA otherwise, so a running bot can always be identified.
+          build-args: |
+            BOT_VERSION=${{ steps.version.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

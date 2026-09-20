@@ -11,8 +11,8 @@ from modules.krillion.parser import GAME_TZ, ParseError, parse_share, today_day_
 
 log = logging.getLogger('discord.bot')
 
-ACCEPTED = '✅'
-REJECTED = '❌'
+ACCEPTED = '🦐'
+REJECTED = '💀'
 
 # One stored score per user per minute. Per-user, so a rush of people all
 # posting at once is fine — only one person repeating themselves is throttled.

@@ -11,3 +11,10 @@ archive/
 .github/
 config.yaml
 .env
+data/
+scripts/
+docs/
+*.db
+*.sqlite3
+bot.env
+*.env

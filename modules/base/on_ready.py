@@ -23,6 +23,10 @@ class OnReadyListen(commands.Cog):
                  self.bot.latency * 1000, len(guilds),
                  ', '.join(g.name for g in guilds) or 'none')
 
+        activity = self.bot.config.get('DEFAULT_ACTIVITY')
+        if activity:
+            await self.bot.change_presence(activity=discord.Game(name=activity))
+
         # Syncing is rate limited; once per process is enough.
         if self.synced:
             return

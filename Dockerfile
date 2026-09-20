@@ -17,6 +17,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --chown=appuser:appuser main.py ./
 COPY --chown=appuser:appuser modules ./modules
 
+# Last, so a new version number doesn't rebuild everything above it.
+ARG BOT_VERSION=dev
+ENV BOT_VERSION=$BOT_VERSION
+
 # Default location for the Krillion database. Mount a volume here to keep
 # scores across restarts; without one they last as long as the container.
 RUN mkdir -p /app/data && chown appuser:appuser /app/data
