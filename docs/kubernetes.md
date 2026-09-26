@@ -1,16 +1,9 @@
 # Kubernetes
 
-Anything the bot needs to keep goes in `/app/data` — today that's the Krillion score
-database, and whatever a later feature stores will land beside it. The directory exists
-in the image and is writable, but a container filesystem is thrown away on restart, so
-without a volume that data lasts only as long as the pod.
+The chatbot keeps anything persistent in `/app/data`. That directory exists in the image and
+is writable, so a volume is optional — without one you lose the data on every restart.
 
 ## Storage
-
-The volume is optional. `/app/data` exists in the image and is writable, so the bot runs
-fine without one — you just lose whatever is in there each time the pod restarts. For
-scores nobody is attached to yet, that is a reasonable trade; add the claim when the
-data starts mattering.
 
     apiVersion: v1
     kind: PersistentVolumeClaim
@@ -18,36 +11,49 @@ data starts mattering.
       name: discord-data
       namespace: discord
     spec:
+      storageClassName: local-path-retain
       accessModes: [ReadWriteOnce]
       resources:
         requests:
           storage: 1Gi
 
-1Gi is far more than a Discord bot's bookkeeping needs, but most provisioners round up
-to a minimum anyway, and it leaves room for whatever gets added later.
+Get `storageClassName` right the first time. k3s defaults to `local-path`, which has
+`reclaimPolicy: Delete` — deleting the claim erases the data, and since directories are
+named after the PVC UID, recreating it gets you an empty one. Changing the class later
+means deleting and recreating the PVC, which is the event you were avoiding.
 
-`ReadWriteOnce` is correct here and not a limitation: Discord allows one gateway
-connection per token, so the Deployment runs a single replica regardless.
+If the cluster has no Retain class yet:
 
-### Losing data to a deleted PVC
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: local-path-retain
+    provisioner: rancher.io/local-path
+    reclaimPolicy: Retain
+    volumeBindingMode: WaitForFirstConsumer
 
-Check what your storage class does when a PVC goes away:
+Retain makes deletion recoverable, not harmless — you still dig the directory out of the
+node by hand.
 
-    kubectl get storageclass
+The 1Gi is a formality; local-path hands out a node directory and ignores the number.
+`ReadWriteOnce` is fine because the Deployment only ever runs one replica.
 
-A class with `reclaimPolicy: Delete` erases the backing data immediately. On k3s the
-built-in `local-path` does exactly that, and because it names directories after the PVC
-UID, recreating the claim gets you a new empty one — the old data is still on disk but
-effectively unreachable.
+### Adding a volume to a running chatbot
 
-If that matters, point the claim at a class with `reclaimPolicy: Retain`:
+Applying the volume replaces the pod and throws away the database inside it. Copy it out
+first:
 
-    spec:
-      storageClassName: local-path-retain
-      accessModes: [ReadWriteOnce]
+    POD=$(kubectl get pod -n discord -l app=discord -o name | cut -d/ -f2)
+    kubectl cp -n discord "$POD":/app/data/krillion.db ./krillion.db
 
-Recovery then means finding the directory on the node by hand, but it is still there to
-find.
+Apply the PVC and Deployment, wait for the new pod, then copy it back and restart so
+SQLite reopens the file:
+
+    POD=$(kubectl get pod -n discord -l app=discord -o name | cut -d/ -f2)
+    kubectl cp -n discord ./krillion.db "$POD":/app/data/krillion.db
+    kubectl rollout restart deploy/discord -n discord
+
+Keep the local copy until you've confirmed the scores are back.
 
 ## Deployment
 
@@ -94,24 +100,19 @@ find.
               persistentVolumeClaim:
                 claimName: discord-data
 
-`readOnlyRootFilesystem: true` works because the image logs to stdout instead of a file.
-It is also the one setting that makes the volume mandatory: with a read-only root there
-is nowhere to create the database, and the bot fails on startup. Leave it out, or leave
-the mount in.
+`readOnlyRootFilesystem` works because the image sets `LOG_FILE=""` and logs to stdout.
+Point `LOG_FILE` at a path again and the bot dies on startup trying to open it. It also
+makes the volume mandatory — with a read-only root there is nowhere to put the database.
 
-`Recreate` matters more than it looks. The default rolling update briefly runs the old
-and new pods together, and two connections on one token disconnect each other in a loop.
-It also keeps two processes off the same SQLite file.
+`Recreate` avoids the rolling update briefly running two pods on one token, which makes
+them disconnect each other in a loop, and keeps two processes off the same SQLite file.
 
-No Service or Ingress: the bot opens an outbound connection to Discord and listens on
-nothing.
+No Service or Ingress — the bot only makes outbound connections.
 
 ## Pinning the image
 
-`:latest` moves whenever main is pushed, and with `imagePullPolicy: IfNotPresent` a node
-that already has an image by that name will not pull the new one. Every build also gets
-an immutable `sha-<commit>` tag, which is the one to use when you want a deploy to be
-reproducible and a rollback to be one edit:
+`:latest` moves on every push to main, and `imagePullPolicy: IfNotPresent` means a node
+that already has it won't pull again. Pin the immutable tag instead:
 
     image: ghcr.io/ottter/discord-bot:sha-1a2b3c4
 
@@ -119,18 +120,11 @@ reproducible and a rollback to be one edit:
 
     kubectl logs -n discord deploy/discord --tail=20
 
-A healthy start names anything it opened under `/app/data`, then the guilds it connected
-to:
-
     Krillion database ready at /app/data/krillion.db
-    Loaded 4 extension(s): copypasta, eightball, on_ready, krillion
+    Loaded 6 extension(s): copypasta, eightball, errors, on_ready, version, krillion
     Online as yourbot#1234 (123456789) | prefix , | 24 ms | 1 guild(s): Your Server
-    Synced 4 slash command(s): 8ball, fbi, hello, krillion
+    Synced 5 slash command(s): 8ball, fbi, hello, krillion, version
 
-To confirm the volume is really doing its job, write something the bot persists — a
-Krillion score, say — then restart it:
-
-    kubectl rollout restart deploy/discord -n discord
-
-If it survives, the mount is working. If it doesn't, the paths in the startup log will
-be pointing somewhere other than `/app/data`.
+To prove the volume works, submit a score, `kubectl rollout restart deploy/discord -n
+discord`, and check it survived. If it didn't, the database path in the log is pointing
+somewhere other than `/app/data`.

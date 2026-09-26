@@ -4,10 +4,11 @@ What runs in GitHub Actions, and why.
 
 ## Pylint & Test
 
-`.github/workflows/pylint_test.yml` — every push to main and every PR, on Python 3.11,
-3.12 and 3.13.
+`.github/workflows/pylint_test.yml` — every PR, on Python 3.12, 3.13 and 3.14. Pushes
+to main and tags run it too, through the Docker workflow. One version failing doesn't
+cancel the others, so you see which ones broke.
 
-**Pylint** scores against `.pylintrc` and fails below 8.0, so a stray warning won't
+**Pylint** scores against `.pylintrc` and fails below 9.0, so a stray warning won't
 block a merge but a real mess will:
 
     python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
@@ -36,12 +37,19 @@ commands.
 | Push to main | yes | `latest`, `sha-<commit>` |
 | Tag `v1.2.3` | yes | `1.2.3`, `1.2`, `sha-<commit>` |
 
+Pushes run the Pylint & Test workflow first and only build if it passes. PRs skip
+that step because the Pylint workflow already runs on them.
+
 PRs build without logging in, so a broken Dockerfile fails before it merges and no
 credentials exist in that run. They only trigger on changes that affect the image.
 
 No PAT to manage: it uses the `GITHUB_TOKEN` Actions issues per run, which is what the
 `packages: write` permission is for. Builds also get provenance attestation, so an image
 traces back to the commit that produced it.
+
+Every build is scanned with Trivy before it's pushed. It fails on HIGH or CRITICAL CVEs
+that have a fix available, and results land in the Security tab. To accept a CVE you've
+checked, add its ID to a `.trivyignore`.
 
 Pin deployments to `sha-<commit>` if you want to roll back. `latest` moves under you.
 
@@ -60,5 +68,6 @@ changed. Results show up under the Security tab.
 `.github/dependabot.yml` — not a workflow, but it opens PRs like one.
 
 Weekly checks on pip packages, Actions, and the Docker base image. Pinning `discord.py`
-is right for reproducible deploys but hides new releases; this surfaces them. The PRs
-run the checks above, so an update that breaks a cog fails before you merge it.
+is right for reproducible deploys but hides new releases; this surfaces them. Pip and
+Actions updates are each grouped into one PR a week. The PRs run the checks above, so
+an update that breaks a cog fails before you merge it.

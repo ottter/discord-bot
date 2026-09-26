@@ -1,6 +1,7 @@
 version: 2
 
 # discord.py is pinned, so without this it goes stale without telling us.
+# Each ecosystem's updates land as one PR a week rather than one per package.
 updates:
   - package-ecosystem: pip
     directory: /
@@ -9,6 +10,9 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: deps
+    groups:
+      pip:
+        patterns: ["*"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -16,6 +20,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
 
   - package-ecosystem: docker
     directory: /

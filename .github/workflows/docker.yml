@@ -21,30 +21,24 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
-  # Publishing a broken image is worse than publishing nothing, so the build
-  # waits on the same checks the Pylint workflow runs.
+  # Publishing a broken image is worse than publishing nothing, so pushes wait
+  # on the Pylint workflow. PRs skip this, since that workflow already runs on them.
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.14'
-      - name: Install dependencies
-        run: pip install pylint -r requirements.txt
-      - name: Lint
-        run: python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')
-      - name: Verify every extension loads
-        run: python scripts/check_extensions.py
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/pylint_test.yml
 
   docker:
     needs: test
+    if: ${{ !cancelled() && needs.test.result != 'failure' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write          # only used by the push on main/tags
       attestations: write      # records what built the image
       id-token: write          # OIDC instead of a stored PAT
+      security-events: write   # Trivy results in the Security tab
     steps:
       - uses: actions/checkout@v7
 
@@ -83,6 +77,37 @@ jobs:
             echo "value=${{ steps.meta.outputs.version }}-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           fi
 
+      # Build locally and scan before anything reaches GHCR. The push below
+      # reuses these layers, so the second build is near-instant.
+      - name: Build for scanning
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: bot:scan
+          build-args: |
+            BOT_VERSION=${{ steps.version.outputs.value }}
+          cache-from: type=gha
+
+      # Only fails on CVEs that have a patch out, since those are the ones
+      # we can actually do something about.
+      - name: Scan image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: bot:scan
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy.sarif
+          exit-code: '1'
+
+      - name: Upload scan results
+        if: ${{ !cancelled() && hashFiles('trivy.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+
       - name: Build and push
         id: build
         uses: docker/build-push-action@v7
@@ -91,8 +116,6 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # What /version reports: the git tag on a release, the branch and
-          # short SHA otherwise, so a running bot can always be identified.
           build-args: |
             BOT_VERSION=${{ steps.version.outputs.value }}
           cache-from: type=gha

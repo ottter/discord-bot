@@ -1,15 +1,19 @@
 name: Pylint & Test
 
+# Pushes to main and tags get these checks through docker.yml, which calls
+# this workflow before it builds.
 on:
-  push:
-    branches:
-      - main
   pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
@@ -18,6 +22,7 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -28,17 +33,3 @@ jobs:
 
     - name: Verify every extension loads
       run: python scripts/check_extensions.py
-
-    - name: Prepare Pull Request Payload artifact
-      id: prepare-artifact
-      if: always() && github.event_name == 'pull_request'
-      continue-on-error: true
-      run: cat $GITHUB_EVENT_PATH | jq '.pull_request' > pull_request_payload.json
-
-    - name: Upload a Build Artifact
-      if: always() && steps.prepare-artifact.outcome == 'success'
-      continue-on-error: true
-      uses: actions/upload-artifact@v7
-      with:
-        name: pull-request-payload
-        path: pull_request_payload.json
