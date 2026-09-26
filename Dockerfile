@@ -10,9 +10,12 @@ RUN useradd --create-home --no-log-init appuser
 
 WORKDIR /app
 
-# Dependencies first, so editing code doesn't rebuild the install layer
+# Dependencies first, so editing code doesn't rebuild the install layer.
+# pip goes once they're in: the bot never needs it, and its vendored
+# packages were the only thing Trivy was flagging.
 COPY --chown=appuser:appuser requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip uninstall -y pip
 
 COPY --chown=appuser:appuser main.py ./
 COPY --chown=appuser:appuser modules ./modules

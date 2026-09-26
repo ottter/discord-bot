@@ -96,6 +96,7 @@ jobs:
         with:
           image-ref: bot:scan
           severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true   # otherwise sarif ignores severity
           ignore-unfixed: true
           format: sarif
           output: trivy.sarif
