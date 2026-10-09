@@ -24,8 +24,8 @@ COPY --chown=appuser:appuser modules ./modules
 ARG BOT_VERSION=dev
 ENV BOT_VERSION=$BOT_VERSION
 
-# Default location for the Krillion database. Mount a volume here to keep
-# scores across restarts; without one they last as long as the container.
+# Default location for the Krillion and Wordle databases. Mount a volume here
+# to keep them across restarts; without one they last as long as the container.
 RUN mkdir -p /app/data && chown appuser:appuser /app/data
 VOLUME ["/app/data"]
 

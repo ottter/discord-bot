@@ -1,0 +1,33 @@
+# Allowed guesses NYT never picks as answers, cut down like plurals by
+# sort_words.py. Picked by hand from the likeliest never-answers.
+
+# Names, places, brands
+alamo allan allen amman ariel assam bafta barca barry bayer benji benny betty
+biggs billy blanc bobby bowie brent britt brock bubba buffy bundy burke calif
+capri chang chevy chico chile china cisco clint cohen colby colin congo
+corey costa cowan croft danny darcy della denis devon diana diane dixie donna
+donny doris dover emery erica felix fitch foley gemma genoa greek guido harry
+henry hicks hogan honda hurst india japan jenny jerry jesse jimmy jolie julia
+kelly kerry kirby kraft kylie kyrie lacey laura leone levin lewis liang logan
+louie louis lowry macon malik mandy manny marge maria matty milly mitch moira
+molly monte monty moran nancy nelly nicky norma ollie oscar paddy paolo paris
+patel pedro peggy pepsi perry peter pluto polly potts pratt prius putin ralph
+ramon randy reddy rhine riggs riley roche roger rohan roman romeo rubin rubio
+rufus sammy santo savoy sears shawn shiva slade sloan sonny spain starr sudan
+swede swiss sykes tammy terry tesla texas tommy tufts twain tyler wales waldo
+wally weber welch welsh wigan willy yahoo yates
+
+# Religious names
+jesus judas koran mecca quran torah
+
+# Slang and contractions
+dunno gimme gonna gotta hella homie kinda lemme lotta noone outta sorta takin
+wanna
+
+# Crude
+bitch boner busty dildo horny negro niger nigga penis porno pubic pussy semen
+shite spank sperm whore
+
+# Foreign
+annum avant clair conte crore facto faire garde intra nagar petit porte sabha
+salle terre verde vitro

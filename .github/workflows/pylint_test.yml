@@ -12,21 +12,15 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.12", "3.13", "3.14"]
     steps:
     - uses: actions/checkout@v7
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v7
+    # Same version as the Dockerfile, since that's the only one we deploy
+    - uses: actions/setup-python@v7
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.14'
         cache: pip
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pylint -r requirements.txt
+      run: pip install pylint -r requirements.txt
     - name: Analysing the code with pylint
       run: |
         python -m pylint --rcfile ./.pylintrc $(git ls-files '*.py')

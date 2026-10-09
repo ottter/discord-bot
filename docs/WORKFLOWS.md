@@ -4,9 +4,8 @@ What runs in GitHub Actions, and why.
 
 ## Pylint & Test
 
-`.github/workflows/pylint_test.yml` — every PR, on Python 3.12, 3.13 and 3.14. Pushes
-to main and tags run it too, through the Docker workflow. One version failing doesn't
-cancel the others, so you see which ones broke.
+`.github/workflows/pylint_test.yml` — every PR, on Python 3.14 to match the Dockerfile.
+Pushes to main and tags run it too, through the Docker workflow.
 
 **Pylint** scores against `.pylintrc` and fails below 9.0, so a stray warning won't
 block a merge but a real mess will:
@@ -59,9 +58,8 @@ To release:
 
 ## CodeQL
 
-`.github/workflows/codeql_analysis.yml` — GitHub's security scanner. Pushes to main,
-PRs, and Thursdays at 00:38 UTC, so new vulnerability patterns reach code that hasn't
-changed. Results show up under the Security tab.
+`.github/workflows/codeql_analysis.yml` — GitHub's security scanner. Runs Thursdays at
+00:38 UTC, or by hand from the Actions tab. Results show up under the Security tab.
 
 ## Dependabot
 

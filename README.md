@@ -43,6 +43,10 @@ the file is optional — with the token set, the bot runs without one.
 | `DISCORD_BOT_KRILLION_DB` | `data/krillion.db` | SQLite file for Krillion scores. Mount a volume here to keep them across restarts. |
 | `DISCORD_BOT_KRILLION_SUBMIT_CHANNEL` | unset | Channel id where scores count. Unset means any channel. |
 | `DISCORD_BOT_KRILLION_COOLDOWN` | `60` | Seconds between stored scores, per user. |
+| `DISCORD_BOT_WORDLE_DB` | `data/wordle.db` | SQLite file for Wordle answers, boards and results. Mount a volume here too. |
+| `DISCORD_BOT_WORDLE_BOARDS` | `3` | Boards a game needs before the bot plays and locks in its result. |
+| `DISCORD_BOT_WORDLE_APP_ID` | `1211781489931452447` | The Wordle app's account, whose posts are read. |
+| `DISCORD_BOT_WORDLE_TZ` | `America/New_York` | Timezone for today's game number when no image has shown a newer one. |
 
 Any `DISCORD_BOT_*` variable becomes a config key with the prefix stripped, so
 `DISCORD_BOT_WELCOME_CHANNEL` sets `WELCOME_CHANNEL`. Settings added later work the same
@@ -117,10 +121,9 @@ Actions does this on every push to main, and on `v*` tags — see
     modules/
       base/                  small always-on cogs (on_ready, test commands)
       krillion/              the Krillion feature, loaded as one extension
-        parser.py            share text -> day, score, tiles
-        storage.py           SQLite
-        listener.py          reads pasted shares
-        commands.py          slash commands and the daily post
+      wordle/                the Wordle feature, loaded as one extension
+        data/                word list, past answers, digit shapes
+        tools/               tuning and rebuild scripts, not run by the bot
 
 Anything under `modules/` loads automatically. A directory with an `__init__.py` loads
 as a single extension, so a feature can spread across files and register from one
@@ -169,6 +172,37 @@ Results post automatically just after the daily reset, but only once a server ru
 `/krillion channel` — there is no default channel, so nothing posts until you set one.
 Scores live in a SQLite file — see `DISCORD_BOT_KRILLION_DB` above. To start over,
 delete that file and restart.
+
+-----------------------
+
+## Wordle
+
+The bot plays each day's Wordle in hard mode, using only the colors on other people's
+boards. It reads the Wordle app's posts: the app keeps one message per game and edits
+in an image of every board as people play. The first time a game's image shows three
+boards, the bot plays and posts its result like a share, colors only:
+
+    Wordle 1,938 3/6*
+    ⬛⬛🟨⬛⬛
+    🟨⬛🟨🟩🟩
+    🟩🟩🟩🟩🟩
+
+That result is locked in for the day. It never sees the answer before playing; the
+answer is looked up once per game, from NYT, only to color the bot's own guesses.
+
+| Command | |
+| --- | --- |
+| `/wordle play` | Play today's game from the boards so far and post the result. The last one stands if no image reaches three boards before the day ends |
+| `/wordle today` | The same with the guesses and answer in spoilers, only for you |
+| `/wordle simulate word` | Watch it play any word, with no boards |
+| `/wordle channel [#channel]` | Where locked-in results post. Unset means next to the app's message. Needs Manage Server |
+
+The commands work without the Wordle app; today's game comes from the date in
+`DISCORD_BOT_WORDLE_TZ`. Answers, boards and results live in `DISCORD_BOT_WORDLE_DB`,
+which wants the same volume as Krillion's. On startup the bot spends about a minute
+building tables for reading boards, in the background, and holds about 35 MB for them.
+
+How it plays, and how it was tuned, is in [modules/wordle/README.md](modules/wordle/README.md).
 
 -----------------------
 

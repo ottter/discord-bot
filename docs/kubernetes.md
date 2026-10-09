@@ -45,12 +45,14 @@ first:
 
     POD=$(kubectl get pod -n discord -l app=discord -o name | cut -d/ -f2)
     kubectl cp -n discord "$POD":/app/data/krillion.db ./krillion.db
+    kubectl cp -n discord "$POD":/app/data/wordle.db ./wordle.db
 
 Apply the PVC and Deployment, wait for the new pod, then copy it back and restart so
 SQLite reopens the file:
 
     POD=$(kubectl get pod -n discord -l app=discord -o name | cut -d/ -f2)
     kubectl cp -n discord ./krillion.db "$POD":/app/data/krillion.db
+    kubectl cp -n discord ./wordle.db "$POD":/app/data/wordle.db
     kubectl rollout restart deploy/discord -n discord
 
 Keep the local copy until you've confirmed the scores are back.
@@ -121,9 +123,10 @@ that already has it won't pull again. Pin the immutable tag instead:
     kubectl logs -n discord deploy/discord --tail=20
 
     Krillion database ready at /app/data/krillion.db
-    Loaded 6 extension(s): copypasta, eightball, errors, on_ready, version, krillion
+    Wordle database ready at /app/data/wordle.db
+    Loaded 7 extension(s): copypasta, eightball, errors, on_ready, version, krillion, wordle
     Online as yourbot#1234 (123456789) | prefix , | 24 ms | 1 guild(s): Your Server
-    Synced 5 slash command(s): 8ball, fbi, hello, krillion, version
+    Synced 6 slash command(s): 8ball, fbi, hello, krillion, version, wordle
 
 To prove the volume works, submit a score, `kubectl rollout restart deploy/discord -n
 discord`, and check it survived. If it didn't, the database path in the log is pointing
