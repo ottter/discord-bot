@@ -86,10 +86,17 @@ class WordleWatch(commands.Cog):
 
         guild = message.guild.id
         async with self.games.locks[guild, game]:
+            before = len(self.games.db.boards(guild, game))
             self.games.db.save_image(guild, game, message.id, boards)
             count = len(self.games.db.boards(guild, game))
+            if count > before:
+                log.info('Wordle %s: %s new board(s) in %s; %s there today, %s across all servers',
+                         game, count - before, message.guild.name, count,
+                         len(self.games.db.pooled(game)))
+            else:
+                log.debug('Wordle %s: no new finished boards in %s (%s there today)',
+                          game, message.guild.name, count)
             answer = await self.games.answer(game)
-            log.info('Wordle %s: %s board(s) in guild %s', game, count, guild)
             if not answer or not self.ready_to_lock(guild, game, count):
                 return
             pooled = self.games.db.pooled(game)
@@ -97,10 +104,11 @@ class WordleWatch(commands.Cog):
             if not self.games.db.save_solve(guild, game, turns, len(pooled)):
                 return
 
-        log.info('Wordle %s locked in guild %s: %s', game, guild, headline(game, turns))
         channel = message.guild.get_channel(self.games.db.channel(guild) or 0) or message.channel
         try:
             await channel.send(f'{headline(game, turns)}\n{grid(turns)}')
+            log.info('Wordle %s: posted %s in %s #%s, from %s board(s)', game,
+                     headline(game, turns), message.guild.name, channel.name, len(pooled))
         except discord.HTTPException as err:
             log.error('Could not post the Wordle %s result: %s', game, err)
 
@@ -132,7 +140,9 @@ class WordleWatch(commands.Cog):
                     pooled = self.games.db.pooled(game)
                     turns = await self.games.play(game, answer, pooled)
                     self.games.db.save_solve(guild, game, turns, len(pooled))
-            log.info('Wordle %s locked quietly in guild %s', game, guild)
+            name = getattr(self.bot.get_guild(guild), 'name', guild)
+            log.info('Wordle %s: locked quietly in %s, the game being over everywhere',
+                     game, name)
 
     @close_games.before_loop
     async def before_close(self):

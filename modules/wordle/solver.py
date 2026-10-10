@@ -21,6 +21,11 @@ SOLVED = 242
 
 # Best of eight popular openers in hard mode, and of its own anagrams.
 OPENER = 'slate'
+# Runners-up kept with each guess, to show what it was picked over.
+OTHERS = 4
+# With other players' boards, the opener is worked out like any other guess,
+# but slate stays unless the pick leaves this much less to find.
+OPENER_SWITCH = 0.2
 # Guesses are only drawn from the most common words, which keeps a suggestion
 # quick and stops it playing words nobody knows.
 GUESS_POOL = 3000
@@ -133,17 +138,19 @@ def unique_vowels(word: str) -> int:
 
 
 def play_out(answer: str, solver, limit: int = GUESSES) -> list:
-    """(guess, pattern) for each turn, stopping when solved or out of turns.
+    """(guess, pattern, runners-up) for each turn, stopping when solved or out
+    of turns.
 
     The answer only colors the solver's own guesses, as the game would.
     """
     turns = []
     while len(turns) < limit:
-        guess = solver.suggest()
-        if guess is None:
+        ranked = solver.ranked()
+        if not ranked:
             break
+        guess = ranked[0]
         pattern = score(guess, answer)
-        turns.append((guess, pattern))
+        turns.append((guess, pattern, ranked[1:]))
         if pattern == 'GGGGG':
             break
         solver.add(guess, pattern)
@@ -192,20 +199,26 @@ class Solver:
 
     def suggest(self) -> str:
         """Next guess, or None if the patterns rule everything out."""
+        ranked = self.ranked()
+        return ranked[0] if ranked else None
+
+    def ranked(self, others=OTHERS) -> list:
+        """The next guess, then the runners-up it was picked over. Empty if
+        the patterns rule everything out."""
         if not self.candidates:
-            return None
-        if not self.history:
-            return self.opener
+            return []
+        # No set opener means work one out, from weights other boards shaped.
+        if not self.history and self.opener:
+            return [self.opener]
         if self.vowels:
-            # max keeps the first of equals, so the likeliest wins ties.
-            return max(self.candidates, key=unique_vowels)
+            # A stable sort keeps the likeliest first among equals.
+            return sorted(self.candidates, key=unique_vowels, reverse=True)[:others + 1]
 
         likeliest = self.candidates[0]
         total = sum(self.weights[word] for word in self.candidates)
-        if len(self.history) >= GUESSES - 1:
-            return likeliest
-        if self.weights[likeliest] >= total * SURE:
-            return likeliest
+        # Last guess, or one word is likely enough to just try.
+        if len(self.history) >= GUESSES - 1 or self.weights[likeliest] >= total * SURE:
+            return self.candidates[:others + 1]
 
         sample = self.candidates[:SAMPLE]
         possible = set(self.candidates)
@@ -228,7 +241,16 @@ class Solver:
         # but only if it's clearly likelier than the best splitter.
         close = [guess for guess in cost if cost[guess] <= cost[best] * (1 + NEAR_TIE)]
         bet = max(close, key=win)
-        return bet if win(bet) - win(best) >= MIN_GAIN else best
+        pick = bet if win(bet) - win(best) >= MIN_GAIN else best
+        if not self.history:
+            pick = self.opener_or(pick, sample)
+        order = sorted(cost, key=lambda guess: (cost[guess], guess not in possible))
+        return [pick] + [guess for guess in order if guess != pick][:others]
+
+    def opener_or(self, pick, sample) -> str:
+        """The worked-out opener, if it clearly beats the usual one."""
+        usual = self.expected_left(OPENER, sample)
+        return pick if self.expected_left(pick, sample) <= usual * (1 - OPENER_SWITCH) else OPENER
 
     def trap_loss(self, guess: str, answers: list) -> float:
         """Weight of answers this guess would likely lose to traps.

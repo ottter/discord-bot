@@ -62,6 +62,9 @@ class WordleCommands(commands.Cog):
             return
         game, turns, _ = found
         await interaction.followup.send(f'{headline(game, turns)}\n{grid(turns)}')
+        log.info('Wordle: /wordle play by %s in %s: %s from %s board(s)', interaction.user,
+                 interaction.guild.name, headline(game, turns),
+                 len(self.games.db.pooled(game)))
 
     @group.command(name='today', description="Today's result with the guesses, just for you")
     async def today(self, interaction: discord.Interaction):
@@ -75,6 +78,8 @@ class WordleCommands(commands.Cog):
         await interaction.followup.send(
             f'{headline(game, turns)}\n{spoilers(turns, answer)}',
             ephemeral=True)
+        log.info('Wordle: /wordle today by %s in %s: %s', interaction.user,
+                 interaction.guild.name, headline(game, turns))
 
     @group.command(name='simulate', description='Watch the solver play a word, with no boards')
     @app_commands.describe(word='Any five-letter word Wordle accepts')
@@ -89,6 +94,9 @@ class WordleCommands(commands.Cog):
         turns = await self.games.simulate(word)
         score = len(turns) if solved(turns) else 'X'
         await interaction.followup.send(f'{word.upper()} {score}/6*\n{board(turns)}')
+        # The word is left out, in case someone simulates today's answer.
+        log.info('Wordle: /wordle simulate by %s in %s: %s/6*', interaction.user,
+                 interaction.guild.name, score)
 
     @group.command(name='channel', description='Where locked-in results post')
     @app_commands.describe(channel="Leave empty to post next to the Wordle app's message.")

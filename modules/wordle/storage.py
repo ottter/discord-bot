@@ -220,8 +220,10 @@ def distinct(boards) -> list:
 
 
 def done(board) -> bool:
-    """Solved, or all six rows used without solving (X/6)."""
-    return bool(board) and (board[-1] == 'GGGGG' or len(board) >= 6)
+    """Solved, or all six rows used without solving (X/6). A board with a tile
+    the image reader couldn't make out doesn't count either."""
+    readable = all(len(row) == 5 and set(row) <= set('GYB') for row in board)
+    return bool(board) and readable and (board[-1] == 'GGGGG' or len(board) >= 6)
 
 
 def now() -> str:

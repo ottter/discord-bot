@@ -120,7 +120,8 @@ def made_up_board(answer, weights, typical, args, rng) -> list:
 
 def new_solver(weights, args) -> Solver:
     """A fresh game with the settings asked for."""
-    return Solver(weights, opener=args.start, vowels=args.vowels, hard=not args.easy)
+    opener = None if args.start == 'auto' else args.start
+    return Solver(weights, opener=opener, vowels=args.vowels, hard=not args.easy)
 
 
 def main():
@@ -128,7 +129,8 @@ def main():
     parser = argparse.ArgumentParser(description='Wordle solver bench')
     parser.add_argument('--games', type=int,
                         help='play this many: picked at random, or the first replayed with --used')
-    parser.add_argument('--start', default=OPENER, help='opening guess')
+    parser.add_argument('--start', default=OPENER,
+                        help="opening guess, or 'auto' to work it out from the boards")
     parser.add_argument('--easy', action='store_true', help='turn hard mode off')
     parser.add_argument('--vowels', action='store_true', help='prefer words with more vowels')
     parser.add_argument('--set', action='append', default=[], metavar='NAME=VALUE',

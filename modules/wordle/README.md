@@ -35,7 +35,7 @@ plays with however many boards it has, none included.
 | Command | What it does |
 | --- | --- |
 | `/wordle play [game]` | Posts the result, colors only. Until it's locked in, it plays with the boards so far, and the last one stands if the server never reaches three. With a game number, replays that game with any boards stored for it, saving nothing; only games already released somewhere |
-| `/wordle today` | The same, plus the guesses and answer in spoilers, only for you. Saves nothing |
+| `/wordle today` | The same, plus each guess with the four words it was picked over and the answer, all in spoilers, only for you. Saves nothing |
 | `/wordle simulate word` | Plays any word with no boards and shows every guess |
 | `/wordle channel` | Where locked-in results post. Unset means next to the app's message |
 
@@ -158,6 +158,7 @@ of `solver.py` and `boards.py`; try one with
 | `ENTROPY` | False | Judge splits by information gained instead | — | Worse by 0.06–0.12 |
 | `BOARD_TRUST` | 1.0 | How much other players' boards count; 0 ignores them. In `boards.py` | 0.5–2 | 1 best with 5 players: about 2.4 against 3.34 without boards. Flat up to 2 |
 | `FLOOR` | 0.02 | Least share of the best fit a row leaves any answer, so nothing's ruled out. In `boards.py` | — | Not tested |
+| `OPENER_SWITCH` | 0.2 | With boards, the opener is worked out like any guess, but slate stays unless the pick leaves this much less to find | — | 15 real days: 2.47 guesses against slate's 2.60. Simulated boards flatter it far more (1.64 against 2.27 at 6 boards). `PICK_OPENER` in `games.py` turns it off |
 | `USED_FACTOR` | 0.2 | Share of its weight a past answer keeps | 0.1–0.5 | Biggest gain: 3.30 against 3.54 uncut. Heavier cuts fall behind as repeats rise |
 
 The answer weights come from `python -m modules.wordle.tools.sort_words` and
@@ -171,12 +172,17 @@ are tuned with `python -m modules.wordle.tools.tune_weights`.
 
 ## Results
 
-How it does with the current settings, in hard mode: 100 games each, replaying
-a made-up history so past answers count as used, with messy made-up players
-for the other boards. Nothing was lost in any of them.
+Hard mode, 100 games each, replaying a made-up history so past answers count
+as used, with messy made-up players for the other boards. The bot works its
+opener out from the boards; always opening with `slate` is shown to compare.
 
 | Other players' boards | 0 | 2 | 4 | 6 |
 | --- | --- | --- | --- | --- |
-| Average guesses | 3.31 | 2.74 | 2.46 | 2.27 |
+| Opener worked out (what the bot does) | 3.31 | 2.55 | 2.01 | 1.64 |
+| Always `slate` | 3.31 | 2.74 | 2.46 | 2.27 |
 
-    python -m modules.wordle.tools.bench --used 0.2 --games 100 --players 2 --messy
+    python -m modules.wordle.tools.bench --used 0.2 --games 100 --players 2 --messy --start auto
+
+Made-up boards narrow things down more cleanly than real ones. On 15 real days
+from our server, mostly five or six boards each, the bot averaged 2.47 guesses
+against 2.60 opening with `slate`.

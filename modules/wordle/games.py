@@ -9,14 +9,17 @@ from zoneinfo import ZoneInfo
 
 from modules.wordle import answers
 from modules.wordle.boards import Clues
-from modules.wordle.solver import (Solver, discount, load_past, load_used, load_words,
-                                   play_out, solved)
+from modules.wordle.solver import (OPENER, Solver, discount, load_past, load_used,
+                                   load_words, play_out, solved)
 
 EMOJI = {'G': '🟩', 'Y': '🟨', 'B': '⬛'}
 # Boards a game needs before the bot plays and locks in its result.
 BOARDS_NEEDED = 3
 # Where "today" is worked out when no image says otherwise.
 GAME_TZ = 'America/New_York'
+# Work the opener out from other boards instead of always slate. Over 15 real
+# days it averaged 2.47 guesses against slate's 2.60 (4 better, 2 worse).
+PICK_OPENER = True
 
 
 class Games:
@@ -88,7 +91,8 @@ class Games:
                                self.used_before(game, answer if replay else None))
             if clues:
                 weights = clues.adjust(weights, boards)
-            return play_out(answer, Solver(weights))
+            opener = None if clues and PICK_OPENER else OPENER
+            return play_out(answer, Solver(weights, opener=opener))
         return await asyncio.to_thread(work)
 
     async def simulate(self, word):
@@ -108,13 +112,12 @@ def squares(pattern) -> str:
 
 def grid(turns) -> str:
     """The colored squares, one row per guess."""
-    return '\n'.join(squares(pattern) for _, pattern in turns)
+    return '\n'.join(squares(turn[1]) for turn in turns)
 
 
-def board(turns, hidden=False) -> str:
-    """The squares with each guess beside its row, spoilered if hidden."""
-    tag = '||' if hidden else ''
-    return '\n'.join(f'{squares(pattern)} {tag}{guess}{tag}' for guess, pattern in turns)
+def board(turns) -> str:
+    """The squares with each guess beside its row."""
+    return '\n'.join(f'{squares(turn[1])} {turn[0]}' for turn in turns)
 
 
 def headline(game, turns) -> str:
@@ -125,5 +128,11 @@ def headline(game, turns) -> str:
 
 
 def spoilers(turns, answer) -> str:
-    """The board with every guess, then the answer, all spoilered."""
-    return f'{board(turns, hidden=True)}\nAnswer: ||{answer.upper()}||'
+    """The board with each guess in bold and the words it was picked over in
+    italics, then the answer, all spoilered. Results saved before runners-up
+    were kept show just the guess."""
+    rows = []
+    for turn in turns:
+        others = ', '.join(f'*{word}*' for word in (turn[2] if len(turn) > 2 else []))
+        rows.append(f'{squares(turn[1])} ||**{turn[0]}**{f" ({others})" if others else ""}||')
+    return '\n'.join(rows + [f'Answer: ||{answer.upper()}||'])

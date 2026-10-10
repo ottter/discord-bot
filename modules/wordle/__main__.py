@@ -11,8 +11,9 @@ import argparse
 
 from modules.wordle import image
 from modules.wordle.boards import Clues
-from modules.wordle.games import board
-from modules.wordle.solver import Solver, discount, load_used, load_words, play_out, solved
+from modules.wordle.games import PICK_OPENER, board
+from modules.wordle.solver import (OPENER, Solver, discount, load_used, load_words, play_out,
+                                   solved)
 from modules.wordle.storage import distinct
 
 # Past six on purpose: how far over it goes shows how bad a trap was.
@@ -51,7 +52,9 @@ def main():
     weights = discount(load_words(), load_used())
     if boards:
         weights = Clues().adjust(weights, boards)
-    solver = Solver(weights, vowels=args.vowels, hard=not args.easy)
+    # Like the bot: with boards, the opener is worked out from them.
+    opener = None if boards and PICK_OPENER else OPENER
+    solver = Solver(weights, opener=opener, vowels=args.vowels, hard=not args.easy)
     if args.start:
         solver.opener = args.start.lower()
 
