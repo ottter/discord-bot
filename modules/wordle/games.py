@@ -41,27 +41,42 @@ class Games:
         since players ahead of our timezone start the next game first."""
         return max(answers.current_game(self.tz), self.db.latest_game(guild_id) or 0)
 
-    async def answer(self, game):
-        """The game's answer, looked up once when its number is first seen."""
+    def newest(self, guild_id) -> int:
+        """The newest game that can be played: today's, or a newer one any
+        Wordle post has shown. NYT publishes answers ahead, so nothing past
+        this is played."""
+        return max(self.today(guild_id), self.db.latest_game() or 0)
+
+    async def answer(self, game, keep=True):
+        """The game's answer, looked up once when its number is first seen.
+        Replays don't keep theirs, so the stored ones are all days the bot
+        played as they happened."""
         word = self.db.answer(game)
         if word is None:
             word = await answers.fetch(game)
-            if word:
+            if word and keep:
                 self.db.save_answer(game, word)
         return word
 
-    def used_before(self, game):
+    def used_before(self, game, replay=None):
         """Past answers as they stood on this game's day: past.txt, plus
-        answers the bot stored for earlier games that past.txt doesn't have."""
+        answers the bot stored for earlier games that past.txt doesn't have.
+
+        A replay's answer is passed as `replay`. For a game from before the
+        bot started, past.txt has no dates and already holds that game's own
+        answer, so that one use is set aside."""
         past = load_past()
         used = load_used(before=game, past=past)
         listed = {number for number, _ in past if number is not None}
         for number, word in self.db.answers_before(game):
             if number not in listed:
                 used[word] += 1
+        first = self.db.first_answer()
+        if replay and (first is None or game < first) and used[replay]:
+            used[replay] -= 1
         return used
 
-    async def play(self, game, answer, boards):
+    async def play(self, game, answer, boards, replay=False):
         """Play a game with other players' boards. The turns it took."""
         clues = None
         if boards:
@@ -69,7 +84,8 @@ class Games:
             clues = await self.building
 
         def work():
-            weights = discount(load_words(), self.used_before(game))
+            weights = discount(load_words(),
+                               self.used_before(game, answer if replay else None))
             if clues:
                 weights = clues.adjust(weights, boards)
             return play_out(answer, Solver(weights))

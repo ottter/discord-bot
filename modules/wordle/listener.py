@@ -1,8 +1,10 @@
 """Watches the Wordle app's posts and plays once a game has enough boards.
 
-The app posts one message per game and edits it as people play, each time
-with a new image of every board so far. So new messages and edits are both
-read, and the newest image replaces the last.
+The app edits its posts as people play, with a new image each time, and some
+days posts more than once. Each post's newest image is kept, and a guild's
+boards are all of its posts together. Plays use every guild's boards, but
+each guild locks in on its own: once it has enough boards itself, or silently
+once the game is over everywhere.
 """
 import asyncio
 import io
@@ -10,7 +12,7 @@ import logging
 
 import aiohttp
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from modules.wordle import image
 from modules.wordle.answers import current_game
@@ -30,6 +32,10 @@ class WordleWatch(commands.Cog):
         self.games = games
         self.app_id = int(bot.config.get('WORDLE_APP_ID') or APP_ID)
         self.warned = False
+        self.close_games.start()
+
+    async def cog_unload(self):
+        self.close_games.cancel()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -80,13 +86,15 @@ class WordleWatch(commands.Cog):
 
         guild = message.guild.id
         async with self.games.locks[guild, game]:
-            self.games.db.save_boards(guild, game, boards)
+            self.games.db.save_image(guild, game, message.id, boards)
+            count = len(self.games.db.boards(guild, game))
             answer = await self.games.answer(game)
-            log.info('Wordle %s: %s board(s) in guild %s', game, len(boards), guild)
-            if not answer or not self.ready_to_lock(guild, game, boards):
+            log.info('Wordle %s: %s board(s) in guild %s', game, count, guild)
+            if not answer or not self.ready_to_lock(guild, game, count):
                 return
-            turns = await self.games.play(game, answer, boards)
-            if not self.games.db.save_solve(guild, game, turns, len(boards)):
+            pooled = self.games.db.pooled(game)
+            turns = await self.games.play(game, answer, pooled)
+            if not self.games.db.save_solve(guild, game, turns, len(pooled)):
                 return
 
         log.info('Wordle %s locked in guild %s: %s', game, guild, headline(game, turns))
@@ -96,13 +104,40 @@ class WordleWatch(commands.Cog):
         except discord.HTTPException as err:
             log.error('Could not post the Wordle %s result: %s', game, err)
 
-    def ready_to_lock(self, guild, game, boards) -> bool:
-        """Enough boards, and nothing locked in yet. Once the day is over, the
-        last /wordle play stands instead."""
+    def ready_to_lock(self, guild, game, count) -> bool:
+        """Enough of this guild's own boards, nothing locked in yet, and the
+        game not over everywhere; close_games handles those."""
         saved = self.games.db.solve(guild, game)
-        if len(boards) < self.games.needed or (saved and saved[2]):
+        if count < self.games.needed or (saved and saved[2]):
             return False
-        return not saved or game >= current_game(self.games.tz)
+        return game > current_game(self.games.tz) - 2
+
+    @tasks.loop(minutes=30)
+    async def close_games(self):
+        """Lock in games that are over everywhere, without posting.
+
+        A game runs about two days across timezones, so it's over everywhere
+        once the game two after it has started. A guild that never reached
+        enough boards keeps its last /wordle play, or gets a play from every
+        guild's boards if nobody asked for one.
+        """
+        for guild, game in self.games.db.open_games(current_game(self.games.tz) - 1):
+            async with self.games.locks[guild, game]:
+                if self.games.db.solve(guild, game):
+                    self.games.db.lock(guild, game)
+                else:
+                    answer = await self.games.answer(game)
+                    if not answer:
+                        continue
+                    pooled = self.games.db.pooled(game)
+                    turns = await self.games.play(game, answer, pooled)
+                    self.games.db.save_solve(guild, game, turns, len(pooled))
+            log.info('Wordle %s locked quietly in guild %s', game, guild)
+
+    @close_games.before_loop
+    async def before_close(self):
+        """Wait for the cache, like Krillion's daily post."""
+        await self.bot.wait_until_ready()
 
 
 def image_urls(message) -> list:

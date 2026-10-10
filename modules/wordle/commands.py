@@ -20,31 +20,41 @@ class WordleCommands(commands.Cog):
         self.bot = bot
         self.games = games
 
-    async def result(self, guild_id, save):
-        """(game, turns, answer) for today's game. Unless it's locked in, it's
-        played now with whatever boards there are, none needed, and saved as
-        provisional if asked. A string if it can't."""
-        game = self.games.today(guild_id)
-        answer = await self.games.answer(game)
+    async def result(self, guild_id, fresh, game=None):
+        """(game, turns, answer), or a string if it can't.
+
+        Fresh plays always play now with every guild's boards so far, none
+        needed, and today's is saved as provisional unless the day's already
+        locked in. Otherwise the locked-in result is shown if there is one.
+        An earlier game is only replayed, never saved."""
+        today = self.games.today(guild_id)
+        game = today if game is None else game
+        if not 0 <= game <= self.games.newest(guild_id):
+            return f"Wordle {game} can't be played: it's not out yet, or doesn't exist."
+        answer = await self.games.answer(game, keep=game == today)
         if not answer:
             return f"Can't look up Wordle {game} right now. Try again in a bit."
+        if game != today:
+            turns = await self.games.play(game, answer, self.games.db.pooled(game), replay=True)
+            return game, turns, answer
 
         saved = self.games.db.solve(guild_id, game)
-        if saved and saved[2]:
+        if not fresh and saved and saved[2]:
             return game, saved[0], answer
-        boards = self.games.db.boards(guild_id, game)
+        boards = self.games.db.pooled(game)
         turns = await self.games.play(game, answer, boards)
-        if save:
+        if fresh:
             self.games.db.save_play(guild_id, game, turns, len(boards))
         return game, turns, answer
 
-    @group.command(name='play', description="Play today's Wordle from the boards so far")
-    async def play(self, interaction: discord.Interaction):
-        """Colors only, so it spoils nothing. Before the result locks in, it
-        plays with whatever boards there are; if the day ends without enough
-        boards to lock in, the last of these stands."""
+    @group.command(name='play', description="Play today's Wordle from every board so far")
+    @app_commands.describe(game='An earlier game number to replay. Defaults to today.')
+    async def play(self, interaction: discord.Interaction, game: int = None):
+        """Colors only, so it spoils nothing. Always plays with all the boards
+        so far, even once the day's locked in; before then, if the server
+        never gets enough boards to lock in, the last of these stands."""
         await interaction.response.defer(thinking=True)
-        found = await self.result(interaction.guild.id, save=True)
+        found = await self.result(interaction.guild.id, fresh=True, game=game)
         if isinstance(found, str):
             # The reply started out public, so swap it for one only they see.
             await interaction.delete_original_response()
@@ -57,7 +67,7 @@ class WordleCommands(commands.Cog):
     async def today(self, interaction: discord.Interaction):
         """Only the person asking sees it, and the words are still spoilered."""
         await interaction.response.defer(ephemeral=True, thinking=True)
-        found = await self.result(interaction.guild.id, save=False)
+        found = await self.result(interaction.guild.id, fresh=False)
         if isinstance(found, str):
             await interaction.followup.send(found, ephemeral=True)
             return

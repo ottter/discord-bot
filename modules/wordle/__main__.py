@@ -13,6 +13,7 @@ from modules.wordle import image
 from modules.wordle.boards import Clues
 from modules.wordle.games import board
 from modules.wordle.solver import Solver, discount, load_used, load_words, play_out, solved
+from modules.wordle.storage import distinct
 
 # Past six on purpose: how far over it goes shows how bad a trap was.
 TURNS = 20
@@ -44,7 +45,8 @@ def main():
         number, found = image.read(path)
         print(f'#{number}:' if number else 'unreadable game number:',
               ' '.join('/'.join(board) for board in found))
-        boards += found
+        # Only finished boards count, as in Discord.
+        boards += distinct(found)
 
     weights = discount(load_words(), load_used())
     if boards:

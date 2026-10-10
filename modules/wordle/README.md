@@ -19,11 +19,14 @@ each day's answer to the end once the day is over, repeats included.
 
 ## In Discord
 
-The bot reads the Wordle app's posts. The app posts one message per game and
-edits it as people play, with an image of every board so far. The first time
-a game's image shows three boards, the bot plays it from their colors and
-posts its result: just the colored squares and the score, like a share. That
-result is locked in; later images for the same game are ignored.
+The bot reads the Wordle app's posts, which it edits with a new image as
+people play. Only finished boards count: solved, or out of guesses. Every
+server's boards for a game are pooled, each counted once, and every play uses
+the pool. Each server still locks in on its own: once its own posts show three
+finished boards, the bot plays and posts its result, just the colored squares
+and the score, like a share. A game runs about two days across timezones, so
+once the game after next has started, any server that never got to three is
+locked in quietly, without a post.
 
 The commands don't need the app at all. Today's game comes from the date (US
 Eastern by default), or a newer number if an image has shown one, and the bot
@@ -31,7 +34,7 @@ plays with however many boards it has, none included.
 
 | Command | What it does |
 | --- | --- |
-| `/wordle play` | Posts the result, colors only. Until it's locked in, it plays with the boards so far, and the last one stands if the day ends first |
+| `/wordle play [game]` | Posts the result, colors only. Until it's locked in, it plays with the boards so far, and the last one stands if the server never reaches three. With a game number, replays that game with any boards stored for it, saving nothing; only games already released somewhere |
 | `/wordle today` | The same, plus the guesses and answer in spoilers, only for you. Saves nothing |
 | `/wordle simulate word` | Plays any word with no boards and shows every guess |
 | `/wordle channel` | Where locked-in results post. Unset means next to the app's message |

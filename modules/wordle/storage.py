@@ -21,12 +21,13 @@ CREATE TABLE IF NOT EXISTS answers (
     fetched_at TEXT    NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS boards (
-    guild_id INTEGER NOT NULL,
-    game     INTEGER NOT NULL,
-    rows     TEXT    NOT NULL,
-    seen_at  TEXT    NOT NULL,
-    PRIMARY KEY (guild_id, game)
+CREATE TABLE IF NOT EXISTS images (
+    guild_id   INTEGER NOT NULL,
+    game       INTEGER NOT NULL,
+    message_id INTEGER NOT NULL,
+    rows       TEXT    NOT NULL,
+    seen_at    TEXT    NOT NULL,
+    PRIMARY KEY (guild_id, game, message_id)
 );
 
 CREATE TABLE IF NOT EXISTS solves (
@@ -58,6 +59,11 @@ class WordleDB:
             columns = [row['name'] for row in conn.execute('PRAGMA table_info(solves)')]
             if 'locked' not in columns:
                 conn.execute('ALTER TABLE solves ADD COLUMN locked INTEGER NOT NULL DEFAULT 1')
+            # Files made when only the newest image per game was kept.
+            if conn.execute("SELECT 1 FROM sqlite_master WHERE name='boards'").fetchone():
+                conn.execute("""INSERT OR IGNORE INTO images
+                                SELECT guild_id, game, 0, rows, seen_at FROM boards""")
+                conn.execute('DROP TABLE boards')
         log.info('Wordle database ready at %s', self.path)
 
     @contextmanager
@@ -94,29 +100,56 @@ class WordleDB:
 
     # -- boards ------------------------------------------------------------
 
-    def save_boards(self, guild_id, game, boards) -> None:
-        """The newest image's boards for a game. The app edits one message per
-        game as people play, so the newest image always has every board."""
+    def save_image(self, guild_id, game, message_id, boards) -> None:
+        """The boards in one of the app's posts. It edits a post as people
+        play, so a newer image of the same post replaces the older one."""
         with self.connect() as conn:
             conn.execute(
-                """INSERT INTO boards (guild_id, game, rows, seen_at) VALUES (?, ?, ?, ?)
-                   ON CONFLICT (guild_id, game) DO UPDATE SET
+                """INSERT INTO images (guild_id, game, message_id, rows, seen_at)
+                   VALUES (?, ?, ?, ?, ?)
+                   ON CONFLICT (guild_id, game, message_id) DO UPDATE SET
                        rows=excluded.rows, seen_at=excluded.seen_at""",
-                (guild_id, game, json.dumps(boards), now()))
+                (guild_id, game, message_id, json.dumps(boards), now()))
 
     def boards(self, guild_id, game) -> list:
-        """Every board seen for a game, each a list of rows like 'BYBGB'."""
+        """This guild's boards for a game, from all its posts, each once."""
         with self.connect() as conn:
-            row = conn.execute('SELECT rows FROM boards WHERE guild_id=? AND game=?',
-                               (guild_id, game)).fetchone()
-        return json.loads(row['rows']) if row else []
+            rows = conn.execute('SELECT rows FROM images WHERE guild_id=? AND game=?',
+                                (guild_id, game)).fetchall()
+        return distinct(board for row in rows for board in json.loads(row['rows']))
 
-    def latest_game(self, guild_id):
-        """The newest game number seen in this guild, or None."""
+    def pooled(self, game) -> list:
+        """Every guild's boards for a game, each once. Plays use these."""
         with self.connect() as conn:
-            row = conn.execute('SELECT MAX(game) AS game FROM boards WHERE guild_id=?',
-                               (guild_id,)).fetchone()
+            rows = conn.execute('SELECT rows FROM images WHERE game=?', (game,)).fetchall()
+        return distinct(board for row in rows for board in json.loads(row['rows']))
+
+    def latest_game(self, guild_id=None):
+        """The newest game number seen in this guild, or in any guild."""
+        with self.connect() as conn:
+            if guild_id is None:
+                row = conn.execute('SELECT MAX(game) AS game FROM images').fetchone()
+            else:
+                row = conn.execute('SELECT MAX(game) AS game FROM images WHERE guild_id=?',
+                                   (guild_id,)).fetchone()
         return row['game']
+
+    def first_answer(self):
+        """The oldest game whose answer is stored, or None. Only days the bot
+        played are stored, so games before it are from before it started."""
+        with self.connect() as conn:
+            return conn.execute('SELECT MIN(game) AS game FROM answers').fetchone()['game']
+
+    def open_games(self, before) -> list:
+        """(guild_id, game) for games before this one that had boards or a
+        /wordle play in a guild but never locked in there."""
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT guild_id, game FROM images WHERE game < :before
+                   UNION SELECT guild_id, game FROM solves WHERE game < :before
+                   EXCEPT SELECT guild_id, game FROM solves WHERE locked = 1""",
+                {'before': before}).fetchall()
+        return [(row['guild_id'], row['game']) for row in rows]
 
     # -- solves ------------------------------------------------------------
 
@@ -129,6 +162,12 @@ class WordleDB:
         """A provisional result from /wordle play. The last one stands if the
         game never gets enough boards to lock in."""
         self.save((guild_id, game), turns, boards, locked=False)
+
+    def lock(self, guild_id, game) -> None:
+        """Lock in whatever result is saved, as it is."""
+        with self.connect() as conn:
+            conn.execute('UPDATE solves SET locked = 1 WHERE guild_id=? AND game=?',
+                         (guild_id, game))
 
     def save(self, key, turns, boards, locked) -> bool:
         """Save a result unless one's locked in. True if it was saved."""
@@ -170,6 +209,19 @@ class WordleDB:
             row = conn.execute('SELECT channel_id FROM guild_config WHERE guild_id=?',
                                (guild_id,)).fetchone()
         return row['channel_id'] if row else None
+
+
+def distinct(boards) -> list:
+    """Finished boards, each once. A board still being played doesn't count
+    until a later image shows it solved or out of guesses, and the same board
+    in two posts counts once."""
+    finished = {tuple(board) for board in boards if done(board)}
+    return [list(board) for board in sorted(finished)]
+
+
+def done(board) -> bool:
+    """Solved, or all six rows used without solving (X/6)."""
+    return bool(board) and (board[-1] == 'GGGGG' or len(board) >= 6)
 
 
 def now() -> str:

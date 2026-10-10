@@ -178,21 +178,22 @@ delete that file and restart.
 ## Wordle
 
 The bot plays each day's Wordle in hard mode, using only the colors on other people's
-boards. It reads the Wordle app's posts: the app keeps one message per game and edits
-in an image of every board as people play. The first time a game's image shows three
-boards, the bot plays and posts its result like a share, colors only:
+finished boards. It reads the Wordle app's posts and pools every server's boards for a
+game. Once a server's own posts show three finished boards, the bot plays and posts its
+result there like a share, colors only:
 
     Wordle 1,938 3/6*
     ⬛⬛🟨⬛⬛
     🟨⬛🟨🟩🟩
     🟩🟩🟩🟩🟩
 
-That result is locked in for the day. It never sees the answer before playing; the
-answer is looked up once per game, from NYT, only to color the bot's own guesses.
+That result is locked in for the day. A server that never reaches three is locked in
+quietly once the game is over in every timezone. The bot never sees the answer before
+playing; it's looked up once per game, from NYT, only to color the bot's own guesses.
 
 | Command | |
 | --- | --- |
-| `/wordle play` | Play today's game from the boards so far and post the result. The last one stands if no image reaches three boards before the day ends |
+| `/wordle play [game]` | Play today's game from the boards so far and post the result. The last one stands if the server never reaches three boards. With a game number, replays that game instead; nothing newer than the latest released game |
 | `/wordle today` | The same with the guesses and answer in spoilers, only for you |
 | `/wordle simulate word` | Watch it play any word, with no boards |
 | `/wordle channel [#channel]` | Where locked-in results post. Unset means next to the app's message. Needs Manage Server |
