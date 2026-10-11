@@ -138,8 +138,9 @@ def unique_vowels(word: str) -> int:
 
 
 def play_out(answer: str, solver, limit: int = GUESSES) -> list:
-    """(guess, pattern, runners-up) for each turn, stopping when solved or out
-    of turns.
+    """(guess, pattern, options) for each turn, stopping when solved or out of
+    turns. Options are [word, chance it's the answer] for the guess and its
+    runners-up, as the solver saw them before guessing.
 
     The answer only colors the solver's own guesses, as the game would.
     """
@@ -150,7 +151,13 @@ def play_out(answer: str, solver, limit: int = GUESSES) -> list:
             break
         guess = ranked[0]
         pattern = score(guess, answer)
-        turns.append((guess, pattern, ranked[1:]))
+        options = []
+        for word in ranked:
+            odds = solver.chance(word)
+            # Plenty of places, so a rare word that's still possible doesn't
+            # round down to look ruled out.
+            options.append([word, odds if odds is None else round(odds, 8)])
+        turns.append((guess, pattern, options))
         if pattern == 'GGGGG':
             break
         solver.add(guess, pattern)
@@ -196,6 +203,13 @@ class Solver:
         if value is None:
             value = self.seen[key] = code(guess, answer)
         return value
+
+    def chance(self, word: str):
+        """How likely the solver thinks the word is the answer right now: its
+        share of the weight still possible. None for a word ruled out."""
+        if word not in self.candidates:
+            return None
+        return self.weights[word] / sum(self.weights[w] for w in self.candidates)
 
     def suggest(self) -> str:
         """Next guess, or None if the patterns rule everything out."""

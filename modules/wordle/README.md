@@ -24,7 +24,7 @@ people play. Only finished boards count: solved, or out of guesses. Every
 server's boards for a game are pooled, each counted once, and every play uses
 the pool. Each server still locks in on its own: once its own posts show three
 finished boards, the bot plays and posts its result, just the colored squares
-and the score, like a share. A game runs about two days across timezones, so
+and the score like a share, plus what it would have scored with no boards. A game runs about two days across timezones, so
 once the game after next has started, any server that never got to three is
 locked in quietly, without a post.
 
@@ -35,7 +35,7 @@ plays with however many boards it has, none included.
 | Command | What it does |
 | --- | --- |
 | `/wordle play [game]` | Posts the result, colors only. Until it's locked in, it plays with the boards so far, and the last one stands if the server never reaches three. With a game number, replays that game with any boards stored for it, saving nothing; only games already released somewhere |
-| `/wordle today` | The same, plus each guess with the four words it was picked over and the answer, all in spoilers, only for you. Saves nothing |
+| `/wordle today` | The same, only for you, plus how many boards it used, what it would have scored blind from `slate`, and each guess with the four words it was picked over, how likely each looked, and the answer, all in spoilers. Saves nothing |
 | `/wordle simulate word` | Plays any word with no boards and shows every guess |
 | `/wordle channel` | Where locked-in results post. Unset means next to the app's message |
 

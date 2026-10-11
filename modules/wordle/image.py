@@ -19,6 +19,9 @@ CLOSE = 2
 TILE_PIXELS = 15
 # Text is any pixel brighter than this on the dark background.
 INK = 60
+# Every column of a digit has a stroke at least this bright; only the
+# anti-aliased edges are fainter.
+SOLID = 128
 # Gaps wider than this split words in the title, and boards from each other.
 WORD_GAP = 3
 BOARD_GAP = 8
@@ -90,9 +93,9 @@ def game_number(image):
 
     title = gray.crop((0, top - 1, width, bottom + 2))
     pixels = title.load()
-    glyphs = spans([any(pixels[x, y] > INK for y in range(title.size[1]))
-                    for x in range(width)], least=1)
-    number = split(glyphs, WORD_GAP)[-1]
+    peaks = [max(pixels[x, y] for y in range(title.size[1])) for x in range(width)]
+    glyphs = spans([peak > INK for peak in peaks], least=1)
+    number = [part for glyph in split(glyphs, WORD_GAP)[-1] for part in unjoin(glyph, peaks)]
 
     digits = ''
     for left, right in number:
@@ -101,6 +104,17 @@ def game_number(image):
             return None
         digits += digit
     return int(digits)
+
+
+def unjoin(glyph, peaks) -> list:
+    """Split digits touching only by faint edge pixels, like the tip of a 4's
+    bar meeting a 0. The faint column stays with the left digit, as a bar's
+    tip sticks out to the right."""
+    left, right = glyph
+    for x in range(left + 1, right - 1):
+        if peaks[x] <= SOLID and max(peaks[left:x]) > SOLID and max(peaks[x + 1:right]) > SOLID:
+            return [(left, x + 1)] + unjoin((x + 1, right), peaks)
+    return [glyph]
 
 
 def shape(glyph) -> list:

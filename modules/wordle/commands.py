@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from modules.wordle.games import board, grid, headline, spoilers
+from modules.wordle.games import blind_note, board, grid, headline, spoilers
 from modules.wordle.solver import load_words, solved
 
 log = logging.getLogger('discord.bot')
@@ -21,7 +21,7 @@ class WordleCommands(commands.Cog):
         self.games = games
 
     async def result(self, guild_id, fresh, game=None):
-        """(game, turns, answer), or a string if it can't.
+        """(game, turns, answer, boards used), or a string if it can't.
 
         Fresh plays always play now with every guild's boards so far, none
         needed, and today's is saved as provisional unless the day's already
@@ -35,17 +35,18 @@ class WordleCommands(commands.Cog):
         if not answer:
             return f"Can't look up Wordle {game} right now. Try again in a bit."
         if game != today:
-            turns = await self.games.play(game, answer, self.games.db.pooled(game), replay=True)
-            return game, turns, answer
+            boards = self.games.db.pooled(game)
+            turns = await self.games.play(game, answer, boards, replay=True)
+            return game, turns, answer, len(boards)
 
         saved = self.games.db.solve(guild_id, game)
         if not fresh and saved and saved[2]:
-            return game, saved[0], answer
+            return game, saved[0], answer, saved[1]
         boards = self.games.db.pooled(game)
         turns = await self.games.play(game, answer, boards)
         if fresh:
             self.games.db.save_play(guild_id, game, turns, len(boards))
-        return game, turns, answer
+        return game, turns, answer, len(boards)
 
     @group.command(name='play', description="Play today's Wordle from every board so far")
     @app_commands.describe(game='An earlier game number to replay. Defaults to today.')
@@ -60,11 +61,10 @@ class WordleCommands(commands.Cog):
             await interaction.delete_original_response()
             await interaction.followup.send(found, ephemeral=True)
             return
-        game, turns, _ = found
+        game, turns, _, boards = found
         await interaction.followup.send(f'{headline(game, turns)}\n{grid(turns)}')
         log.info('Wordle: /wordle play by %s in %s: %s from %s board(s)', interaction.user,
-                 interaction.guild.name, headline(game, turns),
-                 len(self.games.db.pooled(game)))
+                 interaction.guild.name, headline(game, turns), boards)
 
     @group.command(name='today', description="Today's result with the guesses, just for you")
     async def today(self, interaction: discord.Interaction):
@@ -74,10 +74,14 @@ class WordleCommands(commands.Cog):
         if isinstance(found, str):
             await interaction.followup.send(found, ephemeral=True)
             return
-        game, turns, answer = found
+        game, turns, answer, boards = found
+        note = ''
+        if boards:
+            # The same game with no boards at all, to show what they were worth.
+            blind = await self.games.play(game, answer, [])
+            note = f'\n{blind_note(boards, blind)}'
         await interaction.followup.send(
-            f'{headline(game, turns)}\n{spoilers(turns, answer)}',
-            ephemeral=True)
+            f'{headline(game, turns)}\n{spoilers(turns, answer)}{note}', ephemeral=True)
         log.info('Wordle: /wordle today by %s in %s: %s', interaction.user,
                  interaction.guild.name, headline(game, turns))
 

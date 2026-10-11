@@ -120,19 +120,40 @@ def board(turns) -> str:
     return '\n'.join(f'{squares(turn[1])} {turn[0]}' for turn in turns)
 
 
+def blind_note(boards, blind) -> str:
+    """How many boards a result used, against a play with none from the opener."""
+    return (f'Played from {boards} board{"" if boards == 1 else "s"}. Starting blind with '
+            f"{OPENER}, I'd have gotten {tally(blind)}.")
+
+
+def tally(turns) -> str:
+    """'3/6', or 'X/6' if it didn't solve in six."""
+    return f'{len(turns)}/6' if solved(turns) and len(turns) <= 6 else 'X/6'
+
+
 def headline(game, turns) -> str:
-    """'Wordle 1,938 3/6*' like a share; the * is hard mode. X/6* if it
-    didn't solve in six."""
-    score = f'{len(turns)}/6' if solved(turns) and len(turns) <= 6 else 'X/6'
-    return f'Wordle {game:,} {score}*'
+    """'Wordle 1,938 3/6*' like a share; the * is hard mode."""
+    return f'Wordle {game:,} {tally(turns)}*'
 
 
 def spoilers(turns, answer) -> str:
     """The board with each guess in bold and the words it was picked over in
-    italics, then the answer, all spoilered. Results saved before runners-up
-    were kept show just the guess."""
+    italics, each with how likely it looked to be the answer, then the answer,
+    all spoilered. Results saved before these were kept show just the guess."""
     rows = []
     for turn in turns:
-        others = ', '.join(f'*{word}*' for word in (turn[2] if len(turn) > 2 else []))
-        rows.append(f'{squares(turn[1])} ||**{turn[0]}**{f" ({others})" if others else ""}||')
+        options = turn[2] if len(turn) > 2 else [[turn[0], None]]
+        picked, *others = [labelled(word, chance, bold=i == 0)
+                           for i, (word, chance) in enumerate(options)]
+        rest = f' ({", ".join(others)})' if others else ''
+        rows.append(f'{squares(turn[1])} ||{picked}{rest}||')
     return '\n'.join(rows + [f'Answer: ||{answer.upper()}||'])
+
+
+def labelled(word, chance, bold) -> str:
+    """A word in bold or italics with its chance. Words already ruled out as
+    the answer, played only to narrow things down, get no number."""
+    text = f'**{word}**' if bold else f'*{word}*'
+    if chance is None:
+        return text
+    return f'{text} {"<1%" if chance < 0.01 else f"{chance:.0%}"}'

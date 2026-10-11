@@ -186,6 +186,7 @@ result there like a share, colors only:
     ⬛⬛🟨⬛⬛
     🟨⬛🟨🟩🟩
     🟩🟩🟩🟩🟩
+    Played from 5 boards. Starting blind with slate, I'd have gotten 4/6.
 
 That result is locked in for the day. A server that never reaches three is locked in
 quietly once the game is over in every timezone. The bot never sees the answer before
