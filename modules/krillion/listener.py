@@ -32,7 +32,7 @@ class KrillionSubmit(commands.Cog):
         try:
             self.submit_channel = int(channel) if channel else None
         except ValueError:
-            log.error('KRILLION_SUBMIT_CHANNEL is not a channel id: %r', channel)
+            log.error('Krillion: KRILLION_SUBMIT_CHANNEL is not a channel id: %r', channel)
             self.submit_channel = None
 
         setting = (bot.config.get('KRILLION_COOLDOWN')
@@ -40,7 +40,7 @@ class KrillionSubmit(commands.Cog):
         try:
             seconds = float(setting) if setting else SUBMIT_PER
         except (TypeError, ValueError):
-            log.error('KRILLION_COOLDOWN is not a number: %r', setting)
+            log.error('Krillion: KRILLION_COOLDOWN is not a number: %r', setting)
             seconds = SUBMIT_PER
         self.cooldown = commands.CooldownMapping.from_cooldown(
             SUBMIT_RATE, seconds, commands.BucketType.user)
@@ -60,7 +60,8 @@ class KrillionSubmit(commands.Cog):
         try:
             result = parse_share(message.content)
         except ParseError as err:
-            log.info('Rejected %s: %s', message.author, err)
+            log.info('Krillion: rejected %s in %s #%s: %s', message.author,
+                     message.guild.name, message.channel.name, err)
             await self._reject(message, str(err))
             return
 
@@ -69,8 +70,8 @@ class KrillionSubmit(commands.Cog):
 
         # Shares are read anywhere, but only count in the submit channel.
         if self.submit_channel and message.channel.id != self.submit_channel:
-            log.debug('Krillion share from %s outside the submit channel',
-                      message.author)
+            log.info('Krillion: rejected %s in %s #%s: outside the submit channel',
+                     message.author, message.guild.name, message.channel.name)
             await self._reject(message, f'scores only count in <#{self.submit_channel}>')
             return
 
@@ -78,7 +79,8 @@ class KrillionSubmit(commands.Cog):
         if result['day'] != today:
             reason = (f"that's day #{result['day']}, and today is #{today}"
                       " — only today's dive counts")
-            log.info('Rejected %s: stale day %s', message.author, result['day'])
+            log.info('Krillion: rejected %s in %s: day %s, today is %s',
+                     message.author, message.guild.name, result['day'], today)
             await self._reject(message, reason)
             return
 
@@ -86,7 +88,8 @@ class KrillionSubmit(commands.Cog):
         # messages go silently — reacting just gives a spammer something to watch.
         retry_after = self.cooldown.update_rate_limit(message)
         if retry_after:
-            log.info('Throttled %s, %.0fs left', message.author, retry_after)
+            log.info('Krillion: throttled %s in %s, %.0fs left',
+                     message.author, message.guild.name, retry_after)
             return
 
         try:
@@ -94,17 +97,24 @@ class KrillionSubmit(commands.Cog):
                 message.guild.id, message.author.id, result,
                 datetime.datetime.now(GAME_TZ).isoformat())
         except sqlite3.Error as err:
-            log.error('Could not save score for %s: %s', message.author, err)
+            log.error('Krillion: could not save the score from %s in %s: %s',
+                      message.author, message.guild.name, err)
             await self._reject(message, 'the scoreboard is unavailable right now')
             return
 
+        board = self.db.leaderboard(message.guild.id, today)
+        rank = next((i for i, row in enumerate(board, 1)
+                     if row['user_id'] == message.author.id), '?')
         # A replacement reacts like any other accept; the change belongs in
         # the log, not in chat.
         if previous is None:
-            log.info('Accepted %s: %s on day %s', message.author, result['score'], today)
+            log.info('Krillion #%s: accepted %s in %s: %s, %s of %s today',
+                     today, message.author, message.guild.name, result['score'],
+                     rank, len(board))
         else:
-            log.info('Replaced %s on day %s: %s -> %s',
-                     message.author, today, previous, result['score'])
+            log.info('Krillion #%s: replaced %s in %s: %s -> %s, %s of %s today',
+                     today, message.author, message.guild.name, previous,
+                     result['score'], rank, len(board))
         await self._react(message, ACCEPTED)
 
     async def _react(self, message, emoji):
@@ -112,7 +122,8 @@ class KrillionSubmit(commands.Cog):
         try:
             await message.add_reaction(emoji)
         except discord.HTTPException as err:
-            log.warning('Could not react to %s: %s', message.id, err)
+            log.warning('Krillion: could not react to message %s in %s: %s',
+                        message.id, message.guild.name, err)
 
     async def _reject(self, message, reason):
         """Mark the message and say why, quietly enough not to derail chat."""
@@ -121,4 +132,5 @@ class KrillionSubmit(commands.Cog):
             await message.reply(f'Not counted — {reason}.', mention_author=False,
                                 delete_after=30)
         except discord.HTTPException as err:
-            log.warning('Could not reply to %s: %s', message.id, err)
+            log.warning('Krillion: could not reply to message %s in %s: %s',
+                        message.id, message.guild.name, err)

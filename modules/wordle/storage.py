@@ -1,4 +1,4 @@
-"""SQLite storage for Wordle answers, boards seen, and the bot's solves.
+"""SQLite storage for Wordle answers, boards seen, the bot's solves, and saved plays.
 
 One file, stdlib only. The path comes from WORDLE_DB; in a container, mount a
 volume there so answers and solves survive a restart.
@@ -40,6 +40,16 @@ CREATE TABLE IF NOT EXISTS solves (
     PRIMARY KEY (guild_id, game)
 );
 
+CREATE TABLE IF NOT EXISTS plays (
+    game      INTEGER NOT NULL,
+    boards    TEXT    NOT NULL,
+    replay    INTEGER NOT NULL,
+    version   TEXT    NOT NULL,
+    turns     TEXT    NOT NULL,
+    played_at TEXT    NOT NULL,
+    PRIMARY KEY (game, boards, replay, version)
+);
+
 CREATE TABLE IF NOT EXISTS guild_config (
     guild_id   INTEGER PRIMARY KEY,
     channel_id INTEGER
@@ -47,7 +57,7 @@ CREATE TABLE IF NOT EXISTS guild_config (
 """
 
 
-class WordleDB:
+class WordleDB:  # pylint: disable=too-many-public-methods
     """Every query the cogs need. Connections are per-operation and short."""
 
     def __init__(self, path=None):
@@ -192,6 +202,38 @@ class WordleDB:
         if row is None:
             return None
         return json.loads(row['turns']), row['boards'], bool(row['locked'])
+
+    def locked_solves(self, guild_id) -> list:
+        """(game, turns) for every locked-in result in a guild, oldest first."""
+        with self.connect() as conn:
+            rows = conn.execute(
+                'SELECT game, turns FROM solves WHERE guild_id=? AND locked=1 ORDER BY game',
+                (guild_id,)).fetchall()
+        return [(row['game'], json.loads(row['turns'])) for row in rows]
+
+    # -- plays -------------------------------------------------------------
+
+    def cached_play(self, key):
+        """The turns from an earlier play with the same game, boards and
+        solver, or None. key is (game, boards digest, replay, version)."""
+        with self.connect() as conn:
+            row = conn.execute(
+                'SELECT turns FROM plays WHERE game=? AND boards=? AND replay=? AND version=?',
+                (key[0], key[1], int(key[2]), key[3])).fetchone()
+        return json.loads(row['turns']) if row else None
+
+    def cache_play(self, key, turns) -> None:
+        """Keep a play's turns for the next time the same key comes up."""
+        with self.connect() as conn:
+            conn.execute(
+                """INSERT OR IGNORE INTO plays (game, boards, replay, version, turns, played_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (key[0], key[1], int(key[2]), key[3], json.dumps(turns), now()))
+
+    def prune_plays(self, version) -> None:
+        """Drop plays from an older solver, which would now play differently."""
+        with self.connect() as conn:
+            conn.execute('DELETE FROM plays WHERE version != ?', (version,))
 
     # -- per-guild settings ------------------------------------------------
 

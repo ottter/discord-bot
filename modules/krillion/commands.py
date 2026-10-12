@@ -70,6 +70,8 @@ class KrillionBoard(commands.Cog):
         await interaction.response.send_message(
             embed=format_board(rows, interaction.guild, day,
                                title=f'Krillion #{day} · so far'))
+        log.info('Krillion #%s: /krillion today by %s in %s, %s on the board',
+                 day, interaction.user, interaction.guild.name, len(rows))
 
     @group.command(name='results', description='Render a day of results on demand')
     @app_commands.describe(day='Puzzle number. Defaults to today.')
@@ -79,6 +81,8 @@ class KrillionBoard(commands.Cog):
         rows = self.db.leaderboard(interaction.guild.id, day)
         await interaction.response.send_message(
             embed=format_board(rows, interaction.guild, day))
+        log.info('Krillion #%s: /krillion results by %s in %s, %s on the board',
+                 day, interaction.user, interaction.guild.name, len(rows))
 
     @group.command(name='stats', description='Someone\'s Krillion record')
     @app_commands.describe(member='Whose stats to show. Defaults to you.')
@@ -101,6 +105,8 @@ class KrillionBoard(commands.Cog):
         embed.add_field(name='Best', value=row['best'])
         embed.add_field(name='Streak', value=self._streak(interaction.guild.id, member.id))
         await interaction.response.send_message(embed=embed)
+        log.info('Krillion: /krillion stats by %s in %s for %s: %s dives, best %s',
+                 interaction.user, interaction.guild.name, member, row['played'], row['best'])
 
     @group.command(name='channel', description='Where the daily results post')
     @app_commands.describe(channel='Leave empty to turn the daily post off.')
@@ -110,8 +116,8 @@ class KrillionBoard(commands.Cog):
         """Per-guild setting, so each server picks its own results channel."""
         self.db.set_results_channel(interaction.guild.id, channel.id if channel else None)
         where = channel.mention if channel else 'nowhere — daily results are off'
-        log.info('Guild %s set Krillion results channel to %s',
-                 interaction.guild.id, channel.id if channel else None)
+        log.info('Krillion: %s set the results channel in %s to %s', interaction.user,
+                 interaction.guild.name, f'#{channel.name}' if channel else 'none')
         await interaction.response.send_message(f'Daily results will post to {where}.',
                                                 ephemeral=True)
 
@@ -129,7 +135,8 @@ class KrillionBoard(commands.Cog):
             guild = self.bot.get_guild(guild_id)
             channel = guild.get_channel(channel_id) if guild else None
             if channel is None:
-                log.warning('Krillion results channel %s is gone', channel_id)
+                log.warning('Krillion #%s: results channel %s in %s is gone', finished,
+                            channel_id, getattr(guild, 'name', guild_id))
                 continue
 
             rows = self.db.leaderboard(guild_id, finished)
@@ -140,9 +147,11 @@ class KrillionBoard(commands.Cog):
             try:
                 await channel.send(embed=format_board(rows, guild, finished))
                 self.db.mark_posted(guild_id, finished)
-                log.info('Posted Krillion #%s results to %s', finished, channel_id)
+                log.info('Krillion #%s: posted results in %s #%s, %s player(s), top score %s',
+                         finished, guild.name, channel.name, len(rows), rows[0]['score'])
             except discord.HTTPException as err:
-                log.error('Could not post Krillion results to %s: %s', channel_id, err)
+                log.error('Krillion #%s: could not post results in %s #%s: %s',
+                          finished, guild.name, channel.name, err)
 
     @post_results.before_loop
     async def before_post(self):

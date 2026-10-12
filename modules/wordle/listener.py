@@ -16,7 +16,7 @@ from discord.ext import commands, tasks
 
 from modules.wordle import image
 from modules.wordle.answers import current_game
-from modules.wordle.games import blind_note, grid, headline
+from modules.wordle.games import blind_note, boards_text, grid, headline
 
 log = logging.getLogger('discord.bot')
 
@@ -103,12 +103,12 @@ class WordleWatch(commands.Cog):
             turns = await self.games.play(game, answer, pooled)
             if not self.games.db.save_solve(guild, game, turns, len(pooled)):
                 return
-            blind = await self.games.play(game, answer, [])
+            blind = await self.games.blind(game, answer)
 
         channel = message.guild.get_channel(self.games.db.channel(guild) or 0) or message.channel
         try:
             await channel.send(f'{headline(game, turns)}\n{grid(turns)}\n'
-                               f'{blind_note(len(pooled), blind)}')
+                               f'Played from {boards_text(len(pooled))}. {blind_note(blind)}')
             log.info('Wordle %s: posted %s in %s #%s, from %s board(s)', game,
                      headline(game, turns), message.guild.name, channel.name, len(pooled))
         except discord.HTTPException as err:

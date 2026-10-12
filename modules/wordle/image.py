@@ -97,13 +97,11 @@ def game_number(image):
     glyphs = spans([peak > INK for peak in peaks], least=1)
     number = [part for glyph in split(glyphs, WORD_GAP)[-1] for part in unjoin(glyph, peaks)]
 
-    digits = ''
-    for left, right in number:
-        digit = closest(shape(title.crop((left, 0, right, title.size[1]))))
-        if digit is None:
-            return None
-        digits += digit
-    return int(digits)
+    digits = [closest(shape(title.crop((left, 0, right, title.size[1]))))
+              for left, right in number]
+    if None in digits:
+        return None
+    return int(''.join(digits))
 
 
 def unjoin(glyph, peaks) -> list:
@@ -112,7 +110,7 @@ def unjoin(glyph, peaks) -> list:
     tip sticks out to the right."""
     left, right = glyph
     for x in range(left + 1, right - 1):
-        if peaks[x] <= SOLID and max(peaks[left:x]) > SOLID and max(peaks[x + 1:right]) > SOLID:
+        if max(peaks[left:x]) > SOLID >= peaks[x] and max(peaks[x + 1:right]) > SOLID:
             return [(left, x + 1)] + unjoin((x + 1, right), peaks)
     return [glyph]
 

@@ -4,12 +4,15 @@ Playing is CPU work, a second or two, so it runs off the event loop. The
 board tables take about a minute to build, once.
 """
 import asyncio
+import hashlib
+import json
 from collections import defaultdict
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from modules.wordle import answers
 from modules.wordle.boards import Clues
-from modules.wordle.solver import (OPENER, Solver, discount, load_past, load_used,
+from modules.wordle.solver import (DATA, GUESSES, OPENER, Solver, discount, load_past, load_used,
                                    load_words, play_out, solved)
 
 EMOJI = {'G': '🟩', 'Y': '🟨', 'B': '⬛'}
@@ -33,6 +36,8 @@ class Games:
         # One solve at a time per guild and game, so a burst of edits can't
         # lock in two results.
         self.locks = defaultdict(asyncio.Lock)
+        self.version = solver_version()
+        self.db.prune_plays(self.version)
 
     def start_building(self) -> None:
         """Build the board tables in the background, if not already."""
@@ -80,7 +85,24 @@ class Games:
         return used
 
     async def play(self, game, answer, boards, replay=False):
-        """Play a game with other players' boards. The turns it took."""
+        """Play a game with other players' boards. The turns it took.
+
+        The same game, boards and solver always play the same way, so each
+        play is saved and only worked out once."""
+        key = (game, digest(boards), replay, self.version)
+        turns = self.db.cached_play(key)
+        if turns is None:
+            # Through JSON, so a fresh play looks the same as a saved one.
+            turns = json.loads(json.dumps(await self.work_out(game, answer, boards, replay)))
+            self.db.cache_play(key, turns)
+        return turns
+
+    async def blind(self, game, answer, replay=False):
+        """The same game with no boards at all, to show what they were worth."""
+        return await self.play(game, answer, [], replay)
+
+    async def work_out(self, game, answer, boards, replay):
+        """Actually play the game, off the event loop."""
         clues = None
         if boards:
             self.start_building()
@@ -105,6 +127,24 @@ class Games:
         return await asyncio.to_thread(work)
 
 
+def digest(boards) -> str:
+    """A fingerprint of a set of boards, in any order."""
+    text = json.dumps(sorted(boards))
+    return hashlib.sha1(text.encode()).hexdigest()
+
+
+def solver_version() -> str:
+    """A fingerprint of the code and word lists a play depends on, so saved
+    plays are dropped once any of them change."""
+    here = Path(__file__).parent
+    files = [here / 'solver.py', here / 'boards.py', here / 'games.py',
+             *sorted(DATA.glob('*.txt'))]
+    hashed = hashlib.sha1()
+    for path in files:
+        hashed.update(path.read_bytes())
+    return hashed.hexdigest()[:12]
+
+
 def squares(pattern) -> str:
     """'BYBGB' as colored squares."""
     return ''.join(EMOJI[color] for color in pattern)
@@ -120,15 +160,30 @@ def board(turns) -> str:
     return '\n'.join(f'{squares(turn[1])} {turn[0]}' for turn in turns)
 
 
-def blind_note(boards, blind) -> str:
-    """How many boards a result used, against a play with none from the opener."""
-    return (f'Played from {boards} board{"" if boards == 1 else "s"}. Starting blind with '
-            f"{OPENER}, I'd have gotten {tally(blind)}.")
+def blind_note(blind) -> str:
+    """What a play with no boards, from the opener, scored."""
+    return f"Starting blind with {OPENER.upper()}, I'd have gotten {tally(blind)}."
+
+
+def official_note(turns, boards) -> str:
+    """The locked-in result, for when a play has used more boards than it."""
+    return f'My official score is {tally(turns)} using {boards_text(boards)}.'
+
+
+def boards_text(boards) -> str:
+    """'1 board' or '3 boards'."""
+    return f'{boards} board{"" if boards == 1 else "s"}'
+
+
+def guesses_taken(turns) -> int:
+    """Guesses taken, with a miss counted as one more than the limit."""
+    return len(turns) if solved(turns) and len(turns) <= GUESSES else GUESSES + 1
 
 
 def tally(turns) -> str:
     """'3/6', or 'X/6' if it didn't solve in six."""
-    return f'{len(turns)}/6' if solved(turns) and len(turns) <= 6 else 'X/6'
+    taken = guesses_taken(turns)
+    return f'{taken if taken <= GUESSES else "X"}/{GUESSES}'
 
 
 def headline(game, turns) -> str:
@@ -136,10 +191,11 @@ def headline(game, turns) -> str:
     return f'Wordle {game:,} {tally(turns)}*'
 
 
-def spoilers(turns, answer) -> str:
-    """The board with each guess in bold and the words it was picked over in
-    italics, each with how likely it looked to be the answer, then the answer,
-    all spoilered. Results saved before these were kept show just the guess."""
+def spoilers(turns, answer, boards) -> str:
+    """The board with each guess in bold capitals and the words it was picked
+    over in italics, each with how likely it looked to be the answer, then the
+    answer and how many boards it was played from, all spoilered. Results
+    saved before these were kept show just the guess."""
     rows = []
     for turn in turns:
         options = turn[2] if len(turn) > 2 else [[turn[0], None]]
@@ -147,13 +203,13 @@ def spoilers(turns, answer) -> str:
                            for i, (word, chance) in enumerate(options)]
         rest = f' ({", ".join(others)})' if others else ''
         rows.append(f'{squares(turn[1])} ||{picked}{rest}||')
-    return '\n'.join(rows + [f'Answer: ||{answer.upper()}||'])
+    return '\n'.join(rows + [f'Answer from {boards_text(boards)}: ||{answer.upper()}||'])
 
 
 def labelled(word, chance, bold) -> str:
     """A word in bold or italics with its chance. Words already ruled out as
     the answer, played only to narrow things down, get no number."""
-    text = f'**{word}**' if bold else f'*{word}*'
+    text = f'**{word.upper()}**' if bold else f'*{word}*'
     if chance is None:
         return text
     return f'{text} {"<1%" if chance < 0.01 else f"{chance:.0%}"}'

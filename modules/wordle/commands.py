@@ -1,12 +1,13 @@
-"""/wordle slash commands: play, today, simulate and channel."""
+"""/wordle slash commands: play, stats, simulate and channel."""
 import logging
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from modules.wordle.games import blind_note, board, grid, headline, spoilers
-from modules.wordle.solver import load_words, solved
+from modules.wordle.games import (blind_note, board, guesses_taken, headline, official_note,
+                                  spoilers, tally)
+from modules.wordle.solver import OPENER, load_words
 
 log = logging.getLogger('discord.bot')
 
@@ -20,13 +21,14 @@ class WordleCommands(commands.Cog):
         self.bot = bot
         self.games = games
 
-    async def result(self, guild_id, fresh, game=None):
-        """(game, turns, answer, boards used), or a string if it can't.
+    async def result(self, guild_id, game=None):
+        """(game, turns, answer, boards used, blind play, locked result), or a
+        string if it can't. The blind play is None when there were no boards,
+        and the locked result is (turns, boards) or None.
 
-        Fresh plays always play now with every guild's boards so far, none
-        needed, and today's is saved as provisional unless the day's already
-        locked in. Otherwise the locked-in result is shown if there is one.
-        An earlier game is only replayed, never saved."""
+        Always plays with every guild's boards so far, none needed. Until
+        today's game is locked in, that's saved as provisional. An earlier
+        game is only replayed, never saved."""
         today = self.games.today(guild_id)
         game = today if game is None else game
         if not 0 <= game <= self.games.newest(guild_id):
@@ -34,56 +36,66 @@ class WordleCommands(commands.Cog):
         answer = await self.games.answer(game, keep=game == today)
         if not answer:
             return f"Can't look up Wordle {game} right now. Try again in a bit."
-        if game != today:
-            boards = self.games.db.pooled(game)
-            turns = await self.games.play(game, answer, boards, replay=True)
-            return game, turns, answer, len(boards)
-
         saved = self.games.db.solve(guild_id, game)
-        if not fresh and saved and saved[2]:
-            return game, saved[0], answer, saved[1]
+        locked = (saved[0], saved[1]) if saved and saved[2] else None
         boards = self.games.db.pooled(game)
-        turns = await self.games.play(game, answer, boards)
-        if fresh:
+        replay = game != today
+        turns = await self.games.play(game, answer, boards, replay)
+        blind = await self.games.blind(game, answer, replay) if boards else None
+        if not replay and not locked:
             self.games.db.save_play(guild_id, game, turns, len(boards))
-        return game, turns, answer, len(boards)
+        return game, turns, answer, len(boards), blind, locked
 
-    @group.command(name='play', description="Play today's Wordle from every board so far")
+    @group.command(name='play', description="Today's Wordle result, with the guesses in spoilers")
     @app_commands.describe(game='An earlier game number to replay. Defaults to today.')
     async def play(self, interaction: discord.Interaction, game: int = None):
-        """Colors only, so it spoils nothing. Always plays with all the boards
-        so far, even once the day's locked in; before then, if the server
-        never gets enough boards to lock in, the last of these stands."""
+        """The result with each guess, the words it was picked over and the
+        answer in spoilers, and what it would have scored with no boards.
+        Once more boards have come in than the locked result used, that
+        result is given too, as the official one."""
         await interaction.response.defer(thinking=True)
-        found = await self.result(interaction.guild.id, fresh=True, game=game)
+        found = await self.result(interaction.guild.id, game=game)
         if isinstance(found, str):
             # The reply started out public, so swap it for one only they see.
             await interaction.delete_original_response()
             await interaction.followup.send(found, ephemeral=True)
             return
-        game, turns, _, boards = found
-        await interaction.followup.send(f'{headline(game, turns)}\n{grid(turns)}')
+        game, turns, answer, boards, blind, locked = found
+        notes = []
+        if blind:
+            notes.append(blind_note(blind))
+        if locked and boards > locked[1]:
+            notes.append(official_note(*locked))
+        lines = [headline(game, turns), spoilers(turns, answer, boards)]
+        if notes:
+            lines.append(' '.join(notes))
+        await interaction.followup.send('\n'.join(lines))
         log.info('Wordle: /wordle play by %s in %s: %s from %s board(s)', interaction.user,
                  interaction.guild.name, headline(game, turns), boards)
 
-    @group.command(name='today', description="Today's result with the guesses, just for you")
-    async def today(self, interaction: discord.Interaction):
-        """Only the person asking sees it, and the words are still spoilered."""
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        found = await self.result(interaction.guild.id, fresh=False)
-        if isinstance(found, str):
-            await interaction.followup.send(found, ephemeral=True)
+    @group.command(name='stats', description="This server's official scores against blind play")
+    async def stats(self, interaction: discord.Interaction):
+        """The average locked-in score here, and the average of the same games
+        played blind from the opener, which shows what the boards are worth."""
+        await interaction.response.defer(thinking=True)
+        guild = interaction.guild
+        official, blind = [], []
+        for game, turns in self.games.db.locked_solves(guild.id):
+            answer = self.games.db.answer(game)
+            if not answer:
+                continue
+            official.append(guesses_taken(turns))
+            blind.append(guesses_taken(await self.games.blind(game, answer)))
+        if not official:
+            await interaction.followup.send('No locked-in Wordle results here yet.')
             return
-        game, turns, answer, boards = found
-        note = ''
-        if boards:
-            # The same game with no boards at all, to show what they were worth.
-            blind = await self.games.play(game, answer, [])
-            note = f'\n{blind_note(boards, blind)}'
         await interaction.followup.send(
-            f'{headline(game, turns)}\n{spoilers(turns, answer)}{note}', ephemeral=True)
-        log.info('Wordle: /wordle today by %s in %s: %s', interaction.user,
-                 interaction.guild.name, headline(game, turns))
+            f'**Wordle stats** · {discord.utils.escape_markdown(guild.name)}\n'
+            f'Games played: {len(official)}\n'
+            f'Official average: {average(official):.2f}\n'
+            f'Blind {OPENER.upper()} average: {average(blind):.2f}')
+        log.info('Wordle: /wordle stats by %s in %s: %s games, %.2f against %.2f blind',
+                 interaction.user, guild.name, len(official), average(official), average(blind))
 
     @group.command(name='simulate', description='Watch the solver play a word, with no boards')
     @app_commands.describe(word='Any five-letter word Wordle accepts')
@@ -96,11 +108,10 @@ class WordleCommands(commands.Cog):
             return
         await interaction.response.defer(thinking=True)
         turns = await self.games.simulate(word)
-        score = len(turns) if solved(turns) else 'X'
-        await interaction.followup.send(f'{word.upper()} {score}/6*\n{board(turns)}')
+        await interaction.followup.send(f'{word.upper()} {tally(turns)}*\n{board(turns)}')
         # The word is left out, in case someone simulates today's answer.
-        log.info('Wordle: /wordle simulate by %s in %s: %s/6*', interaction.user,
-                 interaction.guild.name, score)
+        log.info('Wordle: /wordle simulate by %s in %s: %s*', interaction.user,
+                 interaction.guild.name, tally(turns))
 
     @group.command(name='channel', description='Where locked-in results post')
     @app_commands.describe(channel="Leave empty to post next to the Wordle app's message.")
@@ -114,3 +125,9 @@ class WordleCommands(commands.Cog):
                  interaction.guild.id, channel.id if channel else None)
         await interaction.response.send_message(f'Wordle results will post in {where}.',
                                                 ephemeral=True)
+
+
+
+def average(scores) -> float:
+    """The mean of some scores."""
+    return sum(scores) / len(scores)

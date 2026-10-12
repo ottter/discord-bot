@@ -49,7 +49,7 @@ class KrillionDB:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as conn:
             conn.executescript(SCHEMA)
-        log.info('Krillion database ready at %s', self.path)
+        log.info('Krillion: database ready at %s', self.path)
 
     @contextmanager
     def connect(self):
