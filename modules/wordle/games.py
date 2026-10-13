@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 from modules.wordle import answers
 from modules.wordle.boards import Clues
 from modules.wordle.solver import (DATA, GUESSES, OPENER, Solver, discount, load_past, load_used,
-                                   load_words, play_out, solved)
+                                   load_words, play_out, score, solved)
 
 EMOJI = {'G': '🟩', 'Y': '🟨', 'B': '⬛'}
 # Boards a game needs before the bot plays and locks in its result.
@@ -192,23 +192,36 @@ def headline(game, turns) -> str:
 
 
 def spoilers(turns, answer, boards) -> str:
-    """The board with each guess in bold capitals and the words it was picked
-    over in italics, each with how likely it looked to be the answer, then the
-    answer and how many boards it was played from, all spoilered. Results
-    saved before these were kept show just the guess."""
+    """The board with each guess in bold capitals and how likely it looked to
+    be the answer, the words it was picked over in italics after it, then the
+    answer and how many boards it was played from, all spoilered. Each row
+    ends with how many words still fitted before that guess. Only the
+    guess is given a chance, to keep the line short on mobile. Results saved
+    before these were kept show just the guess."""
     rows = []
-    for turn in turns:
+    for turn, left in zip(turns, still_fitting(turns)):
         options = turn[2] if len(turn) > 2 else [[turn[0], None]]
-        picked, *others = [labelled(word, chance, bold=i == 0)
+        picked, *others = [labelled(word, chance if i == 0 else None, bold=i == 0)
                            for i, (word, chance) in enumerate(options)]
         rest = f' ({", ".join(others)})' if others else ''
-        rows.append(f'{squares(turn[1])} ||{picked}{rest}||')
+        rows.append(f'{squares(turn[1])} ||{picked}{rest} [{left:,}]||')
     return '\n'.join(rows + [f'Answer from {boards_text(boards)}: ||{answer.upper()}||'])
 
 
+def still_fitting(turns) -> list:
+    """How many words still fit the colors so far, before each guess."""
+    words = list(load_words())
+    counts = []
+    for guess, pattern, *_ in turns:
+        counts.append(len(words))
+        words = [word for word in words if score(guess, word) == pattern]
+    return counts
+
+
 def labelled(word, chance, bold) -> str:
-    """A word in bold or italics with its chance. Words already ruled out as
-    the answer, played only to narrow things down, get no number."""
+    """A word in bold or italics, with its chance when one is given. Words
+    already ruled out as the answer, played only to narrow things down, have
+    no chance to show."""
     text = f'**{word.upper()}**' if bold else f'*{word}*'
     if chance is None:
         return text

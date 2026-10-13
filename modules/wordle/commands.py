@@ -21,14 +21,15 @@ class WordleCommands(commands.Cog):
         self.bot = bot
         self.games = games
 
-    async def result(self, guild_id, game=None):
+    async def result(self, guild_id, game=None, use_boards=True):
         """(game, turns, answer, boards used, blind play, locked result), or a
         string if it can't. The blind play is None when there were no boards,
         and the locked result is (turns, boards) or None.
 
-        Always plays with every guild's boards so far, none needed. Until
-        today's game is locked in, that's saved as provisional. An earlier
-        game is only replayed, never saved."""
+        Plays with every guild's boards so far, none needed, unless boards are
+        turned off for this play. Until today's game is locked in, a play with
+        boards is saved as provisional. An earlier game is only replayed,
+        never saved."""
         today = self.games.today(guild_id)
         game = today if game is None else game
         if not 0 <= game <= self.games.newest(guild_id):
@@ -38,23 +39,27 @@ class WordleCommands(commands.Cog):
             return f"Can't look up Wordle {game} right now. Try again in a bit."
         saved = self.games.db.solve(guild_id, game)
         locked = (saved[0], saved[1]) if saved and saved[2] else None
-        boards = self.games.db.pooled(game)
+        boards = self.games.db.pooled(game) if use_boards else []
         replay = game != today
         turns = await self.games.play(game, answer, boards, replay)
         blind = await self.games.blind(game, answer, replay) if boards else None
-        if not replay and not locked:
+        if use_boards and not replay and not locked:
             self.games.db.save_play(guild_id, game, turns, len(boards))
         return game, turns, answer, len(boards), blind, locked
 
     @group.command(name='play', description="Today's Wordle result, with the guesses in spoilers")
-    @app_commands.describe(game='An earlier game number to replay. Defaults to today.')
-    async def play(self, interaction: discord.Interaction, game: int = None):
+    @app_commands.describe(game='An earlier game number to replay. Defaults to today.',
+                           use_boards="False plays this once without other players' boards.")
+    @app_commands.rename(use_boards='boards')
+    async def play(self, interaction: discord.Interaction, game: int = None,
+                   use_boards: bool = True):
         """The result with each guess, the words it was picked over and the
         answer in spoilers, and what it would have scored with no boards.
         Once more boards have come in than the locked result used, that
-        result is given too, as the official one."""
+        result is given too, as the official one. With boards off, it's just
+        the blind play, for this one command."""
         await interaction.response.defer(thinking=True)
-        found = await self.result(interaction.guild.id, game=game)
+        found = await self.result(interaction.guild.id, game=game, use_boards=use_boards)
         if isinstance(found, str):
             # The reply started out public, so swap it for one only they see.
             await interaction.delete_original_response()

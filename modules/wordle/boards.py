@@ -11,13 +11,19 @@ and the day's answer is never part of this.
 from array import array
 from itertools import islice
 
-from modules.wordle.solver import SOLVED, code, load_words, to_code
+from modules.wordle.solver import GUESSES_PATH, SOLVED, code, load_words, to_code
 
 # How much other boards count. 0 ignores them; 1 takes every row at face value.
 BOARD_TRUST = 1.0
-# A row never cuts an answer below this share of the best fit, in case someone
-# played an odd word or a board was misread.
+# A first row never cuts an answer below this share of the best fit, in case
+# someone opened with an odd word or a board was misread.
 FLOOR = 0.02
+# A later row no likely word could show only means the player guessed
+# something odd, which people do, so it cuts an answer less.
+LATER_FLOOR = 0.1
+# Judge what players guess by how common words are, not by answer weights,
+# which push plurals and past tenses like TIRED far down.
+PLAIN_GUESSES = True
 # Players mostly guess common words, so these are the typical guesses.
 TYPICAL = 1000
 # Words a player might really guess after their opener.
@@ -36,15 +42,16 @@ class Clues:
     """How each answer would color the guesses players make, worked out once."""
 
     def __init__(self, weights=None):
-        # Players guess from plain frequency; past answers don't put them off.
         weights = weights or load_words()
-        typical = dict(islice(weights.items(), TYPICAL))
-        total = sum(typical.values())
-        rest = 1 - sum(POPULAR.values())
-        openers = {word: weight / total * rest for word, weight in typical.items()}
+        # Players guess from plain frequency; past answers don't put them off.
+        guessed = load_words(GUESSES_PATH) if PLAIN_GUESSES else weights
+        typical = dict(islice(guessed.items(), TYPICAL))
+        # The popular openers' share of games, then the rest spread by frequency.
+        scale = (1 - sum(POPULAR.values())) / sum(typical.values())
+        openers = {word: weight * scale for word, weight in typical.items()}
         for word, share in POPULAR.items():
             openers[word] = openers.get(word, 0) + share
-        likely = set(islice(weights, LIKELY))
+        likely = set(islice(guessed, LIKELY))
 
         # For each answer: the share of openers showing each pattern, indexed
         # by the pattern's number, and one bit per pattern any likely word
@@ -91,8 +98,9 @@ class Clues:
                 # No typical guess shows this for any answer: an odd word, so skip it.
                 if not best:
                     continue
+                floor = FLOOR if turn == 0 else LATER_FLOOR
                 for answer in factor:
-                    factor[answer] *= (max(fit[answer], FLOOR * best) / best) ** trust
+                    factor[answer] *= (max(fit[answer], floor * best) / best) ** trust
         return factor
 
     def fit(self, answer: str, turn: int, value: int) -> float:

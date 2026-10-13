@@ -194,7 +194,7 @@ playing; it's looked up once per game, from NYT, only to color the bot's own gue
 
 | Command | |
 | --- | --- |
-| `/wordle play [game]` | Play today's game from every board so far and post the result, with the guesses and answer in spoilers. If more boards have come in since the server locked in, also gives the locked result as the official score. Before the lock, the last one stands if the server never reaches three boards. With a game number, replays that game instead; nothing newer than the latest released game |
+| `/wordle play [game] [boards]` | Play today's game from every board so far and post the result, with the guesses and answer in spoilers. `boards:False` plays just that once without boards, saving nothing. If more boards have come in since the server locked in, also gives the locked result as the official score. Before the lock, the last one stands if the server never reaches three boards. With a game number, replays that game instead; nothing newer than the latest released game |
 | `/wordle stats` | This server's locked-in games, with the average official score next to the average for the same games played blind from `slate` |
 | `/wordle simulate word` | Watch it play any word, with no boards |
 | `/wordle channel [#channel]` | Where locked-in results post. Unset means next to the app's message. Needs Manage Server |

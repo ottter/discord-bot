@@ -11,6 +11,24 @@ how it did.
 The bot uses `solver.py`, `boards.py` and `image.py`. Word lists and digit
 shapes are in `data/`, and the tuning and rebuild scripts are in `tools/`.
 
+There are two word lists, with the same 14,855 words NYT accepts, weighted for
+different questions:
+
+- **`words.txt`: what the answer is likely to be.** Common words weigh more,
+  and plurals, past tenses and the words in `unlikely.txt` are cut 500 times,
+  since NYT almost never uses them as answers. The bot's own guesses come from
+  these weights.
+- **`guesses.txt`: what other players are likely to guess.** Just how common
+  each word is, with nothing cut. People guess `tired` and `fired` all the
+  time even though they're never answers, so this is what reading other
+  players' boards uses.
+
+Both are rebuilt by `python -m modules.wordle.tools.sort_words`.
+
+`answers.txt` is Wordle's original answer list from the game's code, 2,315
+words. About 97% of answers so far are on it; NYT adds the odd word like
+`yodel`. It's only used when `LIST_TRUST` is on, which it isn't by default.
+
 Other players' boards come from the Wordle app's result images (`image.py`), or
 can be typed with `--board BBYBB,BGGBY,GGGGG`. Only their colors are used.
 
@@ -47,7 +65,7 @@ code or word lists change.
 
 | Command | What it does |
 | --- | --- |
-| `/wordle play [game]` | Posts the result with each guess, the four words it was picked over, how likely each looked, and the answer, all in spoilers. It also says how many boards it used and what it would have scored opening blind with `slate`. It always plays with every board so far. If more boards have come in since the server locked in, it also gives the locked result as the official score. Before the lock, the last result stands if the server never reaches three. With a game number, it replays that game with any stored boards and saves nothing. Only games already released somewhere can be played |
+| `/wordle play [game] [boards]` | Posts the result with each guess and how likely it looked, the four words it was picked over, how many words still fitted before it (in brackets), and the answer, all in spoilers. It also says how many boards it used and what it would have scored opening blind with `slate`. It plays with every board so far. Set `boards` to False to play just that once without them; that play isn't saved. If more boards have come in since the server locked in, it also gives the locked result as the official score. Before the lock, the last result stands if the server never reaches three. With a game number, it replays that game with any stored boards and saves nothing. Only games already released somewhere can be played |
 | `/wordle stats` | Shows how many games this server has locked in, the average official score, and the average for the same games played blind from `slate`. A game it didn't solve counts as 7 |
 | `/wordle simulate word` | Plays any word with no boards and shows every guess |
 | `/wordle channel` | Sets where locked-in results post. If unset, they post next to the app's message |
@@ -111,33 +129,45 @@ what they've seen, so for those the question is only whether some likely word
 could show that row for a given answer. Reading later rows like first ones
 held back answers like `strew`, which have few common neighbors.
 
+"Likely" here means common in `guesses.txt`, not likely as an answer. This
+used to come from the answer weights, and #1942 showed why that was wrong.
+One player's second row could only have come from `tired`, `fired` or a word
+like them. The answer weights put past tenses near the bottom, so the bot
+decided no likely word could have made that row, and cut the real answer,
+`wider`, 50 times. That happened on three rows, which dropped `wider` from
+2nd to 31st. People also play odd words, like opening with `penis`, so a
+later row that no likely word explains now only cuts an answer to a tenth,
+not a fiftieth.
+
 The rarer a first row, the more it says. The table shows single rows, and
 the share of the 3,000 likeliest answers each one cuts to the floor (the least
 a row leaves any answer, so nothing is ruled out completely):
 
 | First row | At the floor | Likeliest answers after |
 | --- | --- | --- |
-| ⬛⬛⬛⬛⬛ | 0% | puppy, mommy, buddy, fuzzy |
-| ⬛⬛🟨⬛⬛ | 0% | audio, pizza, avoid, mafia |
-| 🟩⬛⬛⬛⬛ | 16% | apply, sunny, alpha, swing |
-| ⬛⬛⬛⬛🟩 | 25% | judge, queue, dodge, fence |
-| 🟨🟨🟨⬛⬛ | 70% | radio, diary, rapid, drain |
-| 🟩🟩🟩⬛⬛ | 85% | staff, stand, stamp, stack |
-| ⬛🟩🟩🟩🟩 | 92% | plate, brain, grain, drain |
+| ⬛⬛⬛⬛⬛ | 0% | puppy, mommy, fuzzy, buddy |
+| ⬛⬛🟨⬛⬛ | 0% | audio, pizza, vodka, avoid |
+| 🟩⬛⬛⬛⬛ | 15% | apply, alpha, sunny, swing |
+| ⬛⬛⬛⬛🟩 | 26% | judge, queue, dodge, wedge |
+| 🟨🟨🟨⬛⬛ | 69% | radio, diary, rapid, drain |
+| 🟩🟩🟩⬛⬛ | 87% | stand, staff, stamp, stack |
+| ⬛🟩🟩🟩🟩 | 94% | plate, brain, grain, drain |
 
 - **All grey** rules nothing out but favors rare letters. Most openers show
-  all grey against `fluff`, so it keeps 69% of its weight. `crane` and
-  `stole` share letters with most openers and keep about 6%.
+  all grey against `fluff`, so it keeps 68% of its weight. `crane` and
+  `stole` share letters with most openers and keep 5–7%.
 - **Where a yellow sits** matters, because popular openers put certain letters
   in certain spots. A yellow in the middle suggests an A elsewhere, as in
-  `audio`. A yellow at the start suggests `_atch` words. `hatch` keeps 87% of
-  its weight after 🟨⬛⬛⬛⬛ but only 12% after ⬛⬛🟨⬛⬛.
+  `audio`. A yellow at the start suggests `_atch` words. `hatch` keeps 93% of
+  its weight after 🟨⬛⬛⬛⬛ but only 16% after ⬛⬛🟨⬛⬛.
 - **Greens** fix letters in place, so they cut the most. ⬛🟩🟩🟩🟩 leaves
   mostly words like `_rate` and `_rain`.
 
 ### Testing with made-up players
 
-The bench has no real boards, so it generates them from two kinds of player:
+The bench has no real boards, so it generates them from two kinds of player.
+Both pick words by how common they are (`guesses.txt`), plurals and past
+tenses included:
 
 - **Tidy** players open with a popular opener about a third of the time, in
   the proportions people really use them, and otherwise with a random common
@@ -145,9 +175,20 @@ The bench has no real boards, so it generates them from two kinds of player:
 - **Messy** players open the same way, then guess any common word that still
   fits, picked at random.
 
-Both came out about the same, so the numbers below use messy players. Opening
+With `--odd 0.1`, a tenth of either kind's guesses are any word at all that
+fits, for the people who open with something silly. Until #1942, the made-up
+players guessed from the answer weights, so they almost never played `tired`
+either, and the bench couldn't see the problem.
+
+Tidy and messy came out about the same, so the numbers below use messy players
+with odd guesses.
+
+`--off-list 0.15` swaps that share of replayed answers for plausible words
+off Wordle's original list, drawn from where real ones like `yodel` sit. Past
+answers came mostly from that list by construction, so this is how to check
+a setting still holds up if NYT strays from it. Opening
 with `slate` every time, each board helps a little less than the last, but
-every board helps. Two boards give over half the gain of six.
+every board helps. Two boards give about two thirds of the gain of six.
 
 ### Picking the opener
 
@@ -159,17 +200,19 @@ this gives a clear gain:
 | `BOARD_TRUST` | Opener | 0 boards | 2 boards | 4 boards | 6 boards |
 | --- | --- | --- | --- | --- | --- |
 | 0 | Always `slate` | 3.31 | 3.31 | 3.31 | 3.31 |
-| 1 (Default configuration) | Worked out | 3.31 | 2.55 | 2.01 | 1.64 |
-| 1 | Always `slate` | 3.31 | 2.74 | 2.46 | 2.27 |
-| 2 | Worked out | 3.31 | 2.48 | 2.00 | 1.72 |
-| 2 | Always `slate` | 3.31 | 2.77 | 2.41 | 2.22 |
+| 1 (Default configuration) | Worked out | 3.31 | 2.59 | 2.21 | 1.94 |
+| 1 | Always `slate` | 3.31 | 2.68 | 2.48 | 2.40 |
+| 2 | Worked out | 3.31 | 2.54 | 2.21 | 2.01 |
+| 2 | Always `slate` | 3.31 | 2.71 | 2.56 | 2.47 |
 
-    python -m modules.wordle.tools.bench --used 0.2 --games 100 --players 2 --messy --start auto --set BOARD_TRUST=2
+    python -m modules.wordle.tools.bench --used 0.2 --games 100 --players 2 --messy --odd 0.1 --start auto --set BOARD_TRUST=2
 
 That's hard mode, 100 games each, replaying a made-up history so past answers
 count as used. `BOARD_TRUST` is how hard each row counts. At 0 the boards are
 ignored, so every column plays like the first. At 2, results change by a few
-hundredths either way, which is within the noise of 100 games.
+hundredths either way, which is within the noise of 100 games. These players
+are messier than the ones the table used before #1942, so every column with
+boards is a little higher than it was; the old numbers flattered the bot.
 
 ### On real games
 
@@ -177,7 +220,8 @@ Made-up boards narrow things down more cleanly than real ones. On 15 real
 days from our server, mostly five or six boards each, the bot averaged 2.47
 guesses against 2.60 opening with `slate`. The effect varies by day: `copse`
 (#1924, six boards) went from 5 guesses to 2, and `strew` (#1937, five boards)
-rose from 5,450th likeliest to 50th.
+rose from 5,450th likeliest to 50th. On #1942, six boards took `wider` from
+2nd to 31st before the fix above, and to 8th after it.
 
 ## What past answers look like
 
@@ -239,15 +283,19 @@ different value, run `python -m modules.wordle.tools.bench --set NAME=VALUE`.
 | `MIN_GAIN` | 0.1 | How much likelier a tied word must be to win the tie | 0.05–0.3 | No difference |
 | `SOLVED_LEAVES_NOTHING` | True | A correct guess counts as nothing left to find | — | Stops picks like abray over array |
 | `ENTROPY` | False | Judge splits by information gained instead | — | Worse by 0.06–0.12 |
-| `BOARD_TRUST` | 1.0 | How much other players' boards count. 0 ignores them. In `boards.py` | 0.5–2 | 1 was best with 5 players: about 2.4 against 3.34 without boards. Little change up to 2 |
-| `FLOOR` | 0.02 | The least share of the best fit a row leaves any answer, so nothing is ruled out. In `boards.py` | — | Not tested |
-| `OPENER_SWITCH` | 0.2 | With boards, the opener is worked out like any guess, but slate stays unless the pick leaves this much less to find | — | 15 real days: 2.47 guesses against slate's 2.60. Simulated boards overstate the gain (1.64 against 2.27 at 6 boards). `PICK_OPENER` in `games.py` turns it off |
+| `BOARD_TRUST` | 1.0 | How much other players' boards count. 0 ignores them. In `boards.py` | 0.5–2 | At 6 boards, 1.94 against 3.31 without boards. 2 was no better (2.01) |
+| `FLOOR` | 0.02 | The least share of the best fit a first row leaves any answer, so nothing is ruled out. In `boards.py` | 0.02–0.1 | 0.1 was worse: 2.09 against 1.94 at 6 boards |
+| `LATER_FLOOR` | 0.1 | The same for later rows, which no likely word explaining only means an odd guess. In `boards.py` | 0.02–0.3 | Held-back seed, 6 boards: 2.00 against 2.09 for 0.02 when a fifth of guesses are odd, and level with none. 0.3 no better |
+| `PLAIN_GUESSES` | True | Judge what players guess by `guesses.txt`, not the answer weights. In `boards.py` | — | Held-back seed: 2.01 against 2.31 at 6 boards, 2.56 against 2.74 at 3 |
+| `OPENER_SWITCH` | 0.2 | With boards, the opener is worked out like any guess, but slate stays unless the pick leaves this much less to find | — | 15 real days: 2.47 guesses against slate's 2.60. Simulated boards overstate the gain (1.94 against 2.40 at 6 boards). `PICK_OPENER` in `games.py` turns it off |
 | `USED_FACTOR` | 0.2 | Share of its weight a past answer keeps | 0.1–0.5 | Biggest gain: 3.30 against 3.54 uncut. Heavier cuts fall behind as repeats rise |
+| `LIST_TRUST` | 0 | How much to trust `answers.txt`. Words off it keep 1 minus this of their weight; 0 is off | 0–0.99 | Blind, held-back seed: 0.99 gave 3.29 against 3.38 at today's off-list rate, level at 15% off-list (`--off-list 0.15`), 0.1 worse at 30%. Off until it's clear NYT keeps drawing from the list; 473 words were left in October 2026 |
 
 ### Answer weights
 
 The answer weights are built by `python -m modules.wordle.tools.sort_words`
-and tuned with `python -m modules.wordle.tools.tune_weights`.
+and tuned with `python -m modules.wordle.tools.tune_weights`. The same run
+writes `guesses.txt` with the penalty left off.
 
 | Setting | Default | What it does | Range | What we saw |
 | --- | --- | --- | --- | --- |

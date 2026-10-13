@@ -6,11 +6,17 @@ tools/sort_words.py. Patterns are five of G (green), Y (yellow) and B (gray).
 """
 import math
 from collections import Counter
+from functools import lru_cache
 from itertools import islice
 from pathlib import Path
 
 DATA = Path(__file__).parent / 'data'
 WORDS_PATH = DATA / 'words.txt'
+# The same words weighted by how common they are, for what players guess.
+GUESSES_PATH = DATA / 'guesses.txt'
+# Wordle's original answer list, from the game's code before NYT took it over.
+# About 97% of answers so far are on it; NYT adds the odd word like yodel.
+ANSWERS_PATH = DATA / 'answers.txt'
 # Every answer so far, repeats included. Lines are a word, or a game number
 # and its word (`1938 major`) for ones added by hand; the bot stores the rest.
 PAST_PATH = DATA / 'past.txt'
@@ -49,6 +55,9 @@ SOLVED_LEAVES_NOTHING = True
 # has repeated since reuse began on 2 Feb 2026, and that's expected to rise.
 # 0.2 holds up best from 10% to 25% repeats; heavier cuts lose on repeat days.
 USED_FACTOR = 0.2
+# How much to trust answers.txt. Words not on it keep 1 - this of their
+# weight, so 0 turns it off and 1 would rule them out.
+LIST_TRUST = 0.0
 # Judge splits by entropy (information gained) instead of expected weight left.
 ENTROPY = False
 
@@ -79,15 +88,24 @@ def load_used(before=None, past=None) -> Counter:
                    if before is None or number is None or number < before)
 
 
+@lru_cache(maxsize=1)
+def load_listed() -> frozenset:
+    """The words on Wordle's original answer list."""
+    return frozenset(ANSWERS_PATH.read_text(encoding='utf-8').split())
+
+
 def discount(weights: dict, used: Counter, factor: float = None) -> dict:
-    """The weights with past answers cut down, most likely first again.
+    """The weights with past answers cut down, and words off the answer list
+    too if LIST_TRUST is on, most likely first again.
 
     A used word is less likely than an unused one as common, but still well
     above words nobody knows. Each use cuts it again, so a word used twice
     keeps factor squared.
     """
     factor = USED_FACTOR if factor is None else factor
-    cut = {word: weight * factor ** used[word] for word, weight in weights.items()}
+    listed, off_list_keeps = load_listed(), 1 - LIST_TRUST
+    cut = {word: weight * factor ** used[word] * (1 if word in listed else off_list_keeps)
+           for word, weight in weights.items()}
     return dict(sorted(cut.items(), key=lambda item: -item[1]))
 
 

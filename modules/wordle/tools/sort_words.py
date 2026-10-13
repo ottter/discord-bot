@@ -1,10 +1,11 @@
-"""Rebuild words.txt, most likely answer first.
+"""Rebuild words.txt, most likely answer first, and guesses.txt.
 
     python -m modules.wordle.tools.sort_words
 
 Each line is a word and its weight: roughly the chance it's an answer, from
 how common it is today. Plurals, past tenses and the words in unlikely.txt
-are rarely answers, so they're cut down to sit near the end. Needs
+are rarely answers, so they're cut down to sit near the end. guesses.txt
+has the same words weighted by how common they are alone. Needs
 `pip install wordfreq`, which the bot itself doesn't.
 """
 import math
@@ -12,7 +13,7 @@ import math
 # Not in requirements.txt, so CI's pylint can't import it.
 from wordfreq import zipf_frequency  # pylint: disable=import-error
 
-from modules.wordle.solver import DATA, WORDS_PATH
+from modules.wordle.solver import DATA, GUESSES_PATH, WORDS_PATH
 
 UNLIKELY_PATH = DATA / 'unlikely.txt'
 
@@ -71,12 +72,20 @@ def main():
     unlikely = read_unlikely()
     if unlikely - set(words):
         print('Not in the word list:', ' '.join(sorted(unlikely - set(words))))
-    weights = {word: weight(zipf(word), word in unlikely or is_inflected(word))
-               for word in words}
-    ranked = sorted(words, key=lambda word: -weights[word])
-    with WORDS_PATH.open('w', encoding='utf-8', newline='\n') as out:
+    frequency = {word: zipf(word) for word in words}
+    write(WORDS_PATH, {word: weight(frequency[word], word in unlikely or is_inflected(word))
+                       for word in words})
+    # What players guess: just how common a word is. Plurals and past tenses
+    # are rare answers but ordinary guesses.
+    write(GUESSES_PATH, {word: weight(frequency[word], False) for word in words})
+
+
+def write(path, weights):
+    """One word and weight per line, heaviest first."""
+    ranked = sorted(weights, key=lambda word: -weights[word])
+    with path.open('w', encoding='utf-8', newline='\n') as out:
         out.writelines(f'{word} {weights[word]:.4f}\n' for word in ranked)
-    print(f'Wrote {len(ranked)} words to {WORDS_PATH}')
+    print(f'Wrote {len(ranked)} words to {path}')
 
 
 if __name__ == '__main__':
