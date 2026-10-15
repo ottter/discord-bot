@@ -19,9 +19,6 @@ CLOSE = 2
 TILE_PIXELS = 15
 # Text is any pixel brighter than this on the dark background.
 INK = 60
-# Every column of a digit has a stroke at least this bright; only the
-# anti-aliased edges are fainter.
-SOLID = 128
 # Gaps wider than this split words in the title, and boards from each other.
 WORD_GAP = 3
 BOARD_GAP = 8
@@ -95,24 +92,29 @@ def game_number(image):
     pixels = title.load()
     peaks = [max(pixels[x, y] for y in range(title.size[1])) for x in range(width)]
     glyphs = spans([peak > INK for peak in peaks], least=1)
-    number = [part for glyph in split(glyphs, WORD_GAP)[-1] for part in unjoin(glyph, peaks)]
-
-    digits = [closest(shape(title.crop((left, 0, right, title.size[1]))))
-              for left, right in number]
+    digits = [read_digits(title, peaks, glyph) for glyph in split(glyphs, WORD_GAP)[-1]]
     if None in digits:
         return None
     return int(''.join(digits))
 
 
-def unjoin(glyph, peaks) -> list:
-    """Split digits touching only by faint edge pixels, like the tip of a 4's
-    bar meeting a 0. The faint column stays with the left digit, as a bar's
-    tip sticks out to the right."""
+def read_digits(title, peaks, glyph):
+    """The digit or digits in one glyph, or None. Digits sometimes touch, like
+    a 4's bar running into the next digit in 40 and 44, so a glyph that isn't
+    one digit is cut where both sides read as digits, trying the faintest
+    columns first. The cut column can belong to either side, or to both if
+    the two overlap."""
     left, right = glyph
-    for x in range(left + 1, right - 1):
-        if max(peaks[left:x]) > SOLID >= peaks[x] and max(peaks[x + 1:right]) > SOLID:
-            return [(left, x + 1)] + unjoin((x + 1, right), peaks)
-    return [glyph]
+    whole = closest(shape(title.crop((left, 0, right, title.size[1]))))
+    if whole is not None:
+        return whole
+    for column in sorted(range(left + 2, right - 2), key=peaks.__getitem__):
+        for end, start in ((column, column), (column + 1, column + 1), (column + 1, column)):
+            first = closest(shape(title.crop((left, 0, end, title.size[1]))))
+            rest = first and read_digits(title, peaks, (start, right))
+            if rest:
+                return first + rest
+    return None
 
 
 def shape(glyph) -> list:
